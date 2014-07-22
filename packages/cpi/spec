@@ -1,0 +1,8 @@
+---
+name: cpi
+
+dependencies:
+- golang_1.3
+
+files:
+- bosh-warden-cpi/**/*

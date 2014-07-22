@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# todo do not use sudo
+exec sudo /var/vcap/packages/cpi/bin/cpi -configPath=/var/vcap/jobs/cpi/config/cpi.json 2>>/var/vcap/sys/log/cpi/cpi.stderr.log <&0

@@ -1,0 +1,16 @@
+set -e
+
+mkdir -p go/src
+
+mv bosh-warden-cpi go/src/
+
+cd go/src/bosh-warden-cpi
+
+export GOROOT=$(readlink -nf /var/vcap/packages/golang_1.3)
+export PATH=$GOROOT/bin:$PATH
+
+bin/build-linux-amd64
+
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+cp out/cpi ${BOSH_INSTALL_TARGET}/bin/

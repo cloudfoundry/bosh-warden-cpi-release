@@ -1,0 +1,31 @@
+<%=
+
+JSON.dump(
+  "Warden" => {
+    "ConnectNetwork" => p("cpi.warden.connect_network"),
+    "ConnectAddress" => p("cpi.warden.connect_address"),
+  },
+
+  "Actions" => {
+    "StemcellsDir" => p("cpi.actions.stemcells_dir"),
+    "DisksDir"     => p("cpi.actions.disks_dir"),
+
+    "HostEphemeralBindMountsDir"  => p("cpi.actions.host_ephemeral_bind_mounts_dir"),
+    "HostPersistentBindMountsDir" => p("cpi.actions.host_persistent_bind_mounts_dir"),
+
+    "GuestEphemeralBindMountPath"  => p("cpi.actions.guest_ephemeral_bind_mount_path"),
+    "GuestPersistentBindMountsDir" => p("cpi.actions.guest_persistent_bind_mounts_dir"),
+
+    "Agent" => {
+      "Mbus" => p("cpi.agent.mbus"),
+      "NTP"  => p("cpi.agent.ntp"),
+
+      "Blobstore" => {
+        "Type"    => p("cpi.agent.blobstore.provider"),
+        "Options" => p("cpi.agent.blobstore.options"),
+      },
+    },  
+  }
+)
+
+%>

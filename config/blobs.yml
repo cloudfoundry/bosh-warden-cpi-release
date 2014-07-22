@@ -1,0 +1,11 @@
+---
+golang_1.3/go1.3.linux-amd64.tar.gz:
+  object_id: d6f550fc-c1e7-40a5-b96f-fe17f7a1dd04
+  sha: !binary |-
+    YjZiMTU0OTMzMDM5OTg3MDU2YWMzMDdlMjBjMjVmYTUwOGEwNmJhNg==
+  size: 51123994
+iptables/iptables-1.4.21.tar.bz2:
+  object_id: b4176037-2ec5-4a6d-aa65-b89b7901592c
+  sha: !binary |-
+    ODVkNDE2MDUzNzU0NmEyM2E3ZTQyYmMyNmRkN2VlNjJhMGVkZTRjOA==
+  size: 547439
