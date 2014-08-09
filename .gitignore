@@ -1,16 +1,24 @@
+.idea
+.DS_Store
+*.swp
+*~
+*#
+#*
+
 config/dev.yml
 config/private.yml
 
-.blobs/
-blobs/
+.blobs
+blobs
 
-.dev_builds/
-dev_releases/
+.dev_builds
+dev_releases
 
 .final_builds/jobs/**/*.tgz
 .final_builds/packages/**/*.tgz
 
 releases/*.tgz
+releases/**/*.tgz
 
 .vagrant/
 
