@@ -1,0 +1,42 @@
+---
+packages:
+- name: cpi
+  version: bc1054eb24c7deeeb4a62da6738e065bf299077f
+  sha1: 5e6fd1ec50d25248f192d99eba93c0bceceab29a
+  fingerprint: bc1054eb24c7deeeb4a62da6738e065bf299077f
+  dependencies:
+  - golang_1.3
+- name: golang_1.3
+  version: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  sha1: 9d058d392dc2672326103c5e691c7e4e33199e61
+  fingerprint: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  dependencies: []
+- name: iptables
+  version: 7226d311e90f49b05287e79f339581a1de9ea82e
+  sha1: 0140831d1cc147090b19beb68d16c39c70860b9d
+  fingerprint: 7226d311e90f49b05287e79f339581a1de9ea82e
+  dependencies: []
+- name: pid_utils
+  version: 78702c2c2bbbba330b8d5fc3a1a34ba7e0b36906
+  sha1: c6dd864216dbfbb996bc62f8984edccaa97600ff
+  fingerprint: 78702c2c2bbbba330b8d5fc3a1a34ba7e0b36906
+  dependencies: []
+- name: warden-linux
+  version: c4ecfe8e288c19bcbe427fb37e4cd760fd854a56
+  sha1: 644559fbfe1c43e1a95d156ba1dc95b6b5b99b94
+  fingerprint: c4ecfe8e288c19bcbe427fb37e4cd760fd854a56
+  dependencies:
+  - golang_1.3
+jobs:
+- name: cpi
+  version: 545361ecb78bfd51a3eda34f3976df72dd0eabf6
+  fingerprint: 545361ecb78bfd51a3eda34f3976df72dd0eabf6
+  sha1: 5c4f217548d4ab390623bdea592b1b441a7309cb
+- name: warden
+  version: aff2984c21ab15d97ecf4e9269dab37a2f6a0744
+  fingerprint: aff2984c21ab15d97ecf4e9269dab37a2f6a0744
+  sha1: 9a42129bb3d35f1ddd3b4f206617495cb27a4e66
+commit_hash: 924c7384
+uncommitted_changes: true
+name: bosh-warden-cpi
+version: '1'
