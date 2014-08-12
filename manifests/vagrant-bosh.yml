@@ -51,11 +51,11 @@ properties:
   nats:
     user: nats
     password: nats-password
-    address: 10.0.2.15
+    address: 127.0.0.1
     port: 4222
 
   blobstore:
-    address: 10.0.2.15
+    address: 127.0.0.1
     port: 25251
     backend_port: 25552
     agent:
@@ -68,26 +68,26 @@ properties:
   postgres:
     user: bosh
     password: bosh-password
-    host: 10.0.2.15
+    host: 127.0.0.1
     port: 5432
     database: bosh
 
   redis:
     password: redis-password
-    address: 10.0.2.15
+    address: 127.0.0.1
     port: 25255
 
   director:
     name: bosh-in-vagrant
-    address: 10.0.2.15
+    address: 127.0.0.1
     port: 25555
     encryption: false
     enable_snapshots: true
-    max_tasks: 1
+    max_tasks: 100
     db:
       user: bosh
       password: bosh-password
-      host: 10.0.2.15
+      host: 127.0.0.1
       port: 5432
       database: bosh
     ssl:
@@ -178,11 +178,11 @@ properties:
       connect_network: tcp
       connect_address: 127.0.0.1:7777
     agent:
-      mbus: nats://nats:nats-password@10.0.2.15:4222
+      mbus: nats://nats:nats-password@_local_ip_:4222
       blobstore:
         provider: dav
         options:
-          endpoint: http://10.0.2.15:25251
+          endpoint: http://_local_ip_:25251
           user: agent
           password: agent-password
 
