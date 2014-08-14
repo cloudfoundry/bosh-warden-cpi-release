@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -219,13 +220,25 @@ func (c *connection) Run(handle string, spec warden.ProcessSpec, processIO warde
 		dir = proto.String(spec.Dir)
 	}
 
+	var tty *protocol.TTY
+	if spec.TTY != nil {
+		tty = &protocol.TTY{}
+
+		if spec.TTY.WindowSize != nil {
+			tty.WindowSize = &protocol.TTY_WindowSize{
+				Columns: proto.Uint32(uint32(spec.TTY.WindowSize.Columns)),
+				Rows:    proto.Uint32(uint32(spec.TTY.WindowSize.Rows)),
+			}
+		}
+	}
+
 	err := transport.WriteMessage(reqBody, &protocol.RunRequest{
 		Handle:     proto.String(handle),
 		Path:       proto.String(spec.Path),
 		Args:       spec.Args,
 		Dir:        dir,
 		Privileged: proto.Bool(spec.Privileged),
-		Tty:        proto.Bool(spec.TTY),
+		Tty:        tty,
 		Rlimits: &protocol.ResourceLimits{
 			As:         spec.Limits.As,
 			Core:       spec.Limits.Core,
@@ -803,8 +816,12 @@ func (c *connection) doStream(
 	}
 
 	if httpResp.StatusCode < 200 || httpResp.StatusCode > 299 {
+		errResponse, err := ioutil.ReadAll(httpResp.Body)
 		httpResp.Body.Close()
-		return nil, fmt.Errorf("bad response: %s", httpResp.Status)
+		if err != nil {
+			return nil, fmt.Errorf("bad response: %s", httpResp.Status)
+		}
+		return nil, fmt.Errorf(string(errResponse))
 	}
 
 	return httpResp.Body, nil

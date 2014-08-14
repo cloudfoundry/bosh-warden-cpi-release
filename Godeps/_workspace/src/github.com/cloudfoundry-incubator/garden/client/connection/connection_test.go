@@ -3,6 +3,8 @@ package connection_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -828,7 +830,6 @@ var _ = Describe("Connection", func() {
 							Args:       []string{"arg1", "arg2"},
 							Dir:        proto.String("/some/dir"),
 							Privileged: proto.Bool(true),
-							Tty:        proto.Bool(true),
 							Rlimits: &protocol.ResourceLimits{
 								As:         proto.Uint64(1),
 								Core:       proto.Uint64(2),
@@ -894,7 +895,6 @@ var _ = Describe("Connection", func() {
 					Args:       []string{"arg1", "arg2"},
 					Dir:        "/some/dir",
 					Privileged: true,
-					TTY:        true,
 					Limits:     resourceLimits,
 				}, warden.ProcessIO{
 					Stdin:  bytes.NewBufferString("stdin data"),
@@ -925,8 +925,13 @@ var _ = Describe("Connection", func() {
 							Path:       proto.String("lol"),
 							Args:       []string{"arg1", "arg2"},
 							Privileged: proto.Bool(false),
-							Tty:        proto.Bool(false),
-							Rlimits:    &protocol.ResourceLimits{},
+							Tty: &protocol.TTY{
+								WindowSize: &protocol.TTY_WindowSize{
+									Columns: proto.Uint32(100),
+									Rows:    proto.Uint32(200),
+								},
+							},
+							Rlimits: &protocol.ResourceLimits{},
 						}),
 						func(w http.ResponseWriter, r *http.Request) {
 							w.WriteHeader(http.StatusOK)
@@ -946,9 +951,11 @@ var _ = Describe("Connection", func() {
 
 							Ω(payload).Should(Equal(protocol.ProcessPayload{
 								ProcessId: proto.Uint32(42),
-								WindowSize: &protocol.ProcessPayload_WindowSize{
-									Columns: proto.Uint32(80),
-									Rows:    proto.Uint32(24),
+								Tty: &protocol.TTY{
+									WindowSize: &protocol.TTY_WindowSize{
+										Columns: proto.Uint32(80),
+										Rows:    proto.Uint32(24),
+									},
 								},
 							}))
 
@@ -962,6 +969,12 @@ var _ = Describe("Connection", func() {
 				process, err := connection.Run("foo-handle", warden.ProcessSpec{
 					Path: "lol",
 					Args: []string{"arg1", "arg2"},
+					TTY: &warden.TTYSpec{
+						WindowSize: &warden.WindowSize{
+							Columns: 100,
+							Rows:    200,
+						},
+					},
 				}, warden.ProcessIO{
 					Stdin:  bytes.NewBufferString("stdin data"),
 					Stdout: gbytes.NewBuffer(),
@@ -971,7 +984,12 @@ var _ = Describe("Connection", func() {
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(process.ID()).Should(Equal(uint32(42)))
 
-				err = process.SetWindowSize(80, 24)
+				err = process.SetTTY(warden.TTYSpec{
+					WindowSize: &warden.WindowSize{
+						Columns: 80,
+						Rows:    24,
+					},
+				})
 				Ω(err).ShouldNot(HaveOccurred())
 
 				status, err := process.Wait()
@@ -1115,6 +1133,55 @@ var _ = Describe("Connection", func() {
 				status, err := process.Wait()
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(status).Should(Equal(3))
+			})
+		})
+
+		Context("when an error occurs while reading the given stdin stream", func() {
+			It("does not send an EOF to close the process's stdin", func() {
+				finishedReq := make(chan struct{})
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/containers/foo-handle/processes/42"),
+						func(w http.ResponseWriter, r *http.Request) {
+							w.WriteHeader(http.StatusOK)
+
+							conn, br, err := w.(http.Hijacker).Hijack()
+							Ω(err).ShouldNot(HaveOccurred())
+
+							defer conn.Close()
+							decoder := json.NewDecoder(br)
+
+							var payload protocol.ProcessPayload
+							err = decoder.Decode(&payload)
+							Ω(err).ShouldNot(HaveOccurred())
+
+							Ω(payload).Should(Equal(protocol.ProcessPayload{
+								ProcessId: proto.Uint32(42),
+								Source:    &stdin,
+								Data:      proto.String("stdin data"),
+							}))
+
+							var payload2 protocol.ProcessPayload
+							err = decoder.Decode(&payload2)
+							Ω(err).Should(HaveOccurred())
+
+							close(finishedReq)
+						},
+					),
+				)
+
+				stdinR, stdinW := io.Pipe()
+
+				_, err := connection.Attach("foo-handle", 42, warden.ProcessIO{
+					Stdin: stdinR,
+				})
+				Ω(err).ShouldNot(HaveOccurred())
+
+				stdinW.Write([]byte("stdin data"))
+				stdinW.CloseWithError(errors.New("connection broke"))
+
+				Eventually(finishedReq).Should(BeClosed())
 			})
 		})
 

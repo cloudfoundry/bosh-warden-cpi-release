@@ -51,8 +51,8 @@ func (p *process) Wait() (int, error) {
 	return p.exitStatus, p.exitErr
 }
 
-func (p *process) SetWindowSize(columns int, rows int) error {
-	return p.stream.SetWindowSize(columns, rows)
+func (p *process) SetTTY(tty warden.TTYSpec) error {
+	return p.stream.SetTTY(tty)
 }
 
 func (p *process) exited(exitStatus int, err error) {
@@ -72,8 +72,12 @@ func (p *process) streamPayloads(decoder *json.Decoder, processIO warden.Process
 		writer := &stdinWriter{p.stream}
 
 		go func() {
-			io.Copy(writer, processIO.Stdin)
-			writer.Close()
+			_, err := io.Copy(writer, processIO.Stdin)
+			if err == nil {
+				writer.Close()
+			} else {
+				p.stream.Close()
+			}
 		}()
 	}
 
