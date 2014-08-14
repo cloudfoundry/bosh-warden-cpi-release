@@ -52,7 +52,7 @@ func (c FSCreator) Create(size int) (Disk, error) {
 		return nil, bosherr.WrapError(err, "Creating empty disk")
 	}
 
-	sizeStr := strconv.Itoa(20) + "MB"
+	sizeStr := strconv.Itoa(size) + "MB"
 
 	_, _, _, err = c.cmdRunner.RunCommand("truncate", "-s", sizeStr, diskPath)
 	if err != nil {

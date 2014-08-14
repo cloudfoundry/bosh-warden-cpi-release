@@ -33,7 +33,7 @@ var _ = Describe("FSCreator", func() {
 		It("returns unique disk id", func() {
 			uuidGen.GeneratedUuid = "fake-uuid"
 
-			disk, err := creator.Create(20)
+			disk, err := creator.Create(40)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedDisk := NewFSDisk("fake-uuid", "/fake-disks-dir/fake-uuid", fs, logger)
@@ -48,7 +48,7 @@ var _ = Describe("FSCreator", func() {
 			It("touches disk path in disks directory", func() {
 				uuidGen.GeneratedUuid = "fake-uuid"
 
-				_, err := creator.Create(20)
+				_, err := creator.Create(40)
 				Expect(err).ToNot(HaveOccurred())
 
 				bytes, err := fs.ReadFile("/fake-disks-dir/fake-uuid")
@@ -58,18 +58,18 @@ var _ = Describe("FSCreator", func() {
 
 			Context("when touching disk path succeeds", func() {
 				It("increases size of the file to given size in MB", func() {
-					_, err := creator.Create(20)
+					_, err := creator.Create(40)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(len(cmdRunner.RunCommands)).To(BeNumerically(">", 0))
 					Expect(cmdRunner.RunCommands[0]).To(Equal(
-						[]string{"truncate", "-s", "20MB", "/fake-disks-dir/fake-uuid"},
+						[]string{"truncate", "-s", "40MB", "/fake-disks-dir/fake-uuid"},
 					))
 				})
 
 				ItDestroysFile := func(errMsg string) {
 					It("deletes file since it was not turned into a filesystem", func() {
-						disk, err := creator.Create(20)
+						disk, err := creator.Create(40)
 						Expect(err).To(HaveOccurred())
 						Expect(disk).To(BeNil())
 
@@ -82,7 +82,7 @@ var _ = Describe("FSCreator", func() {
 						})
 
 						It("returns running error and not destroy error", func() {
-							disk, err := creator.Create(20)
+							disk, err := creator.Create(40)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring(errMsg))
 							Expect(disk).To(BeNil())
@@ -92,7 +92,7 @@ var _ = Describe("FSCreator", func() {
 
 				Context("when increasing file size succeeds", func() {
 					It("turns file into a filesystem", func() {
-						_, err := creator.Create(20)
+						_, err := creator.Create(40)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(cmdRunner.RunCommands).To(HaveLen(2))
@@ -110,7 +110,7 @@ var _ = Describe("FSCreator", func() {
 						})
 
 						It("returns an error", func() {
-							disk, err := creator.Create(20)
+							disk, err := creator.Create(40)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 							Expect(disk).To(BeNil())
@@ -123,13 +123,13 @@ var _ = Describe("FSCreator", func() {
 				Context("when increasing file size fails", func() {
 					BeforeEach(func() {
 						cmdRunner.AddCmdResult(
-							"truncate -s 20MB /fake-disks-dir/fake-uuid",
+							"truncate -s 40MB /fake-disks-dir/fake-uuid",
 							fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
 						)
 					})
 
 					It("returns an error", func() {
-						disk, err := creator.Create(20)
+						disk, err := creator.Create(40)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 						Expect(disk).To(BeNil())
@@ -143,7 +143,7 @@ var _ = Describe("FSCreator", func() {
 				It("returns error if touching disk path fails", func() {
 					fs.WriteToFileError = errors.New("fake-write-file-err")
 
-					disk, err := creator.Create(20)
+					disk, err := creator.Create(40)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-write-file-err"))
 					Expect(disk).To(BeNil())
@@ -155,7 +155,7 @@ var _ = Describe("FSCreator", func() {
 			It("returns error if generating disk id fails", func() {
 				uuidGen.GenerateError = errors.New("fake-generate-err")
 
-				disk, err := creator.Create(20)
+				disk, err := creator.Create(40)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-generate-err"))
 				Expect(disk).To(BeNil())
