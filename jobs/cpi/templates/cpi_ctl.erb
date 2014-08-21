@@ -21,7 +21,10 @@ case $1 in
     cp /var/vcap/jobs/cpi/config/sudoers /etc/sudoers.d/cpi
     chmod 440 /etc/sudoers.d/cpi
 
-    echo 1 >> $PIDFILE
+    echo $$ > $PIDFILE
+
+    # Create a dummy process so monit will start it on system reboot
+    tail -f /dev/null
 
     ;;
 
