@@ -11,6 +11,10 @@ packages:
 - cpi
 
 properties:
+  cpi.host_ip:
+    description: "IP address of the host that will be used by containers, must be the same as mbus IP"
+    example: "10.254.50.4"
+
   cpi.warden.connect_network:
     description: "Connection type warden client will use to connect (tcp or unix)"
 
@@ -18,8 +22,8 @@ properties:
     description: "Address warden client will use to connect (ip:port or sock path)"
 
   cpi.agent.mbus:
-    description: "Mbus URL used by deployed BOSH agents (_local_ip_ will be replaced at runtime)"
-    example: "nats://nats:nats@_local_ip_:21084"
+    description: "Mbus URL used by deployed BOSH agents"
+    example: "nats://nats:nats-password@10.254.50.4:4222"
 
   cpi.agent.ntp:
     description: "NTP configuration used by deployed BOSH agents"
