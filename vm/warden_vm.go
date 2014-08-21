@@ -44,17 +44,24 @@ func NewWardenVM(
 func (vm WardenVM) ID() string { return vm.id }
 
 func (vm WardenVM) Delete() error {
-	err := vm.hostBindMounts.DeleteEphemeral(vm.id)
+	// Destroy container before deleting bind mounts to avoid 'device is busy' error
+	err := vm.wardenClient.Destroy(vm.id)
 	if err != nil {
 		return err
 	}
 
+	err = vm.hostBindMounts.DeleteEphemeral(vm.id)
+	if err != nil {
+		return err
+	}
+
+	// No need to unmount since DetachDisk should have been called before this
 	err = vm.hostBindMounts.DeletePersistent(vm.id)
 	if err != nil {
 		return err
 	}
 
-	return vm.wardenClient.Destroy(vm.id)
+	return nil
 }
 
 func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {

@@ -26,15 +26,17 @@ type FakeHostBindMounts struct {
 	MakeEphemeralPath string
 	MakeEphemeralErr  error
 
-	DeleteEphemeralID  string
-	DeleteEphemeralErr error
+	DeleteEphemeralCalled bool
+	DeleteEphemeralID     string
+	DeleteEphemeralErr    error
 
 	MakePersistentID   string
 	MakePersistentPath string
 	MakePersistentErr  error
 
-	DeletePersistentID  string
-	DeletePersistentErr error
+	DeletePersistentCalled bool
+	DeletePersistentID     string
+	DeletePersistentErr    error
 
 	MountPersistentID       string
 	MountPersistentDiskID   string
@@ -52,6 +54,7 @@ func (hbm *FakeHostBindMounts) MakeEphemeral(id string) (string, error) {
 }
 
 func (hbm *FakeHostBindMounts) DeleteEphemeral(id string) error {
+	hbm.DeleteEphemeralCalled = true
 	hbm.DeleteEphemeralID = id
 	return hbm.DeleteEphemeralErr
 }
@@ -62,6 +65,7 @@ func (hbm *FakeHostBindMounts) MakePersistent(id string) (string, error) {
 }
 
 func (hbm *FakeHostBindMounts) DeletePersistent(id string) error {
+	hbm.DeletePersistentCalled = true
 	hbm.DeletePersistentID = id
 	return hbm.DeletePersistentErr
 }

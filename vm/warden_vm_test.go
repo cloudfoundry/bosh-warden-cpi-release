@@ -44,79 +44,79 @@ var _ = Describe("WardenVM", func() {
 	})
 
 	Describe("Delete", func() {
-		It("deletes ephemeral bind mount dir", func() {
+		It("destroys container before deleting bind mounts so that they are not marked as busy by the kernel", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(hostBindMounts.DeleteEphemeralID).To(Equal("fake-vm-id"))
+			Expect(wardenClient.Connection.DestroyCallCount()).To(Equal(1))
+			Expect(wardenClient.Connection.DestroyArgsForCall(0)).To(Equal("fake-vm-id"))
 		})
 
-		Context("when deleting ephemeral bind mount dir succeeds", func() {
-			It("deletes persistent bind mounts dir for persistent disks", func() {
+		Context("when destroying container succeeds", func() {
+			It("deletes ephemeral bind mount dir", func() {
 				err := vm.Delete()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(hostBindMounts.DeletePersistentID).To(Equal("fake-vm-id"))
+				Expect(hostBindMounts.DeleteEphemeralID).To(Equal("fake-vm-id"))
 			})
 
-			Context("when deleting persistent bind mounts dir succeeds", func() {
-				It("destroys container and returns no error", func() {
+			Context("when deleting ephemeral bind mount dir succeeds", func() {
+				It("deletes persistent bind mounts dir for persistent disks and returns no error", func() {
 					err := vm.Delete()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(wardenClient.Connection.DestroyCallCount()).To(Equal(1))
-					Expect(wardenClient.Connection.DestroyArgsForCall(0)).To(Equal("fake-vm-id"))
+					Expect(hostBindMounts.DeletePersistentID).To(Equal("fake-vm-id"))
 				})
 
-				Context("when destroying container fails", func() {
+				Context("when deleting persistent bind mounts dir fails", func() {
 					BeforeEach(func() {
-						wardenClient.Connection.DestroyReturns(errors.New("fake-destroy-err"))
+						hostBindMounts.DeletePersistentErr = errors.New("fake-delete-persistent-err")
 					})
 
 					It("returns error", func() {
 						err := vm.Delete()
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-destroy-err"))
+						Expect(err.Error()).To(ContainSubstring("fake-delete-persistent-err"))
 					})
 				})
 			})
 
-			Context("when deleting persistent bind mounts dir fails", func() {
+			Context("when deleting ephemeral bind mount dir fails", func() {
 				BeforeEach(func() {
-					hostBindMounts.DeletePersistentErr = errors.New("fake-delete-persistent-err")
+					hostBindMounts.DeleteEphemeralErr = errors.New("fake-delete-ephemeral-err")
 				})
 
 				It("returns error", func() {
 					err := vm.Delete()
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-delete-persistent-err"))
-				})
-
-				It("does not delete container", func() {
-					err := vm.Delete()
-					Expect(err).To(HaveOccurred())
-
-					Expect(wardenClient.Connection.DestroyCallCount()).To(Equal(0))
+					Expect(err.Error()).To(ContainSubstring("fake-delete-ephemeral-err"))
 				})
 			})
 		})
 
-		Context("when deleting ephemeral bind mount dir fails", func() {
+		Context("when destroying container fails", func() {
 			BeforeEach(func() {
-				hostBindMounts.DeleteEphemeralErr = errors.New("fake-delete-ephemeral-err")
+				wardenClient.Connection.DestroyReturns(errors.New("fake-destroy-err"))
 			})
 
 			It("returns error", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-delete-ephemeral-err"))
+				Expect(err.Error()).To(ContainSubstring("fake-destroy-err"))
 			})
 
-			It("does not delete container", func() {
+			It("does not delete ephemeral bind mounts dir", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 
-				Expect(wardenClient.Connection.DestroyCallCount()).To(Equal(0))
+				Expect(hostBindMounts.DeleteEphemeralCalled).To(BeFalse())
+			})
+
+			It("does not delete persistent bind mounts dir", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+
+				Expect(hostBindMounts.DeletePersistentCalled).To(BeFalse())
 			})
 		})
 	})
