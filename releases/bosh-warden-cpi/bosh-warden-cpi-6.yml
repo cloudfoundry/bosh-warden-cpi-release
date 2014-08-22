@@ -1,0 +1,58 @@
+---
+packages:
+- name: cpi
+  version: !binary |-
+    ZjM3ZTQyNWVhZjQ2NThlMWE1YmZlY2YxNTZlYWM1ZmM4ZmU4NWFkZg==
+  sha1: !binary |-
+    YzJlNjMyNTUxNzg0YzM0N2YwNzU2NGQ0NTFjNDExNTI0ZjY1MDE0Zg==
+  fingerprint: !binary |-
+    ZjM3ZTQyNWVhZjQ2NThlMWE1YmZlY2YxNTZlYWM1ZmM4ZmU4NWFkZg==
+  dependencies:
+  - golang_1.3
+- name: golang_1.3
+  version: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  sha1: !binary |-
+    OWQwNThkMzkyZGMyNjcyMzI2MTAzYzVlNjkxYzdlNGUzMzE5OWU2MQ==
+  fingerprint: !binary |-
+    ZmMzYmMxYjQ0MzFlODkxM2Q5MTM2MmMxMTgzYzk4NTI4MDlkMzVmNg==
+  dependencies: []
+- name: iptables
+  version: 7226d311e90f49b05287e79f339581a1de9ea82e
+  sha1: !binary |-
+    MDE0MDgzMWQxY2MxNDcwOTBiMTliZWI2OGQxNmMzOWM3MDg2MGI5ZA==
+  fingerprint: !binary |-
+    NzIyNmQzMTFlOTBmNDliMDUyODdlNzlmMzM5NTgxYTFkZTllYTgyZQ==
+  dependencies: []
+- name: pid_utils
+  version: 78702c2c2bbbba330b8d5fc3a1a34ba7e0b36906
+  sha1: !binary |-
+    YzZkZDg2NDIxNmRiZmJiOTk2YmM2MmY4OTg0ZWRjY2FhOTc2MDBmZg==
+  fingerprint: !binary |-
+    Nzg3MDJjMmMyYmJiYmEzMzBiOGQ1ZmMzYTFhMzRiYTdlMGIzNjkwNg==
+  dependencies: []
+- name: warden-linux
+  version: f09a67cc7e3fa7287fda0ea138c78fd0205255a2
+  sha1: !binary |-
+    ZDE0OWJiM2UxZDRmNGQ4ODZmZjNiOGJkMzE4NjI0ZTZlYzVjODQ2Ng==
+  fingerprint: !binary |-
+    ZjA5YTY3Y2M3ZTNmYTcyODdmZGEwZWExMzhjNzhmZDAyMDUyNTVhMg==
+  dependencies:
+  - golang_1.3
+jobs:
+- name: cpi
+  version: !binary |-
+    ODE4MDBjYTNjYTE3NTVlODkyMzAzNWZiMjkxY2RkODcyZTE0YTAzZA==
+  fingerprint: !binary |-
+    ODE4MDBjYTNjYTE3NTVlODkyMzAzNWZiMjkxY2RkODcyZTE0YTAzZA==
+  sha1: !binary |-
+    NDZkNDE0M2NkOWMwMTQ4NGNhNjNiOTc4YzViNjViYmZiYjFiN2M4Zg==
+- name: warden
+  version: 32fb20053b98e318d02dcdaa169efce9e1031a1f
+  fingerprint: !binary |-
+    MzJmYjIwMDUzYjk4ZTMxOGQwMmRjZGFhMTY5ZWZjZTllMTAzMWExZg==
+  sha1: !binary |-
+    NDc0MWYwMjk5NTFkZGUzZjIwYjUyZGQ3NjAwOWU4MTJhYmNlYzM3Mg==
+commit_hash: 261515b5
+uncommitted_changes: true
+name: bosh-warden-cpi
+version: '6'
