@@ -28,7 +28,7 @@ var _ = Describe("CreateVM", func() {
 	Describe("Run", func() {
 		var (
 			stemcellCID  StemcellCID
-			resourcePool ResourcePool
+			resourcePool VMCloudProperties
 			networks     Networks
 			diskLocality []DiskCID
 			env          Environment
@@ -36,7 +36,7 @@ var _ = Describe("CreateVM", func() {
 
 		BeforeEach(func() {
 			stemcellCID = StemcellCID("fake-stemcell-id")
-			resourcePool = ResourcePool{}
+			resourcePool = VMCloudProperties{}
 			networks = Networks{"fake-net-name": Network{IP: "fake-ip"}}
 			diskLocality = []DiskCID{"fake-disk-id"}
 			env = Environment{"fake-env-key": "fake-env-value"}
