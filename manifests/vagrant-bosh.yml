@@ -3,8 +3,8 @@ name: bosh-in-vagrant
 
 releases:
 - name: bosh
-  version: 92
-  url: https://s3.amazonaws.com/bosh-jenkins-artifacts/release/bosh-2652.tgz # from http://bosh-artifacts.cfapps.io/
+  version: 104
+  url: https://s3.amazonaws.com/bosh-jenkins-artifacts/release/bosh-2710.tgz # from http://bosh-artifacts.cfapps.io/
 - name: bosh-warden-cpi
   version: latest
   url: dir+bosh://./
@@ -174,15 +174,16 @@ properties:
 
   # cpi job template
   cpi:
+    host_ip: 10.254.50.4
     warden:
       connect_network: tcp
       connect_address: 127.0.0.1:7777
     agent:
-      mbus: nats://nats:nats-password@_local_ip_:4222
+      mbus: nats://nats:nats-password@10.254.50.4:4222
       blobstore:
         provider: dav
         options:
-          endpoint: http://_local_ip_:25251
+          endpoint: http://10.254.50.4:25251
           user: agent
           password: agent-password
 
@@ -190,6 +191,6 @@ properties:
   warden:
     listen_network: tcp
     listen_address: 0.0.0.0:7777
-    network_pool: 10.244.0.0/22 # bosh-lite v1 used this pool
+    network_pool: 10.244.0.0/16 # bosh-lite v1 used this pool
     disk_quota_enabled: false
     kernel_network_tuning_enabled: false

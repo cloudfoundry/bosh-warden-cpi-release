@@ -8,6 +8,7 @@ packages:
 - warden-linux
 - pid_utils
 - iptables
+- shadow
 
 properties:
   warden.kernel_network_tuning_enabled:
@@ -36,4 +37,4 @@ properties:
 
   warden.network_pool:
     description: "Network pool CIDR for containers; each container will get a /30"
-    default: "10.254.0.0/22"
+    default: "10.254.0.0/16"
