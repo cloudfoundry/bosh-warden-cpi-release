@@ -1,7 +1,7 @@
 #!/bin/bash
 
 pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
-jobs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/jobs}
+jobs_dir=${BOSH_JOBS_DIR:-/var/vcap/jobs}
 
 cmd="$pkgs_dir/cpi/bin/cpi -configPath=$jobs_dir/cpi/config/cpi.json"
 
