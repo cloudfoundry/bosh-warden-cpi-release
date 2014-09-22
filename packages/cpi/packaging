@@ -6,7 +6,8 @@ mv bosh-warden-cpi go/src/
 
 cd go/src/bosh-warden-cpi
 
-export GOROOT=$(readlink -nf /var/vcap/packages/golang_1.3)
+pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+export GOROOT=$(readlink -nf $pkgs_dir/golang_1.3)
 export PATH=$GOROOT/bin:$PATH
 
 bin/build-linux-amd64
