@@ -55,6 +55,11 @@ bosh status
 1. Run BOSH Acceptance Tests via `spec/run-bats.sh`
 
 
+### Experimental `bosh-micro` usage
+
+See [bosh-micro usage doc](docs/bosh-micro-usage.md)
+
+
 ### Todo
 
 - Use standalone BATS and CPI lifecycle tests
