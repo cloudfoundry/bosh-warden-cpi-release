@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 
-	boshlog "bosh/logger"
-	. "bosh/platform/commands"
-	boshsys "bosh/system"
-	fakesys "bosh/system/fakes"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	. "github.com/cloudfoundry/bosh-agent/platform/commands"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 func createdTmpDir(t assert.TestingT, fs boshsys.FileSystem) string {

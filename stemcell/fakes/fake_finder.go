@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bwcstem "bosh-warden-cpi/stemcell"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 type FakeFinder struct {

@@ -1,8 +1,8 @@
 package vm
 
 import (
-	bwcdisk "bosh-warden-cpi/disk"
-	bwcstem "bosh-warden-cpi/stemcell"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 type Creator interface {

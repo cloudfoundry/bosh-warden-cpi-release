@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bwcvm "bosh-warden-cpi/vm"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type FakeAgentEnvServiceFactory struct {

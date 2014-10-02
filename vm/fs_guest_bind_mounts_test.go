@@ -1,11 +1,11 @@
 package vm_test
 
 import (
-	boshlog "bosh/logger"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/vm"
+	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("FSGuestBindMounts", func() {

@@ -3,13 +3,13 @@ package vm_test
 import (
 	"errors"
 
-	boshlog "bosh/logger"
 	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/vm"
-	fakevm "bosh-warden-cpi/vm/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/vm"
+	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("WardenFinder", func() {

@@ -3,14 +3,14 @@ package dispatcher_test
 import (
 	"errors"
 
-	boshlog "bosh/logger"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakeaction "bosh-warden-cpi/action/fakes"
-	. "bosh-warden-cpi/api/dispatcher"
-	fakedisp "bosh-warden-cpi/api/dispatcher/fakes"
-	fakeapi "bosh-warden-cpi/api/fakes"
+	fakeaction "github.com/cppforlife/bosh-warden-cpi/action/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/api/dispatcher"
+	fakedisp "github.com/cppforlife/bosh-warden-cpi/api/dispatcher/fakes"
+	fakeapi "github.com/cppforlife/bosh-warden-cpi/api/fakes"
 )
 
 var _ = Describe("JSON", func() {

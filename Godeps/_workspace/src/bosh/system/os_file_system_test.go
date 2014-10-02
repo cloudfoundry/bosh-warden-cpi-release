@@ -12,8 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 
-	boshlog "bosh/logger"
-	. "bosh/system"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	. "github.com/cloudfoundry/bosh-agent/system"
 )
 
 func createOsFs() (fs FileSystem, runner CmdRunner) {

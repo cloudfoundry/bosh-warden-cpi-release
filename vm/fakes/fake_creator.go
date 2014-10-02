@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bwcstem "bosh-warden-cpi/stemcell"
-	bwcvm "bosh-warden-cpi/vm"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type FakeCreator struct {

@@ -1,9 +1,9 @@
 package action
 
 import (
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bwcstem "bosh-warden-cpi/stemcell"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 type DeleteStemcell struct {

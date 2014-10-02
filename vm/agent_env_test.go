@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/vm"
+	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("AgentEnv", func() {

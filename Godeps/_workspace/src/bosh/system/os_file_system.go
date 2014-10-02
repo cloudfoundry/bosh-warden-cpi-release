@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	osuser "os/user"
 )
 

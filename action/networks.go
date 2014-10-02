@@ -1,7 +1,7 @@
 package action
 
 import (
-	bwcvm "bosh-warden-cpi/vm"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type Networks map[string]Network

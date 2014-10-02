@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bwcvm "bosh-warden-cpi/vm"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type FakeFinder struct {

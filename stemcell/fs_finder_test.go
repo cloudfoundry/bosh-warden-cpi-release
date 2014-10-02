@@ -3,12 +3,12 @@ package stemcell_test
 import (
 	"os"
 
-	boshlog "bosh/logger"
-	fakesys "bosh/system/fakes"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/stemcell"
+	. "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 var _ = Describe("FSFinder", func() {

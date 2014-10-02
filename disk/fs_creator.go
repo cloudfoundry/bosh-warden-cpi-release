@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
-	boshsys "bosh/system"
-	boshuuid "bosh/uuid"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 )
 
 const fsCreatorLogTag = "FSCreator"

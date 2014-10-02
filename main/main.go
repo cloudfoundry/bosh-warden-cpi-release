@@ -4,17 +4,17 @@ import (
 	"flag"
 	"os"
 
-	boshlog "bosh/logger"
-	boshcmd "bosh/platform/commands"
-	boshsys "bosh/system"
-	boshuuid "bosh/uuid"
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	wrdnconn "github.com/cloudfoundry-incubator/garden/client/connection"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bwcaction "bosh-warden-cpi/action"
-	bwcdisp "bosh-warden-cpi/api/dispatcher"
-	bwctrans "bosh-warden-cpi/api/transport"
-	bwcutil "bosh-warden-cpi/util"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
+	bwcdisp "github.com/cppforlife/bosh-warden-cpi/api/dispatcher"
+	bwctrans "github.com/cppforlife/bosh-warden-cpi/api/transport"
+	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 const mainLogTag = "main"

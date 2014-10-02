@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
-	boshsys "bosh/system"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bwcutil "bosh-warden-cpi/util"
+	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 // FSHostBindMounts represents bind mounts from the perspective of the host

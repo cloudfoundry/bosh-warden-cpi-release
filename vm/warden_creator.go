@@ -1,12 +1,12 @@
 package vm
 
 import (
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
-	boshuuid "bosh/uuid"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bwcstem "bosh-warden-cpi/stemcell"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 const wardenCreatorLogTag = "WardenCreator"

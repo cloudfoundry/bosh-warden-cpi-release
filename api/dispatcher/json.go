@@ -3,10 +3,10 @@ package dispatcher
 import (
 	"encoding/json"
 
-	boshlog "bosh/logger"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bwcaction "bosh-warden-cpi/action"
-	bwcapi "bosh-warden-cpi/api"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
+	bwcapi "github.com/cppforlife/bosh-warden-cpi/api"
 )
 
 const (

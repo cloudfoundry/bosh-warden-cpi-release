@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	fakedisk "bosh-warden-cpi/disk/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	fakedisk "github.com/cppforlife/bosh-warden-cpi/disk/fakes"
 )
 
 var _ = Describe("CreateDisk", func() {

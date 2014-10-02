@@ -4,10 +4,10 @@ import (
 	"io"
 	"io/ioutil"
 
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bwcdisp "bosh-warden-cpi/api/dispatcher"
+	bwcdisp "github.com/cppforlife/bosh-warden-cpi/api/dispatcher"
 )
 
 const cliLogTag = "CLI"

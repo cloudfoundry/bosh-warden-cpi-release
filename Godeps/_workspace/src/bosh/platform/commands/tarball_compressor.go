@@ -1,8 +1,8 @@
 package commands
 
 import (
-	bosherr "bosh/errors"
-	boshsys "bosh/system"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
 type tarballCompressor struct {

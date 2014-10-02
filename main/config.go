@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 
-	bosherr "bosh/errors"
-	boshsys "bosh/system"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bwcaction "bosh-warden-cpi/action"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 )
 
 type Config struct {

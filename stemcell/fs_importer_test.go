@@ -3,14 +3,14 @@ package stemcell_test
 import (
 	"errors"
 
-	boshlog "bosh/logger"
-	fakecmd "bosh/platform/commands/fakes"
-	fakesys "bosh/system/fakes"
-	fakeuuid "bosh/uuid/fakes"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/stemcell"
+	. "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 var _ = Describe("FSImporter", func() {

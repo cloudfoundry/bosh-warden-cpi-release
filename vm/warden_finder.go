@@ -1,9 +1,9 @@
 package vm
 
 import (
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 const wardenFinderLogTag = "WardenFinder"

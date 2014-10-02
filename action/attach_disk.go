@@ -1,10 +1,10 @@
 package action
 
 import (
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bwcdisk "bosh-warden-cpi/disk"
-	bwcvm "bosh-warden-cpi/vm"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type AttachDisk struct {

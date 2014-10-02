@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	fakevm "bosh-warden-cpi/vm/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("DeleteVM", func() {

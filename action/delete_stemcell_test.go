@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	fakestem "bosh-warden-cpi/stemcell/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	fakestem "github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
 )
 
 var _ = Describe("DeleteStemcell", func() {

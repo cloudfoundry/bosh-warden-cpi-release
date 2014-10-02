@@ -1,17 +1,17 @@
 package action
 
 import (
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
-	boshcmd "bosh/platform/commands"
-	boshsys "bosh/system"
-	boshuuid "bosh/uuid"
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bwcdisk "bosh-warden-cpi/disk"
-	bwcstem "bosh-warden-cpi/stemcell"
-	bwcutil "bosh-warden-cpi/util"
-	bwcvm "bosh-warden-cpi/vm"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
+	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type concreteFactory struct {

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"io"
 
-	boshlog "bosh/logger"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakedisp "bosh-warden-cpi/api/dispatcher/fakes"
-	. "bosh-warden-cpi/api/transport"
+	fakedisp "github.com/cppforlife/bosh-warden-cpi/api/dispatcher/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/api/transport"
 )
 
 type FakeReader struct {

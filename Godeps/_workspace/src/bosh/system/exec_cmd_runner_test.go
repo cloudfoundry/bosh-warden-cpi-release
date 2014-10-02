@@ -12,8 +12,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "bosh/logger"
-	. "bosh/system"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	. "github.com/cloudfoundry/bosh-agent/system"
 )
 
 func init() {

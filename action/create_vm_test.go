@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	fakestem "bosh-warden-cpi/stemcell/fakes"
-	bwcvm "bosh-warden-cpi/vm"
-	fakevm "bosh-warden-cpi/vm/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	fakestem "github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
+	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("CreateVM", func() {

@@ -1,19 +1,19 @@
 package action_test
 
 import (
-	boshlog "bosh/logger"
-	fakecmd "bosh/platform/commands/fakes"
-	fakesys "bosh/system/fakes"
-	fakeuuid "bosh/uuid/fakes"
 	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	bwcdisk "bosh-warden-cpi/disk"
-	bwcstem "bosh-warden-cpi/stemcell"
-	bwcutil "bosh-warden-cpi/util"
-	bwcvm "bosh-warden-cpi/vm"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
+	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
+	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("concreteFactory", func() {

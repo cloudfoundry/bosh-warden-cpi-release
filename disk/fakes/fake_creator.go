@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bwcdisk "bosh-warden-cpi/disk"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
 type FakeCreator struct {

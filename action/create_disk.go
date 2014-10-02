@@ -1,9 +1,9 @@
 package action
 
 import (
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bwcdisk "bosh-warden-cpi/disk"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
 type CreateDisk struct {

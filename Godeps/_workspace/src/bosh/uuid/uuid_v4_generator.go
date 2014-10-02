@@ -1,7 +1,7 @@
 package uuid
 
 import (
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	gouuid "github.com/nu7hatch/gouuid"
 )
 

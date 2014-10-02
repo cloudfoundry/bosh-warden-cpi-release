@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
-	fakedisk "bosh-warden-cpi/disk/fakes"
-	fakevm "bosh-warden-cpi/vm/fakes"
+	. "github.com/cppforlife/bosh-warden-cpi/action"
+	fakedisk "github.com/cppforlife/bosh-warden-cpi/disk/fakes"
+	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("AttachDisk", func() {

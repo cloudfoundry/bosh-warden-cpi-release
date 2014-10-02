@@ -1,9 +1,9 @@
 package action
 
 import (
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bwcvm "bosh-warden-cpi/vm"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 type HasVM struct {

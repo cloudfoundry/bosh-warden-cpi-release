@@ -8,14 +8,14 @@ import (
 	"io"
 	"io/ioutil"
 
-	boshlog "bosh/logger"
 	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
 	fakewrdn "github.com/cloudfoundry-incubator/garden/warden/fakes"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/vm"
+	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("WardenAgentEnvService", func() {

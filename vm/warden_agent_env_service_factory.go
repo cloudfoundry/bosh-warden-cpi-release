@@ -1,8 +1,8 @@
 package vm
 
 import (
-	boshlog "bosh/logger"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 type WardenAgentEnvServiceFactory struct {

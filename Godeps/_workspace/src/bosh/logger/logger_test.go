@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 
-	. "bosh/logger"
+	. "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 func expectedLogFormat(tag, msg string) string {

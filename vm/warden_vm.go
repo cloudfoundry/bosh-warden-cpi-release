@@ -1,11 +1,11 @@
 package vm
 
 import (
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bwcdisk "bosh-warden-cpi/disk"
+	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
 type WardenVM struct {

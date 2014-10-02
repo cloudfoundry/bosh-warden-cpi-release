@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"reflect"
 
-	bosherr "bosh/errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bwcaction "bosh-warden-cpi/action"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 )
 
 type Caller interface {

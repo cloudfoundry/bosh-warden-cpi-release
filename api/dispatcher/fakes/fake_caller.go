@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bwcaction "bosh-warden-cpi/action"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 )
 
 type FakeCaller struct {

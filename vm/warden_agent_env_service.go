@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 
-	bosherr "bosh/errors"
-	boshlog "bosh/logger"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 const (

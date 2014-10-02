@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "bosh/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bwcaction "bosh-warden-cpi/action"
-	. "bosh-warden-cpi/main"
-	bwcvm "bosh-warden-cpi/vm"
+	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
+	. "github.com/cppforlife/bosh-warden-cpi/main"
+	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var validConfig = Config{

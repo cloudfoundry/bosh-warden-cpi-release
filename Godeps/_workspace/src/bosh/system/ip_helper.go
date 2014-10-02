@@ -1,8 +1,8 @@
 package system
 
 import (
-	bosherr "bosh/errors"
 	"errors"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	"strconv"
 	"strings"
 )
