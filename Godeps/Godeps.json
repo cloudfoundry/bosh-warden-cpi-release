@@ -7,23 +7,23 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "90291ecec5e8d462fb36fe40a44e629b3a423a4a"
+			"Rev": "4ba2e3afd6d36f0c8278e9c6846e414e1a9b927a"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "90291ecec5e8d462fb36fe40a44e629b3a423a4a"
+			"Rev": "4ba2e3afd6d36f0c8278e9c6846e414e1a9b927a"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform/commands",
-			"Rev": "90291ecec5e8d462fb36fe40a44e629b3a423a4a"
+			"Rev": "4ba2e3afd6d36f0c8278e9c6846e414e1a9b927a"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "90291ecec5e8d462fb36fe40a44e629b3a423a4a"
+			"Rev": "4ba2e3afd6d36f0c8278e9c6846e414e1a9b927a"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
-			"Rev": "90291ecec5e8d462fb36fe40a44e629b3a423a4a"
+			"Rev": "4ba2e3afd6d36f0c8278e9c6846e414e1a9b927a"
 		},
 		{
 			"ImportPath": "code.google.com/p/gogoprotobuf/proto",

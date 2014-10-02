@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
@@ -61,7 +62,7 @@ var _ = Describe("FSImporter", func() {
 			Expect(int(unpackDirStat.FileMode)).To(Equal(0755)) // todo
 		})
 
-		It("returns error if creating driectory that will contain unpacked stemcell fails", func() {
+		It("returns error if creating directory that will contain unpacked stemcell fails", func() {
 			fs.MkdirAllError = errors.New("fake-mkdir-all-err")
 
 			stemcell, err := importer.ImportFromPath("/fake-image-path")
@@ -78,6 +79,7 @@ var _ = Describe("FSImporter", func() {
 
 			Expect(compressor.DecompressFileToDirTarballPaths[0]).To(Equal("/fake-image-path"))
 			Expect(compressor.DecompressFileToDirDirs[0]).To(Equal("/fake-collection-dir/fake-uuid"))
+			Expect(compressor.DecompressFileToDirOptions[0]).To(Equal(boshcmd.CompressorOptions{SameOwner: true}))
 		})
 
 		It("returns error if unpacking stemcell fails", func() {

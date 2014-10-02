@@ -72,8 +72,13 @@ func newExecProcess(cmd *exec.Cmd, logger boshlog.Logger) *execProcess {
 }
 
 func (p *execProcess) Start() error {
-	p.cmd.Stdout = p.stdoutWriter
-	p.cmd.Stderr = p.stderrWriter
+	if p.cmd.Stdout == nil {
+		p.cmd.Stdout = p.stdoutWriter
+	}
+
+	if p.cmd.Stderr == nil {
+		p.cmd.Stderr = p.stderrWriter
+	}
 
 	cmdString := strings.Join(p.cmd.Args, " ")
 	p.logger.Debug(execProcessLogTag, "Running command: %s", cmdString)
@@ -266,19 +271,12 @@ func (r execCmdRunner) RunCommand(cmdName string, args ...string) (string, strin
 }
 
 func (r execCmdRunner) RunCommandWithInput(input, cmdName string, args ...string) (string, string, int, error) {
-	execCmd := exec.Command(cmdName, args...)
-	execCmd.Stdin = strings.NewReader(input)
-
-	process := newExecProcess(execCmd, r.logger)
-
-	err := process.Start()
-	if err != nil {
-		return "", "", -1, err
+	cmd := Command{
+		Name:  cmdName,
+		Args:  args,
+		Stdin: strings.NewReader(input),
 	}
-
-	result := <-process.Wait()
-
-	return result.Stdout, result.Stderr, result.ExitStatus, result.Error
+	return r.RunComplexCommand(cmd)
 }
 
 func (r execCmdRunner) CommandExists(cmdName string) bool {
@@ -288,6 +286,18 @@ func (r execCmdRunner) CommandExists(cmdName string) bool {
 
 func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 	execCmd := exec.Command(cmd.Name, cmd.Args...)
+
+	if cmd.Stdin != nil {
+		execCmd.Stdin = cmd.Stdin
+	}
+
+	if cmd.Stdout != nil {
+		execCmd.Stdout = cmd.Stdout
+	}
+
+	if cmd.Stderr != nil {
+		execCmd.Stderr = cmd.Stderr
+	}
 
 	execCmd.Dir = cmd.WorkingDir
 

@@ -14,6 +14,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/cloudfoundry/bosh-agent/system"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 func init() {
@@ -31,7 +32,7 @@ func init() {
 				cmd := Command{
 					Name:       "ls",
 					Args:       []string{"-l"},
-					WorkingDir: "../../..",
+					WorkingDir: "..",
 				}
 				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
 				Expect(err).ToNot(HaveOccurred())
@@ -54,6 +55,53 @@ func init() {
 				Expect(stdout).To(ContainSubstring("PATH="))
 				Expect(stderr).To(BeEmpty())
 				Expect(status).To(Equal(0))
+			})
+
+			It("run complex command with stdin", func() {
+				input := "This is STDIN\nWith another line."
+				cmd := Command{
+					Name:  "cat",
+					Args:  []string{"/dev/stdin"},
+					Stdin: strings.NewReader(input),
+				}
+				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stdout).To(Equal(input))
+				Expect(stderr).To(BeEmpty())
+				Expect(status).To(Equal(0))
+			})
+
+			It("prints stdout/stderr to provided I/O object", func() {
+				fs := fakesys.NewFakeFileSystem()
+				stdoutFile, err := fs.OpenFile("/fake-stdout-path", os.O_RDWR, os.FileMode(0644))
+				Expect(err).ToNot(HaveOccurred())
+
+				stderrFile, err := fs.OpenFile("/fake-stderr-path", os.O_RDWR, os.FileMode(0644))
+				Expect(err).ToNot(HaveOccurred())
+
+				cmd := Command{
+					Name:   "bash",
+					Args:   []string{"-c", "echo fake-out >&1; echo fake-err >&2"},
+					Stdout: stdoutFile,
+					Stderr: stderrFile,
+				}
+
+				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(stdout).To(BeEmpty())
+				Expect(stderr).To(BeEmpty())
+				Expect(status).To(Equal(0))
+
+				stdoutContents := make([]byte, 1024)
+				_, err = stdoutFile.Read(stdoutContents)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(stdoutContents)).To(ContainSubstring("fake-out"))
+
+				stderrContents := make([]byte, 1024)
+				_, err = stderrFile.Read(stderrContents)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(stderrContents)).To(ContainSubstring("fake-err"))
 			})
 		})
 
@@ -197,9 +245,11 @@ func init() {
 		})
 
 		Describe("TerminateNicely", func() {
-			var buildDir string
+			var (
+				buildDir string
+			)
 
-			expectProcessesToNotExist := func() {
+			hasProcessesFromBuildDir := func() (bool, string) {
 				// Make sure to show all processes on the system
 				output, err := exec.Command("ps", "-A", "-o", "pid,args").Output()
 				Expect(err).ToNot(HaveOccurred())
@@ -207,19 +257,38 @@ func init() {
 				// Cannot check for PID existence directly because
 				// PID could have been recycled by the OS; make sure it's not the same process
 				for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
-					Expect(line).ToNot(ContainSubstring(buildDir))
+					if strings.Contains(line, buildDir) {
+						return true, line
+					}
 				}
+
+				return false, ""
+			}
+
+			expectProcessesToNotExist := func() {
+				exists, ps := hasProcessesFromBuildDir()
+				Expect(exists).To(BeFalse(), "Expected following process to not exist %s", ps)
 			}
 
 			BeforeEach(func() {
-				var err error
+				var (
+					err error
+				)
 
 				buildDir, err = ioutil.TempDir("", "TerminateNicely")
 				Expect(err).ToNot(HaveOccurred())
 
-				for _, exe := range []string{"child_ignore_term", "child_term", "parent_ignore_term", "parent_term"} {
+				exesToCompile := []string{
+					"exe_exits",
+					"child_ignore_term",
+					"child_term",
+					"parent_ignore_term",
+					"parent_term",
+				}
+
+				for _, exe := range exesToCompile {
 					dst := filepath.Join(buildDir, exe)
-					src := filepath.Join("parent_child_exec", exe+".go")
+					src := filepath.Join("exec_cmd_runner_fixtures", exe+".go")
 					err := exec.Command("go", "build", "-o", dst, src).Run()
 					Expect(err).ToNot(HaveOccurred())
 				}
@@ -235,7 +304,7 @@ func init() {
 					process, err := runner.RunComplexCommandAsync(cmd)
 					Expect(err).ToNot(HaveOccurred())
 
-					// Wait for sh script to start and output pids
+					// Wait for script to start and output pids
 					time.Sleep(2 * time.Second)
 
 					waitCh := process.Wait()
@@ -265,7 +334,7 @@ func init() {
 					process, err := runner.RunComplexCommandAsync(cmd)
 					Expect(err).ToNot(HaveOccurred())
 
-					// Wait for sh script to start and output pids
+					// Wait for script to start and output pids
 					time.Sleep(2 * time.Second)
 
 					waitCh := process.Wait()
@@ -290,15 +359,20 @@ func init() {
 
 			Context("when parent and child already exited before calling TerminateNicely", func() {
 				It("returns without an error since all processes are gone", func() {
-					cmd := Command{
-						Name: "bash",
-						Args: []string{"-c", `exit 0`},
-					}
+					cmd := Command{Name: filepath.Join(buildDir, "exe_exits")}
 					process, err := runner.RunComplexCommandAsync(cmd)
 					Expect(err).ToNot(HaveOccurred())
 
-					// Wait for sh script to exit
-					time.Sleep(2 * time.Second)
+					// Wait for script to exit
+					for i := 0; i < 20; i++ {
+						if exists, _ := hasProcessesFromBuildDir(); !exists {
+							break
+						}
+						if i == 19 {
+							Fail("Expected process did not exit fast enough")
+						}
+						time.Sleep(500 * time.Millisecond)
+					}
 
 					waitCh := process.Wait()
 

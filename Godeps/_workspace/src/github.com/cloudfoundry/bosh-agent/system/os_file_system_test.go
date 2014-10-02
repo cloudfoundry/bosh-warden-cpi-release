@@ -98,6 +98,24 @@ func init() {
 			Expect(fileStat.Mode()).To(Equal(os.FileMode(0644)))
 		})
 
+		It("opens file", func() {
+			osFs, _ := createOsFs()
+			testPath := filepath.Join(os.TempDir(), "OpenFileTestFile")
+
+			file, err := osFs.OpenFile(testPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
+			defer os.Remove(testPath)
+
+			Expect(err).ToNot(HaveOccurred())
+
+			file.Write([]byte("testing new file"))
+			file.Close()
+
+			createdFile, err := os.Open(testPath)
+			Expect(err).ToNot(HaveOccurred())
+			defer createdFile.Close()
+			Expect(readFile(createdFile)).To(Equal("testing new file"))
+		})
+
 		Context("the file already exists and is not write only", func() {
 			It("writes to file", func() {
 				osFs, _ := createOsFs()
@@ -372,7 +390,7 @@ func init() {
 		Describe("CopyFile", func() {
 			It("copies file", func() {
 				osFs, _ := createOsFs()
-				srcPath := "../../../fixtures/test_copy_dir_entries/foo.txt"
+				srcPath := "../Fixtures/test_copy_dir_entries/foo.txt"
 				dstFile, err := osFs.TempFile("CopyFileTestFile")
 				Expect(err).ToNot(HaveOccurred())
 				defer os.Remove(dstFile.Name())

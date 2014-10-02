@@ -56,7 +56,7 @@ func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 		return nil, bosherr.WrapError(err, "Creating stemcell directory '%s'", stemcellPath)
 	}
 
-	err = i.compressor.DecompressFileToDir(imagePath, stemcellPath)
+	err = i.compressor.DecompressFileToDir(imagePath, stemcellPath, boshcmd.CompressorOptions{SameOwner: true})
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Unpacking stemcell '%s' to '%s'", imagePath, stemcellPath)
 	}
