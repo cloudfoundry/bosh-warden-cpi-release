@@ -1,10 +1,10 @@
 set -e
 
-mkdir -p go/src
+mkdir -p go/src/github.com/cppforlife
 
-mv bosh-warden-cpi go/src/
+mv bosh-warden-cpi go/src/github.com/cppforlife/
 
-cd go/src/bosh-warden-cpi
+cd go/src/github.com/cppforlife/bosh-warden-cpi
 
 pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 export GOROOT=$(readlink -nf $pkgs_dir/golang_1.3)
