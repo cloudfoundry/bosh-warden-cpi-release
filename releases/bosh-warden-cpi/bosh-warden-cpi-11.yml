@@ -1,0 +1,66 @@
+---
+packages:
+- name: cpi
+  version: !binary |-
+    NTRhNDc4MmMyYmIzNTViNjQwMDQ2MTEzMTM0ZDlkM2U5MzdmZDE0Ng==
+  sha1: !binary |-
+    NDVjMzYzNDFiMzA1MDJkNjVhMmQwZDYwZWYwYzFhZGVhOGE2NTIxYw==
+  fingerprint: !binary |-
+    NTRhNDc4MmMyYmIzNTViNjQwMDQ2MTEzMTM0ZDlkM2U5MzdmZDE0Ng==
+  dependencies:
+  - golang_1.3
+- name: golang_1.3
+  version: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  sha1: !binary |-
+    OWQwNThkMzkyZGMyNjcyMzI2MTAzYzVlNjkxYzdlNGUzMzE5OWU2MQ==
+  fingerprint: !binary |-
+    ZmMzYmMxYjQ0MzFlODkxM2Q5MTM2MmMxMTgzYzk4NTI4MDlkMzVmNg==
+  dependencies: []
+- name: iptables
+  version: 7226d311e90f49b05287e79f339581a1de9ea82e
+  sha1: !binary |-
+    MDE0MDgzMWQxY2MxNDcwOTBiMTliZWI2OGQxNmMzOWM3MDg2MGI5ZA==
+  fingerprint: !binary |-
+    NzIyNmQzMTFlOTBmNDliMDUyODdlNzlmMzM5NTgxYTFkZTllYTgyZQ==
+  dependencies: []
+- name: pid_utils
+  version: 78702c2c2bbbba330b8d5fc3a1a34ba7e0b36906
+  sha1: !binary |-
+    YzZkZDg2NDIxNmRiZmJiOTk2YmM2MmY4OTg0ZWRjY2FhOTc2MDBmZg==
+  fingerprint: !binary |-
+    Nzg3MDJjMmMyYmJiYmEzMzBiOGQ1ZmMzYTFhMzRiYTdlMGIzNjkwNg==
+  dependencies: []
+- name: shadow
+  version: ffd1741bd9e0a176e67c61ef70cd0ed76b0ec285
+  sha1: !binary |-
+    NTJiYzI4YmNiYWY5MGFlMGUyMTU3ZTQ1YzkxNGJiOTlhZDQ4ZDdjMg==
+  fingerprint: !binary |-
+    ZmZkMTc0MWJkOWUwYTE3NmU2N2M2MWVmNzBjZDBlZDc2YjBlYzI4NQ==
+  dependencies: []
+- name: warden-linux
+  version: !binary |-
+    NzE5NWIwNzdjOTExZDAzMjhmYzNlMzJmMmUwZWUzNGFiZWFhZmRlMg==
+  sha1: !binary |-
+    NWFmZmZkMDMwNzE2NjUyM2RkMzczNGQxNTU0ZDFlNWZiNTQ5M2JjZA==
+  fingerprint: !binary |-
+    NzE5NWIwNzdjOTExZDAzMjhmYzNlMzJmMmUwZWUzNGFiZWFhZmRlMg==
+  dependencies:
+  - golang_1.3
+jobs:
+- name: cpi
+  version: !binary |-
+    NDY4ZWZjMzI0YzQ3YzFiZWQ0NzEyMThmMmUzNmMxN2UyYWRiODk5Yg==
+  fingerprint: !binary |-
+    NDY4ZWZjMzI0YzQ3YzFiZWQ0NzEyMThmMmUzNmMxN2UyYWRiODk5Yg==
+  sha1: !binary |-
+    YmNjM2FhNjhjZWQ2YzY2YjA5MjY1MGE2NjVjNmU3MGM0NmZiZjNiNA==
+- name: warden
+  version: 22929f2716660fde5e1e60328d43b97ee22b1ad7
+  fingerprint: !binary |-
+    MjI5MjlmMjcxNjY2MGZkZTVlMWU2MDMyOGQ0M2I5N2VlMjJiMWFkNw==
+  sha1: !binary |-
+    MTg5ZTUwZWI3ZGFkODRiNDQ3YjRlNjlhNzllMmQ2YTRjNjVlYzM2Ng==
+commit_hash: 8ae5a596
+uncommitted_changes: true
+name: bosh-warden-cpi
+version: '11'
