@@ -7,24 +7,23 @@ import (
 )
 
 type DeleteVM struct {
-	vmFinder bwcvm.Finder
+	vmFinder       bwcvm.Finder
+	hostBindMounts bwcvm.HostBindMounts
 }
 
-func NewDeleteVM(vmFinder bwcvm.Finder) DeleteVM {
-	return DeleteVM{vmFinder: vmFinder}
+func NewDeleteVM(vmFinder bwcvm.Finder, hostBindMounts bwcvm.HostBindMounts) DeleteVM {
+	return DeleteVM{vmFinder: vmFinder, hostBindMounts: hostBindMounts}
 }
 
 func (a DeleteVM) Run(vmCID VMCID) (interface{}, error) {
-	vm, found, err := a.vmFinder.Find(string(vmCID))
+	vm, _, err := a.vmFinder.Find(string(vmCID))
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Finding vm '%s'", vmCID)
 	}
 
-	if found {
-		err := vm.Delete()
-		if err != nil {
-			return nil, bosherr.WrapError(err, "Deleting vm '%s'", vmCID)
-		}
+	err = vm.Delete()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Deleting vm '%s'", vmCID)
 	}
 
 	return nil, nil

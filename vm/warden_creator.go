@@ -114,6 +114,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		c.hostBindMounts,
 		c.guestBindMounts,
 		c.logger,
+		true,
 	)
 
 	return vm, nil

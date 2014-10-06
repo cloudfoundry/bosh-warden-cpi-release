@@ -40,6 +40,7 @@ var _ = Describe("WardenVM", func() {
 			hostBindMounts,
 			guestBindMounts,
 			logger,
+			true,
 		)
 	})
 
@@ -117,6 +118,28 @@ var _ = Describe("WardenVM", func() {
 				Expect(err).To(HaveOccurred())
 
 				Expect(hostBindMounts.DeletePersistentCalled).To(BeFalse())
+			})
+		})
+
+		Context("when the container does not exist", func() {
+			BeforeEach(func() {
+				vm = NewWardenVM(
+					"fake-vm-id",
+					wardenClient,
+					nil,
+					hostBindMounts,
+					guestBindMounts,
+					logger,
+					false,
+				)
+			})
+
+			It("deletes ephemeral and persistent bind mount dirs", func() {
+				err := vm.Delete()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(hostBindMounts.DeleteEphemeralID).To(Equal("fake-vm-id"))
+				Expect(hostBindMounts.DeletePersistentID).To(Equal("fake-vm-id"))
 			})
 		})
 	})

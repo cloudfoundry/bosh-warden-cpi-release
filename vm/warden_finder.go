@@ -58,6 +58,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 				f.hostBindMounts,
 				f.guestBindMounts,
 				f.logger,
+				true,
 			)
 
 			return vm, true, nil
@@ -66,5 +67,15 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 
 	f.logger.Debug(wardenFinderLogTag, "Did not find container with ID '%s'", id)
 
-	return nil, false, nil
+	vm := NewWardenVM(
+		id,
+		f.wardenClient,
+		nil,
+		f.hostBindMounts,
+		f.guestBindMounts,
+		f.logger,
+		false,
+	)
+
+	return vm, false, nil
 }

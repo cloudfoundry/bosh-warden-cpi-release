@@ -52,6 +52,7 @@ var _ = Describe("WardenFinder", func() {
 				hostBindMounts,
 				guestBindMounts,
 				logger,
+				true,
 			)
 
 			vm, found, err := finder.Find("fake-vm-id")
@@ -66,10 +67,20 @@ var _ = Describe("WardenFinder", func() {
 		It("returns found as false if warden does not have container with VM ID as its handle", func() {
 			wardenClient.Connection.ListReturns([]string{"non-matching-vm-id"}, nil)
 
+			expectedVM := NewWardenVM(
+				"fake-vm-id",
+				wardenClient,
+				nil,
+				hostBindMounts,
+				guestBindMounts,
+				logger,
+				false,
+			)
+
 			vm, found, err := finder.Find("fake-vm-id")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
-			Expect(vm).To(BeNil())
+			Expect(vm).To(Equal(expectedVM))
 		})
 
 		It("returns error if warden container listing fails", func() {

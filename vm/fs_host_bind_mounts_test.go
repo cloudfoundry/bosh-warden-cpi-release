@@ -182,52 +182,19 @@ var _ = Describe("FSHostBindMounts", func() {
 				cmdRunner.RunCommands = [][]string{} // Reset cmd runner comamnds
 			})
 
-			It("unmounts all mount points in that directory", func() {
+			It("deletes directory for requested id", func() {
 				err := hostBindMounts.DeletePersistent("fake-id")
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(cmdRunner.RunCommands).To(Equal([][]string{
-					[]string{"umount", "/fake-persistent-dir/fake-id"},
-				}))
+				Expect(fs.FileExists(path)).To(BeFalse())
 			})
 
-			Context("when unmounting directory succeeds", func() {
-				It("deletes directory for requested id", func() {
-					err := hostBindMounts.DeletePersistent("fake-id")
-					Expect(err).ToNot(HaveOccurred())
+			It("returns error if deleting directory fails", func() {
+				fs.RemoveAllError = errors.New("fake-remove-all-err")
 
-					Expect(fs.FileExists(path)).To(BeFalse())
-				})
-
-				It("returns error if deleting directory fails", func() {
-					fs.RemoveAllError = errors.New("fake-remove-all-err")
-
-					err := hostBindMounts.DeletePersistent("fake-id")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-remove-all-err"))
-				})
-			})
-
-			Context("when unmounting directory fails", func() {
-				BeforeEach(func() {
-					cmdRunner.AddCmdResult(
-						"umount /fake-persistent-dir/fake-id",
-						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
-					)
-				})
-
-				It("returns error", func() {
-					err := hostBindMounts.DeletePersistent("fake-id")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-run-err"))
-				})
-
-				It("does not delete directory because unmounting failed", func() {
-					err := hostBindMounts.DeletePersistent("fake-id")
-					Expect(err).To(HaveOccurred())
-
-					Expect(fs.FileExists(path)).To(BeTrue())
-				})
+				err := hostBindMounts.DeletePersistent("fake-id")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-remove-all-err"))
 			})
 		})
 

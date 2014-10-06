@@ -148,7 +148,7 @@ var _ = Describe("concreteFactory", func() {
 	It("delete_vm", func() {
 		action, err := factory.Create("delete_vm")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewDeleteVM(vmFinder)))
+		Expect(action).To(Equal(NewDeleteVM(vmFinder, hostBindMounts)))
 	})
 
 	It("has_vm", func() {

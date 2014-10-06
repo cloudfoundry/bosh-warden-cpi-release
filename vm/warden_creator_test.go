@@ -81,6 +81,7 @@ var _ = Describe("WardenCreator", func() {
 				hostBindMounts,
 				guestBindMounts,
 				logger,
+				true,
 			)
 
 			vm, err := creator.Create("fake-agent-id", stemcell, networks, env)

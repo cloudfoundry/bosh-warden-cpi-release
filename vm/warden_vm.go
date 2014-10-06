@@ -18,6 +18,8 @@ type WardenVM struct {
 	guestBindMounts GuestBindMounts
 
 	logger boshlog.Logger
+
+	containerExists bool
 }
 
 func NewWardenVM(
@@ -27,6 +29,7 @@ func NewWardenVM(
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
 	logger boshlog.Logger,
+	containerExists bool,
 ) WardenVM {
 	return WardenVM{
 		id: id,
@@ -37,7 +40,8 @@ func NewWardenVM(
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
 
-		logger: logger,
+		logger:          logger,
+		containerExists: containerExists,
 	}
 }
 
@@ -45,12 +49,15 @@ func (vm WardenVM) ID() string { return vm.id }
 
 func (vm WardenVM) Delete() error {
 	// Destroy container before deleting bind mounts to avoid 'device is busy' error
-	err := vm.wardenClient.Destroy(vm.id)
-	if err != nil {
-		return err
+	if vm.containerExists {
+		err := vm.wardenClient.Destroy(vm.id)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = vm.hostBindMounts.DeleteEphemeral(vm.id)
+	vm.logger.Debug("zaksoup", "vm is deleting ephemeral")
+	err := vm.hostBindMounts.DeleteEphemeral(vm.id)
 	if err != nil {
 		return err
 	}
@@ -65,6 +72,11 @@ func (vm WardenVM) Delete() error {
 }
 
 func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
+
+	if !vm.containerExists {
+		return bosherr.New("VM does not exist")
+	}
+
 	agentEnv, err := vm.agentEnvService.Fetch()
 	if err != nil {
 		return bosherr.WrapError(err, "Fetching agent env")
@@ -88,6 +100,11 @@ func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
 }
 
 func (vm WardenVM) DetachDisk(disk bwcdisk.Disk) error {
+
+	if !vm.containerExists {
+		return bosherr.New("VM does not exist")
+	}
+
 	agentEnv, err := vm.agentEnvService.Fetch()
 	if err != nil {
 		return bosherr.WrapError(err, "Fetching agent env")
