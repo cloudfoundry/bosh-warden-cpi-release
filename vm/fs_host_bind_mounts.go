@@ -101,7 +101,12 @@ func (hbm FSHostBindMounts) DeletePersistent(id string) error {
 	path := filepath.Join(hbm.persistentBindMountsDir, id)
 
 	if hbm.fs.FileExists(path) {
-		err := hbm.fs.RemoveAll(path)
+		_, _, _, err := hbm.cmdRunner.RunCommand("umount", path)
+		if err != nil && !strings.Contains(err.Error(), "not mounted") {
+			return err
+		}
+
+		err = hbm.fs.RemoveAll(path)
 		if err != nil {
 			return bosherr.WrapError(err, "Removing persistent bind mounts")
 		}

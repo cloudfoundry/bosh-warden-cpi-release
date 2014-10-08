@@ -48,7 +48,6 @@ func NewWardenVM(
 func (vm WardenVM) ID() string { return vm.id }
 
 func (vm WardenVM) Delete() error {
-	// Destroy container before deleting bind mounts to avoid 'device is busy' error
 	if vm.containerExists {
 		err := vm.wardenClient.Destroy(vm.id)
 		if err != nil {
@@ -56,13 +55,11 @@ func (vm WardenVM) Delete() error {
 		}
 	}
 
-	vm.logger.Debug("zaksoup", "vm is deleting ephemeral")
 	err := vm.hostBindMounts.DeleteEphemeral(vm.id)
 	if err != nil {
 		return err
 	}
 
-	// No need to unmount since DetachDisk should have been called before this
 	err = vm.hostBindMounts.DeletePersistent(vm.id)
 	if err != nil {
 		return err
