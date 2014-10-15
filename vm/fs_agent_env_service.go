@@ -13,37 +13,37 @@ import (
 )
 
 const (
-	wardenAgentEnvServiceLogTag = "WardenAgentEnvService"
+	fsAgentEnvServiceLogTag = "FSAgentEnvService"
 
-	wardenAgentEnvServiceSettingsFileName  = "warden-cpi-agent-env.json"
-	wardenAgentEnvServiceTmpSettingsPath   = "/tmp/" + wardenAgentEnvServiceSettingsFileName
-	wardenAgentEnvServiceFinalSettingsPath = "/var/vcap/bosh/" + wardenAgentEnvServiceSettingsFileName
+	fsAgentEnvServiceSettingsFileName  = "warden-cpi-agent-env.json"
+	fsAgentEnvServiceTmpSettingsPath   = "/tmp/" + fsAgentEnvServiceSettingsFileName
+	fsAgentEnvServiceFinalSettingsPath = "/var/vcap/bosh/" + fsAgentEnvServiceSettingsFileName
 )
 
-type WardenAgentEnvService struct {
+type fsAgentEnvService struct {
 	container wrdn.Container
 	logger    boshlog.Logger
 }
 
-func NewWardenAgentEnvService(
+func NewFSAgentEnvService(
 	container wrdn.Container,
 	logger boshlog.Logger,
-) WardenAgentEnvService {
-	return WardenAgentEnvService{
+) AgentEnvService {
+	return fsAgentEnvService{
 		container: container,
 		logger:    logger,
 	}
 }
 
-func (s WardenAgentEnvService) Fetch() (AgentEnv, error) {
+func (s fsAgentEnvService) Fetch() (AgentEnv, error) {
 	// Copy settings file to a temporary directory
 	// so that tar (running as vcap) has permission to readdir.
 	// (/var/vcap/bosh is owned by root.)
 	script := fmt.Sprintf(
 		"cp %s %s && chown vcap:vcap %s",
-		wardenAgentEnvServiceFinalSettingsPath,
-		wardenAgentEnvServiceTmpSettingsPath,
-		wardenAgentEnvServiceTmpSettingsPath,
+		fsAgentEnvServiceFinalSettingsPath,
+		fsAgentEnvServiceTmpSettingsPath,
+		fsAgentEnvServiceTmpSettingsPath,
 	)
 
 	err := s.runPrivilegedScript(script)
@@ -51,7 +51,7 @@ func (s WardenAgentEnvService) Fetch() (AgentEnv, error) {
 		return AgentEnv{}, bosherr.WrapError(err, "Running copy json settings file script")
 	}
 
-	streamOut, err := s.container.StreamOut(wardenAgentEnvServiceTmpSettingsPath)
+	streamOut, err := s.container.StreamOut(fsAgentEnvServiceTmpSettingsPath)
 	if err != nil {
 		return AgentEnv{}, bosherr.WrapError(err, "Streaming out json settings")
 	}
@@ -59,8 +59,8 @@ func (s WardenAgentEnvService) Fetch() (AgentEnv, error) {
 	return s.unmarshalAgentEnv(streamOut)
 }
 
-func (s WardenAgentEnvService) Update(agentEnv AgentEnv) error {
-	agentEnvStream, err := s.marshalAgentEnv(agentEnv, wardenAgentEnvServiceSettingsFileName)
+func (s fsAgentEnvService) Update(agentEnv AgentEnv) error {
+	agentEnvStream, err := s.marshalAgentEnv(agentEnv, fsAgentEnvServiceSettingsFileName)
 	if err != nil {
 		return bosherr.WrapError(err, "Making json settings stream")
 	}
@@ -77,8 +77,8 @@ func (s WardenAgentEnvService) Update(agentEnv AgentEnv) error {
 	// Move settings file to its final location
 	script := fmt.Sprintf(
 		"mv %s %s",
-		wardenAgentEnvServiceTmpSettingsPath,
-		wardenAgentEnvServiceFinalSettingsPath,
+		fsAgentEnvServiceTmpSettingsPath,
+		fsAgentEnvServiceFinalSettingsPath,
 	)
 
 	err = s.runPrivilegedScript(script)
@@ -89,7 +89,7 @@ func (s WardenAgentEnvService) Update(agentEnv AgentEnv) error {
 	return nil
 }
 
-func (s WardenAgentEnvService) unmarshalAgentEnv(agentEnvStream io.Reader) (AgentEnv, error) {
+func (s fsAgentEnvService) unmarshalAgentEnv(agentEnvStream io.Reader) (AgentEnv, error) {
 	var agentEnv AgentEnv
 
 	tarReader := tar.NewReader(agentEnvStream)
@@ -104,13 +104,13 @@ func (s WardenAgentEnvService) unmarshalAgentEnv(agentEnvStream io.Reader) (Agen
 		return agentEnv, bosherr.WrapError(err, "Reading agent env from tar")
 	}
 
-	s.logger.Debug(wardenAgentEnvServiceLogTag, "Unmarshalled agent env: %#v", agentEnv)
+	s.logger.Debug(fsAgentEnvServiceLogTag, "Unmarshalled agent env: %#v", agentEnv)
 
 	return agentEnv, nil
 }
 
-func (s WardenAgentEnvService) marshalAgentEnv(agentEnv AgentEnv, fileName string) (io.Reader, error) {
-	s.logger.Debug(wardenAgentEnvServiceLogTag, "Marshalling agent env: %#v", agentEnv)
+func (s fsAgentEnvService) marshalAgentEnv(agentEnv AgentEnv, fileName string) (io.Reader, error) {
+	s.logger.Debug(fsAgentEnvServiceLogTag, "Marshalling agent env: %#v", agentEnv)
 
 	jsonBytes, err := json.Marshal(agentEnv)
 	if err != nil {
@@ -145,7 +145,7 @@ func (s WardenAgentEnvService) marshalAgentEnv(agentEnv AgentEnv, fileName strin
 	return tarBytes, nil
 }
 
-func (s WardenAgentEnvService) runPrivilegedScript(script string) error {
+func (s fsAgentEnvService) runPrivilegedScript(script string) error {
 	processSpec := wrdn.ProcessSpec{
 		Path: "bash",
 		Args: []string{"-c", script},

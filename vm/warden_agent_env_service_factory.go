@@ -14,5 +14,5 @@ func NewWardenAgentEnvServiceFactory(logger boshlog.Logger) WardenAgentEnvServic
 }
 
 func (f WardenAgentEnvServiceFactory) New(container wrdn.Container) AgentEnvService {
-	return NewWardenAgentEnvService(container, f.logger)
+	return NewFSAgentEnvService(container, f.logger)
 }

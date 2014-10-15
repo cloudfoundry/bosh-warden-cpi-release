@@ -22,7 +22,7 @@ var _ = Describe("WardenAgentEnvService", func() {
 	var (
 		wardenClient    *fakewrdnclient.FakeClient
 		logger          boshlog.Logger
-		agentEnvService WardenAgentEnvService
+		agentEnvService AgentEnvService
 	)
 
 	BeforeEach(func() {
@@ -39,7 +39,7 @@ var _ = Describe("WardenAgentEnvService", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		agentEnvService = NewWardenAgentEnvService(container, logger)
+		agentEnvService = NewFSAgentEnvService(container, logger)
 	})
 
 	Describe("Fetch", func() {
