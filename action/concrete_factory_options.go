@@ -17,6 +17,9 @@ type ConcreteFactoryOptions struct {
 	GuestPersistentBindMountsDir string // e.g. /warden-cpi-dev
 
 	Agent bwcvm.AgentOptions
+
+	AgentEnvService string
+	Registry        bwcvm.RegistryOptions
 }
 
 func (o ConcreteFactoryOptions) Validate() error {

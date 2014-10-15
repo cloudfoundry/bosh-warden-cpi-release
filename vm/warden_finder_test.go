@@ -60,6 +60,8 @@ var _ = Describe("WardenFinder", func() {
 			Expect(found).To(BeTrue())
 			Expect(vm).To(Equal(expectedVM))
 
+			Expect(agentEnvServiceFactory.NewInstanceID).To(Equal("fake-vm-id"))
+
 			Expect(wardenClient.Connection.ListCallCount()).To(Equal(1))
 			Expect(wardenClient.Connection.ListArgsForCall(0)).To(BeNil())
 		})

@@ -93,7 +93,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 
 	agentEnv := NewAgentEnvForVM(agentID, id, networks, env, c.agentOptions)
 
-	agentEnvService := c.agentEnvServiceFactory.New(container)
+	agentEnvService := c.agentEnvServiceFactory.New(container, id)
 
 	err = agentEnvService.Update(agentEnv)
 	if err != nil {

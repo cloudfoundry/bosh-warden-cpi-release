@@ -5,5 +5,5 @@ import (
 )
 
 type AgentEnvServiceFactory interface {
-	New(wrdn.Container) AgentEnvService
+	New(wrdn.Container, string) AgentEnvService
 }

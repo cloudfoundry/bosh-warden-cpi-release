@@ -35,6 +35,14 @@ var _ = Describe("concreteFactory", func() {
 
 			GuestEphemeralBindMountPath:  "/tmp/guest-ephemeral-bind-mount-path",
 			GuestPersistentBindMountsDir: "/tmp/guest-persistent-bind-mounts-dir",
+
+			AgentEnvService: "registry",
+			Registry: bwcvm.RegistryOptions{
+				Username: "fake-user",
+				Password: "fake-password",
+				Host:     "fake-host",
+				Port:     1234,
+			},
 		}
 
 		factory Factory
@@ -88,7 +96,7 @@ var _ = Describe("concreteFactory", func() {
 			logger,
 		)
 
-		agentEnvServiceFactory = bwcvm.NewWardenAgentEnvServiceFactory(logger)
+		agentEnvServiceFactory = bwcvm.NewWardenAgentEnvServiceFactory(logger, options.AgentEnvService, options.Registry)
 
 		stemcellFinder = bwcstem.NewFSFinder("/tmp/stemcells", fs, logger)
 
