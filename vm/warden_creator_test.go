@@ -231,7 +231,7 @@ var _ = Describe("WardenCreator", func() {
 						agentOptions,
 					)
 
-					Expect(agentEnvServiceFactory.NewContainer).ToNot(BeNil()) // todo
+					Expect(agentEnvServiceFactory.NewWardenFileService).ToNot(BeNil()) // todo
 					Expect(agentEnvServiceFactory.NewInstanceID).To(Equal("fake-vm-id"))
 					Expect(agentEnvService.UpdateAgentEnv).To(Equal(expectedAgentEnv))
 				})

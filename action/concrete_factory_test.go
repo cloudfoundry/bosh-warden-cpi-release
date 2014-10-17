@@ -96,7 +96,7 @@ var _ = Describe("concreteFactory", func() {
 			logger,
 		)
 
-		agentEnvServiceFactory = bwcvm.NewWardenAgentEnvServiceFactory(logger, options.AgentEnvService, options.Registry)
+		agentEnvServiceFactory = bwcvm.NewWardenAgentEnvServiceFactory(options.AgentEnvService, options.Registry, logger)
 
 		stemcellFinder = bwcstem.NewFSFinder("/tmp/stemcells", fs, logger)
 

@@ -53,7 +53,7 @@ func NewConcreteFactory(
 		logger,
 	)
 
-	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(logger, options.AgentEnvService, options.Registry)
+	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(options.AgentEnvService, options.Registry, logger)
 
 	vmCreator := bwcvm.NewWardenCreator(
 		uuidGen,

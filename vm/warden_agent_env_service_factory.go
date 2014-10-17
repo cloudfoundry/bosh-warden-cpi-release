@@ -1,21 +1,19 @@
 package vm
 
 import (
-	wrdn "github.com/cloudfoundry-incubator/garden/warden"
-
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 type WardenAgentEnvServiceFactory struct {
-	logger          boshlog.Logger
 	agentEnvService string
 	registryOptions RegistryOptions
+	logger          boshlog.Logger
 }
 
 func NewWardenAgentEnvServiceFactory(
-	logger boshlog.Logger,
 	agentEnvService string,
 	registryOptions RegistryOptions,
+	logger boshlog.Logger,
 ) WardenAgentEnvServiceFactory {
 	return WardenAgentEnvServiceFactory{
 		logger:          logger,
@@ -24,9 +22,12 @@ func NewWardenAgentEnvServiceFactory(
 	}
 }
 
-func (f WardenAgentEnvServiceFactory) New(container wrdn.Container, instanceID string) AgentEnvService {
+func (f WardenAgentEnvServiceFactory) New(
+	wardenFileService WardenFileService,
+	instanceID string,
+) AgentEnvService {
 	if f.agentEnvService == "registry" {
 		return NewRegistryAgentEnvService(f.registryOptions, instanceID, f.logger)
 	}
-	return NewFSAgentEnvService(container, f.logger)
+	return NewFSAgentEnvService(wardenFileService, f.logger)
 }

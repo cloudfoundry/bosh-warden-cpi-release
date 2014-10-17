@@ -49,7 +49,8 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 		if container.Handle() == id {
 			f.logger.Debug(wardenFinderLogTag, "Found container with ID '%s'", id)
 
-			agentEnvService := f.agentEnvServiceFactory.New(container, id)
+			wardenFileService := NewWardenFileService(container, f.logger)
+			agentEnvService := f.agentEnvServiceFactory.New(wardenFileService, id)
 
 			vm := NewWardenVM(
 				id,
