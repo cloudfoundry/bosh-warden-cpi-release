@@ -15,6 +15,7 @@ type WardenCreator struct {
 	uuidGen boshuuid.Generator
 
 	wardenClient           wrdn.Client
+	metadataService        MetadataService
 	agentEnvServiceFactory AgentEnvServiceFactory
 
 	hostBindMounts  HostBindMounts
@@ -27,6 +28,7 @@ type WardenCreator struct {
 func NewWardenCreator(
 	uuidGen boshuuid.Generator,
 	wardenClient wrdn.Client,
+	metadataService MetadataService,
 	agentEnvServiceFactory AgentEnvServiceFactory,
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
@@ -37,6 +39,7 @@ func NewWardenCreator(
 		uuidGen: uuidGen,
 
 		wardenClient:           wardenClient,
+		metadataService:        metadataService,
 		agentEnvServiceFactory: agentEnvServiceFactory,
 
 		hostBindMounts:  hostBindMounts,
@@ -100,6 +103,12 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 	if err != nil {
 		c.cleanUpContainer(container)
 		return WardenVM{}, bosherr.WrapError(err, "Updating container's agent env")
+	}
+
+	err = c.metadataService.Save(wardenFileService)
+	if err != nil {
+		c.cleanUpContainer(container)
+		return WardenVM{}, bosherr.WrapError(err, "Updating container's metadata")
 	}
 
 	err = c.startAgentInContainer(container)

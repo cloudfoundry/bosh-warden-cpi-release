@@ -49,6 +49,7 @@ var _ = Describe("concreteFactory", func() {
 	)
 
 	var (
+		metadataService        bwcvm.MetadataService
 		agentEnvServiceFactory bwcvm.AgentEnvServiceFactory
 
 		hostBindMounts  bwcvm.FSHostBindMounts
@@ -96,6 +97,7 @@ var _ = Describe("concreteFactory", func() {
 			logger,
 		)
 
+		metadataService = bwcvm.NewMetadataService(options.AgentEnvService, options.Registry, logger)
 		agentEnvServiceFactory = bwcvm.NewWardenAgentEnvServiceFactory(options.AgentEnvService, options.Registry, logger)
 
 		stemcellFinder = bwcstem.NewFSFinder("/tmp/stemcells", fs, logger)
@@ -141,6 +143,7 @@ var _ = Describe("concreteFactory", func() {
 		vmCreator := bwcvm.NewWardenCreator(
 			uuidGen,
 			wardenClient,
+			metadataService,
 			agentEnvServiceFactory,
 			hostBindMounts,
 			guestBindMounts,

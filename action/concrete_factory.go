@@ -53,11 +53,13 @@ func NewConcreteFactory(
 		logger,
 	)
 
+	metadataService := bwcvm.NewMetadataService(options.AgentEnvService, options.Registry, logger)
 	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(options.AgentEnvService, options.Registry, logger)
 
 	vmCreator := bwcvm.NewWardenCreator(
 		uuidGen,
 		wardenClient,
+		metadataService,
 		agentEnvServiceFactory,
 		hostBindMounts,
 		guestBindMounts,

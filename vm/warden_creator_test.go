@@ -3,22 +3,24 @@ package vm_test
 import (
 	"errors"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
 	wrdn "github.com/cloudfoundry-incubator/garden/warden"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	fakestem "github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
-	. "github.com/cppforlife/bosh-warden-cpi/vm"
 	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
+
+	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("WardenCreator", func() {
 	var (
 		uuidGen                *fakeuuid.FakeGenerator
 		wardenClient           *fakewrdnclient.FakeClient
+		fakeMetadataService    *fakevm.FakeMetadataService
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
 		hostBindMounts         *fakevm.FakeHostBindMounts
 		guestBindMounts        *fakevm.FakeGuestBindMounts
@@ -30,6 +32,7 @@ var _ = Describe("WardenCreator", func() {
 	BeforeEach(func() {
 		uuidGen = &fakeuuid.FakeGenerator{}
 		wardenClient = fakewrdnclient.New()
+		fakeMetadataService = fakevm.NewFakeMetadataService()
 		agentEnvServiceFactory = &fakevm.FakeAgentEnvServiceFactory{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{
@@ -42,6 +45,7 @@ var _ = Describe("WardenCreator", func() {
 		creator = NewWardenCreator(
 			uuidGen,
 			wardenClient,
+			fakeMetadataService,
 			agentEnvServiceFactory,
 			hostBindMounts,
 			guestBindMounts,
@@ -234,6 +238,14 @@ var _ = Describe("WardenCreator", func() {
 					Expect(agentEnvServiceFactory.NewWardenFileService).ToNot(BeNil()) // todo
 					Expect(agentEnvServiceFactory.NewInstanceID).To(Equal("fake-vm-id"))
 					Expect(agentEnvService.UpdateAgentEnv).To(Equal(expectedAgentEnv))
+				})
+
+				It("saves metadata", func() {
+					wardenClient.Connection.CreateReturns("fake-container-handle", nil)
+					_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeMetadataService.Saved).To(BeTrue())
 				})
 
 				ItDestroysContainer := func(errMsg string) {
