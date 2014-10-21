@@ -12,12 +12,13 @@ type metadataService struct {
 	agentEnvService  string
 	registryOptions  RegistryOptions
 	userDataFilePath string
+	metadataFilePath string
 	logger           boshlog.Logger
 	logTag           string
 }
 
 type MetadataService interface {
-	Save(WardenFileService) error
+	Save(WardenFileService, string) error
 }
 
 func NewMetadataService(
@@ -29,20 +30,25 @@ func NewMetadataService(
 		agentEnvService:  agentEnvService,
 		registryOptions:  registryOptions,
 		userDataFilePath: "/var/vcap/bosh/warden-cpi-user-data.json",
+		metadataFilePath: "/var/vcap/bosh/warden-cpi-metadata.json",
 		logger:           logger,
 		logTag:           "metadataService",
 	}
-}
-
-type UserDataContentsType struct {
-	Registry RegistryType
 }
 
 type RegistryType struct {
 	Endpoint string
 }
 
-func (ms *metadataService) Save(wardenFileService WardenFileService) error {
+type UserDataContentsType struct {
+	Registry RegistryType
+}
+
+type MetadataContentsType struct {
+	InstanceID string `json:"instance-id"`
+}
+
+func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID string) error {
 	var endpoint string
 
 	if ms.agentEnvService == "registry" {
@@ -70,5 +76,26 @@ func (ms *metadataService) Save(wardenFileService WardenFileService) error {
 
 	ms.logger.Debug(ms.logTag, "Saving user data %#v to %s", userDataContents, ms.userDataFilePath)
 
-	return wardenFileService.Upload(ms.userDataFilePath, jsonBytes)
+	err = wardenFileService.Upload(ms.userDataFilePath, jsonBytes)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving user data")
+	}
+
+	metadataContents := MetadataContentsType{
+		InstanceID: instanceID,
+	}
+
+	jsonBytes, err = json.Marshal(metadataContents)
+	if err != nil {
+		return bosherr.WrapError(err, "Marshalling metadata")
+	}
+
+	ms.logger.Debug(ms.logTag, "Saving metadata %#v to %s", metadataContents, ms.metadataFilePath)
+
+	err = wardenFileService.Upload(ms.metadataFilePath, jsonBytes)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving metadata")
+	}
+
+	return nil
 }

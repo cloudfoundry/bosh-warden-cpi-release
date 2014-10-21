@@ -246,6 +246,7 @@ var _ = Describe("WardenCreator", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeMetadataService.Saved).To(BeTrue())
+					Expect(fakeMetadataService.SaveInstanceID).To(Equal("fake-vm-id"))
 				})
 
 				ItDestroysContainer := func(errMsg string) {

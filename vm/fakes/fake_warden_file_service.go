@@ -1,22 +1,30 @@
 package fakes
 
 type FakeWardenFileService struct {
-	UploadDestinationPath string
-	UploadContents        []byte
-	UploadErr             error
+	UploadInputs []UploadInput
+	UploadErr    error
 
 	DownloadSourcePath string
 	DownloadContents   []byte
 	DownloadErr        error
 }
 
+type UploadInput struct {
+	DestinationPath string
+	Contents        []byte
+}
+
 func NewFakeWardenFileService() *FakeWardenFileService {
-	return &FakeWardenFileService{}
+	return &FakeWardenFileService{
+		UploadInputs: []UploadInput{},
+	}
 }
 
 func (s *FakeWardenFileService) Upload(destinationPath string, contents []byte) error {
-	s.UploadDestinationPath = destinationPath
-	s.UploadContents = contents
+	s.UploadInputs = append(s.UploadInputs, UploadInput{
+		DestinationPath: destinationPath,
+		Contents:        contents,
+	})
 
 	return s.UploadErr
 }

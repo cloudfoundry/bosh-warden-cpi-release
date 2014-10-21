@@ -105,7 +105,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		return WardenVM{}, bosherr.WrapError(err, "Updating container's agent env")
 	}
 
-	err = c.metadataService.Save(wardenFileService)
+	err = c.metadataService.Save(wardenFileService, id)
 	if err != nil {
 		c.cleanUpContainer(container)
 		return WardenVM{}, bosherr.WrapError(err, "Updating container's metadata")

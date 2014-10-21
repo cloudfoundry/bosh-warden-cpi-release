@@ -87,7 +87,7 @@ var _ = Describe("WardenAgentEnvService", func() {
 		It("uploads file contents to the warden container", func() {
 			err := agentEnvService.Update(newAgentEnv)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeWardenFileService.UploadContents).To(Equal(expectedAgentEnvBytes))
+			Expect(fakeWardenFileService.UploadInputs[0].Contents).To(Equal(expectedAgentEnvBytes))
 		})
 
 		Context("when container fails to stream in because agent env cannot be serialized", func() {

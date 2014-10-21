@@ -5,16 +5,18 @@ import (
 )
 
 type FakeMetadataService struct {
-	Saved   bool
-	SaveErr error
+	Saved          bool
+	SaveInstanceID string
+	SaveErr        error
 }
 
 func NewFakeMetadataService() *FakeMetadataService {
 	return &FakeMetadataService{}
 }
 
-func (ms *FakeMetadataService) Save(wardenFileService bwcvm.WardenFileService) error {
+func (ms *FakeMetadataService) Save(wardenFileService bwcvm.WardenFileService, instanceID string) error {
 	ms.Saved = true
+	ms.SaveInstanceID = instanceID
 
 	return ms.SaveErr
 }

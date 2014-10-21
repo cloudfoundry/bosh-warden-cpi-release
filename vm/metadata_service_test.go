@@ -33,16 +33,32 @@ var _ = Describe("MetadataService", func() {
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 		})
 
+		It("saves instance id to metadata", func() {
+			metadataService = NewMetadataService("registry", registryOptions, logger)
+			err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
+			Expect(err).ToNot(HaveOccurred())
+
+			metadataContents := MetadataContentsType{
+				InstanceID: "fake-instance-id",
+			}
+
+			expectedContents, err := json.Marshal(metadataContents)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeWardenFileService.UploadInputs).To(ContainElement(fakebwcvm.UploadInput{
+				DestinationPath: "/var/vcap/bosh/warden-cpi-metadata.json",
+				Contents:        expectedContents,
+			}))
+		})
+
 		Context("when agent env service is registry", func() {
 			BeforeEach(func() {
 				metadataService = NewMetadataService("registry", registryOptions, logger)
 			})
 
 			It("saves registry endpoint as URL to registry", func() {
-				err := metadataService.Save(fakeWardenFileService)
+				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fakeWardenFileService.UploadDestinationPath).To(Equal("/var/vcap/bosh/warden-cpi-user-data.json"))
 
 				userDataContents := UserDataContentsType{
 					Registry: RegistryType{
@@ -52,7 +68,12 @@ var _ = Describe("MetadataService", func() {
 
 				expectedContents, err := json.Marshal(userDataContents)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeWardenFileService.UploadContents).To(Equal(expectedContents))
+
+				Expect(fakeWardenFileService.UploadInputs).To(ContainElement(fakebwcvm.UploadInput{
+
+					DestinationPath: "/var/vcap/bosh/warden-cpi-user-data.json",
+					Contents:        expectedContents,
+				}))
 			})
 		})
 
@@ -62,10 +83,8 @@ var _ = Describe("MetadataService", func() {
 			})
 
 			It("saves registry endpoint as file path", func() {
-				err := metadataService.Save(fakeWardenFileService)
+				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fakeWardenFileService.UploadDestinationPath).To(Equal("/var/vcap/bosh/warden-cpi-user-data.json"))
 
 				userDataContents := UserDataContentsType{
 					Registry: RegistryType{
@@ -75,7 +94,10 @@ var _ = Describe("MetadataService", func() {
 
 				expectedContents, err := json.Marshal(userDataContents)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeWardenFileService.UploadContents).To(Equal(expectedContents))
+				Expect(fakeWardenFileService.UploadInputs).To(ContainElement(fakebwcvm.UploadInput{
+					DestinationPath: "/var/vcap/bosh/warden-cpi-user-data.json",
+					Contents:        expectedContents,
+				}))
 			})
 		})
 
@@ -85,7 +107,7 @@ var _ = Describe("MetadataService", func() {
 			})
 
 			It("returns an error", func() {
-				err := metadataService.Save(fakeWardenFileService)
+				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
 			})
