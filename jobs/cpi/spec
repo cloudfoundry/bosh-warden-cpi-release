@@ -3,7 +3,6 @@ name: cpi
 
 templates:
   cpi.erb:           bin/cpi
-  micro_discover_ip: bin/micro_discover_ip
 
   cpi_ctl.erb:  bin/cpi_ctl
   cpi.json.erb: config/cpi.json
