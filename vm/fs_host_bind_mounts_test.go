@@ -179,61 +179,46 @@ var _ = Describe("FSHostBindMounts", func() {
 				path, err = hostBindMounts.MakePersistent("fake-id")
 				Expect(err).ToNot(HaveOccurred())
 
+				fs.SetGlob("/fake-persistent-dir/fake-id/*", []string{
+					"/fake-persistent-dir/fake-id/fake-disk-id-1",
+					"/fake-persistent-dir/fake-id/fake-disk-id-2",
+				})
+
+				cmdRunner.AddCmdResult(
+					"mount",
+					fakesys.FakeCmdResult{Stdout: "/fake-persistent-dir/fake-id/fake-disk-id-1\n/fake-persistent-dir/fake-id/fake-disk-id-2"},
+				)
+				cmdRunner.AddCmdResult(
+					"mount",
+					fakesys.FakeCmdResult{Stdout: "/fake-persistent-dir/fake-id/fake-disk-id-2"},
+				)
+
 				cmdRunner.RunCommands = [][]string{} // Reset cmd runner comamnds
 			})
 
-			Context("when a loopback device is associated with the disk", func() {
+			It("unmounts all mount points in that directory and then directory itself", func() {
+				err := hostBindMounts.DeletePersistent("fake-id")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(cmdRunner.RunCommands).To(Equal([][]string{
+					[]string{"mount"},
+					[]string{"umount", "/fake-persistent-dir/fake-id/fake-disk-id-1"},
+					[]string{"mount"},
+					[]string{"umount", "/fake-persistent-dir/fake-id/fake-disk-id-2"},
+					[]string{"umount", "/fake-persistent-dir/fake-id"},
+				}))
+			})
+
+			Context("when getting mounted disk paths fails", func() {
 				BeforeEach(func() {
-					cmdResult := fakesys.FakeCmdResult{
-						Stdout:     "/dev/loop1                      122835      1848    117056   2% /tmp",
-						Stderr:     "",
-						ExitStatus: 0,
-						Error:      nil,
-					}
-					cmdRunner.AddCmdResult("bash -c df | grep 'fake-id'", cmdResult)
+					fs.GlobErr = errors.New("fake-glob-error")
 				})
 
-				It("unmounts the associated loop device", func() {
-					err := hostBindMounts.DeletePersistent("fake-id")
-					Expect(err).ToNot(HaveOccurred())
-
-					Expect(cmdRunner.RunCommands).To(ContainElement(
-						[]string{"umount", "/dev/loop1"},
-					))
-				})
-
-				It("returns error when unmounting loopback device fails", func() {
-					unmountLoopbackResult := fakesys.FakeCmdResult{
-						Error: errors.New("fake-unmount-error"),
-					}
-					cmdRunner.AddCmdResult("umount /dev/loop1", unmountLoopbackResult)
-
+				It("returns an error", func() {
 					err := hostBindMounts.DeletePersistent("fake-id")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Unmounting loopback device"))
+					Expect(err.Error()).To(ContainSubstring("fake-glob-error"))
 				})
-			})
-
-			It("ignores error while looking for loopback device", func() {
-				cmdResult := fakesys.FakeCmdResult{
-					Stdout:     "",
-					Stderr:     "",
-					ExitStatus: 1,
-					Error:      errors.New("fake-error"),
-				}
-				cmdRunner.AddCmdResult("bash -c df | grep 'fake-id'", cmdResult)
-
-				err := hostBindMounts.DeletePersistent("fake-id")
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("unmounts all mount points in that directory", func() {
-				err := hostBindMounts.DeletePersistent("fake-id")
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(cmdRunner.RunCommands).To(ContainElement(
-					[]string{"umount", "/fake-persistent-dir/fake-id"},
-				))
 			})
 
 			Context("when unmounting directory succeeds", func() {

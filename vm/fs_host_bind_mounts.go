@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -102,16 +101,15 @@ func (hbm FSHostBindMounts) DeletePersistent(id string) error {
 	path := filepath.Join(hbm.persistentBindMountsDir, id)
 
 	if hbm.fs.FileExists(path) {
-		deviceName, err := hbm.resolveLoopbackDevice(id)
+		mountedDiskPaths, err := hbm.fs.Glob(filepath.Join(path, "*"))
 		if err != nil {
-			hbm.logger.Error(
-				"HostBindMounts",
-				"Could not find loop device. Ignoring error and continuing with disk unmount.",
-			)
-		} else {
-			_, _, _, err = hbm.cmdRunner.RunCommand("umount", deviceName)
+			return bosherr.WrapError(err, "Getting mounted disk paths in '%s'", path)
+		}
+
+		for _, mountedDiskPath := range mountedDiskPaths {
+			err := hbm.unmountPath(mountedDiskPath)
 			if err != nil {
-				return bosherr.WrapError(err, "Unmounting loopback device")
+				return bosherr.WrapError(err, "Unmounting persistent disk '%s'", mountedDiskPath)
 			}
 		}
 
@@ -147,7 +145,10 @@ func (hbm FSHostBindMounts) MountPersistent(id, diskID, diskPath string) error {
 
 func (hbm FSHostBindMounts) UnmountPersistent(id, diskID string) error {
 	path := filepath.Join(hbm.persistentBindMountsDir, id, diskID)
+	return hbm.unmountPath(path)
+}
 
+func (hbm FSHostBindMounts) unmountPath(path string) error {
 	var lastErr error
 
 	for i := 0; i < 60; i++ {
@@ -173,14 +174,4 @@ func (hbm FSHostBindMounts) UnmountPersistent(id, diskID string) error {
 	}
 
 	return bosherr.WrapError(lastErr, "Unmounting disk specific persistent bind mount")
-}
-
-func (hbm FSHostBindMounts) resolveLoopbackDevice(id string) (string, error) {
-	stdout, _, _, err := hbm.cmdRunner.RunCommand("bash", "-c", fmt.Sprintf("df | grep '%s'", id))
-	if err != nil {
-		return "", err
-	}
-
-	deviceName := strings.Split(stdout, " ")[0]
-	return deviceName, nil
 }
