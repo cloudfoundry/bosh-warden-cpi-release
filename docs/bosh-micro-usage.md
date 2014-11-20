@@ -4,42 +4,158 @@
 
 To start experimenting with bosh-warden-cpi release and new bosh-micro cli:
 
-1. Create a deployment directory
+* Create a deployment directory
 
 ```
 mkdir my-micro
 ```
 
-1. Create `manifest.yml` inside deployment direcrtory with following contents
+* Create `manifest.yml` inside deployment directory.
 
 ```
+---
+name: test-release
+
+resource_pools:
+- name: fake-resource-pool-name
+  network: fake-network-name
+
+networks:
+- name: fake-network-name
+  type: manual
+  cloud_properties:
+    subnet: fake-subnet
+    range: 10.244.0.40/30
+    reserved:
+    - 10.244.0.41
+    static:
+    - 10.244.0.42
+
 cloud_provider:
+  ssh_tunnel:
+    host: 10.244.0.42
+    port: 22
+    user: vcap
+    password: c1oudc0w
+  registry: &registry
+    host: 127.0.0.1
+    port: 6301
+    username: fake-registry-user
+    password: fake-registry-password
+  mbus: https://admin:admin@10.244.0.42:6868
   properties:
     cpi:
-      host_ip: 10.254.50.4
       warden:
         connect_network: tcp
-        connect_address: 127.0.0.1:7777
+        connect_address: 0.0.0.0:7777
+        network_pool: 10.244.0.0/16
+        host_ip: 192.168.54.4
+      actions:
+        agent_env_service: registry
+        registry: *registry
       agent:
-        mbus: nats://nats:nats-password@10.254.50.4:4222
+        mbus: https://admin:admin@0.0.0.0:6868
         blobstore:
-          provider: dav
+          provider: local
           options:
-            endpoint: http://10.254.50.4:25251
-            user: agent
-            password: agent-password
+            blobstore_path: /var/vcap/micro_bosh/data/cache
+
+jobs:
+- name: bosh
+  templates:
+  - name: nats
+  - name: redis
+  - name: postgres
+  - name: powerdns
+  - name: blobstore
+  - name: director
+  - name: health_monitor
+  resource_pool: fake-resource-pool-name
+  networks:
+  - name: fake-network-name
+    static_ips:
+    - 10.244.0.42
+  persistent_disk: 1024
+  properties:
+    external_cpi:
+      enabled: true
+    micro: true
+    nats:
+      user: "nats"
+      password: "nats"
+      auth_timeout: 3
+      address: "127.0.0.1"
+    redis:
+      address: "127.0.0.1"
+      password: "redis"
+      port: 25255
+    postgres:
+      user: "postgres"
+      password: "postges"
+      host: "127.0.0.1"
+      database: "bosh"
+      port: 5432
+    blobstore:
+      address: "127.0.0.1"
+      director:
+        user: "director"
+        password: "director"
+      agent:
+        user: "agent"
+        password: "agent"
+      provider: "dav"
+    director:
+      address: "127.0.0.1"
+      name: "micro"
+      port: 25555
+      db:
+        user: "postgres"
+        password: "postges"
+        host: "127.0.0.1"
+        database: "bosh"
+        port: 5432
+        adapter: "postgres"
+      backend_port: 25556
+    hm:
+      http:
+        user: "hm"
+        password: "hm"
+      director_account:
+        user: "admin"
+        password: "admin"
+      intervals:
+        log_stats: 300
+        agent_timeout: 180
+        rogue_agent_alert: 180
+    dns:
+      address: "127.0.0.1"
+      domain_name: "microbosh"
+      db:
+        user: "postgres"
+        password: "postges"
+        host: "127.0.0.1"
+        database: "bosh"
+        port: 5432
+        adapter: "postgres"
+    ntp: []
+    # Control some remote vCenter
+    vcenter:
+      address: fake-address
+      user: fake-user
+      password: fake-password
+      datacenters: []
 ```
 
-1. Set deployment
+* Set deployment manifest
 
 ```
 bosh-micro deployment my-micro/manifest.yml
 ```
 
-1. Kick off a deploy
+* Kick off a deploy
 
 ```
 bosh-micro deploy ~/Downloads/bosh-warden-cpi-?.tgz ~/Downloads/stemcell.tgz
 ```
 
-Currently bosh-micro CLI does not anything after creating a stemcell in IaaS.
+* See [micro CLI docs](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/cli_workflow.md) for current state of micro CLI project.
