@@ -1,5 +1,9 @@
 package action
 
+import (
+	bwcapi "github.com/cppforlife/bosh-warden-cpi/api"
+)
+
 type ConfigureNetworks struct{}
 
 func NewConfigureNetworks() ConfigureNetworks {
@@ -7,5 +11,5 @@ func NewConfigureNetworks() ConfigureNetworks {
 }
 
 func (a ConfigureNetworks) Run(vmCID VMCID, networks Networks) (interface{}, error) {
-	return nil, nil
+	return nil, bwcapi.NotSupportedError{}
 }
