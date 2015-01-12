@@ -2,11 +2,14 @@ package dispatcher_test
 
 import (
 	"errors"
+	"reflect"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cppforlife/bosh-warden-cpi/api/dispatcher"
+
+	bwcapi "github.com/cppforlife/bosh-warden-cpi/api"
 )
 
 type valueType struct {
@@ -100,6 +103,25 @@ var _ = Describe("JSONCaller", func() {
 			Expect(action.SomeID).To(Equal(123))
 			Expect(action.ExtraArgs).To(Equal(argsType{User: "rob", Password: "rob123", ID: 12}))
 			Expect(action.SliceArgs).To(Equal([]string{"a", "b", "c"}))
+		})
+
+		It("returns the same error as the action", func() {
+			expectedValue := valueType{}
+			expectedErr := bwcapi.NotSupportedError{}
+			args := []interface{}{
+				"setup",
+				123,
+				map[string]interface{}{"user": "rob", "pwd": "rob123", "id": 12},
+				[]interface{}{"a", "b", "c"},
+				456,
+			}
+
+			action := &actionWithGoodRunMethod{Value: expectedValue, Err: expectedErr}
+
+			_, err := caller.Call(action, args)
+			Expect(err).To(HaveOccurred())
+			_, ok := reflect.ValueOf(err).Interface().(bwcapi.NotSupportedError)
+			Expect(ok).To(BeTrue())
 		})
 
 		It("returns error if actions not enough arguments", func() {
