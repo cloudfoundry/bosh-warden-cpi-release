@@ -64,6 +64,7 @@ jobs:
   properties:
     external_cpi:
       enabled: false
+      name: cpi
     micro: true
     nats:
       address: 127.0.0.1
