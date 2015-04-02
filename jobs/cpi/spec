@@ -16,6 +16,10 @@ properties:
     description: "IP address of the host that will be used by containers, must be the same as mbus IP"
     example: "10.254.50.4"
 
+  cpi.loopback_range:
+    description: "Range of loopback devices that will be used by the CPI for mounting persistent disks (example shows /dev/loop100 to /dev/loop130)"
+    example: [100, 130]
+
   cpi.warden.connect_network:
     description: "Connection type warden client will use to connect (tcp or unix)"
 

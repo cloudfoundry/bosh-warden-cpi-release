@@ -1,0 +1,50 @@
+---
+name: dummy
+
+director_uuid:
+
+releases:
+- {name: dummy, version: latest}
+
+jobs:
+- name: dummy
+  instances: 1
+
+  templates:
+  - {name: dummy, release: dummy}
+
+  resource_pool: default
+
+  networks:
+  - {name: default, static_ips: [10.244.20.2]}
+
+resource_pools:
+- name: default
+  stemcell:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+    version: latest
+  network: default
+  cloud_properties: {}
+
+networks:
+- name: default
+  type: manual
+  subnets:
+  - range: 10.244.20.0/24
+    gateway: 10.244.20.1
+    static: [10.244.20.2]
+    cloud_properties: {}
+- name: compilation
+  type: dynamic
+  cloud_properties: {}
+
+compilation:
+  workers: 5
+  network: compilation
+  cloud_properties: {}
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 5000 - 90000
+  update_watch_time: 5000 - 15000

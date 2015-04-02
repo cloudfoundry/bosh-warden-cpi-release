@@ -1,0 +1,105 @@
+---
+jobs:
+- name: build
+  serial: true
+  plan:
+  - aggregate:
+    - get: bosh-warden-cpi-release
+  - task: build
+    privileged: true
+    config:
+      platform: linux
+      image: docker:///cppforlife/bosh-lite-ci
+      inputs:
+      - name: bosh-warden-cpi-release
+      run: {path: bosh-warden-cpi-release/ci/build-release.sh}
+  - put: pipeline-bosh-warden-cpi-tarball
+    params: {from: build/out/bosh-warden-cpi-.*\.tgz}
+
+- name: bats
+  serial: true
+  plan:
+  - aggregate:
+    - {get: bosh-warden-cpi-release, passed: [build]}
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
+    - {get: warden-ubuntu-trusty-stemcell, params: {tarball: false}}
+    - get: bosh-release
+    - get: garden-linux-release
+  - task: bats
+    privileged: true
+    config:
+      platform: linux
+      image: docker:///cloudfoundry/bosh-lite-ci
+      inputs:
+      - name: bosh-warden-cpi-release
+      - name: pipeline-bosh-warden-cpi-tarball
+      - name: warden-ubuntu-trusty-stemcell
+      - name: bosh-release
+      - name: garden-linux-release
+      run: {path: bosh-warden-cpi-release/ci/bats.sh}
+      params:
+        BOSH_AWS_ACCESS_KEY_ID: {{bats_bosh_lite_access_key_id}}
+        BOSH_AWS_SECRET_ACCESS_KEY: {{bats_bosh_lite_secret_access_key}}
+        BOSH_LITE_SECURITY_GROUP: {{bats_bosh_lite_security_group}}
+        BOSH_LITE_KEYPAIR: {{bats_bosh_lite_keypair}}
+        BOSH_LITE_PRIVATE_KEY: {{bats_bosh_lite_private_key}}
+
+- name: promote
+  serial: true
+  plan:
+  - aggregate:
+    - {get: bosh-warden-cpi-release, passed: [bats]}
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats]}
+  - task: promote
+    file:
+    config:
+      platform: linux
+      image: docker:///cloudfoundry/bosh-lite-ci
+      inputs:
+      - name: bosh-warden-cpi-release
+      - name: pipeline-bosh-warden-cpi-tarball
+      run: {path: bosh-warden-cpi-release/ci/promote-release.sh}
+      params:
+        BOSH_AWS_ACCESS_KEY_ID: {{promote_access_key_id}}
+        BOSH_AWS_SECRET_ACCESS_KEY: {{promote_secret_access_key}}
+  - put: bosh-warden-cpi-release
+    resource: promoted-bosh-warden-cpi-release
+    params: {repository: promote/bosh-warden-cpi-release, rebase: true}
+
+resources:
+- name: pipeline-bosh-warden-cpi-tarball
+  type: s3
+  source:
+    bucket: {{s3_pipeline_bucket}}
+    regexp: bosh-warden-cpi-(.*).tgz
+    access_key_id: {{s3_pipeline_access_key_id}}
+    secret_access_key: {{s3_pipeline_secret_access_key}}
+    region_name: us-east-1
+
+- name: bosh-warden-cpi-release
+  type: git
+  source:
+    uri: https://github.com/cppforlife/bosh-warden-cpi-release
+    branch: master
+    ignore_paths:
+    - .final_builds/**/*.yml
+    - releases/**/*.yml
+
+- name: promoted-bosh-warden-cpi-release
+  type: git
+  source:
+    uri: git@github.com:cppforlife/bosh-warden-cpi-release.git
+    branch: master
+    private_key: {{github_promote_private_key}}
+
+- name: warden-ubuntu-trusty-stemcell
+  type: bosh-io-stemcell
+  source: {name: bosh-warden-boshlite-ubuntu-trusty-go_agent}
+
+- name: bosh-release
+  type: bosh-io-release
+  source: {repository: cloudfoundry/bosh}
+
+- name: garden-linux-release
+  type: bosh-io-release
+  source: {repository: cloudfoundry-incubator/garden-linux-release}
