@@ -1,5 +1,7 @@
 <%=
 
+agent_env_service = p("registry.host").empty? ? "file" : "registry"
+
 JSON.dump(
   "Warden" => {
     "ConnectNetwork" => p("cpi.warden.connect_network"),
@@ -26,12 +28,12 @@ JSON.dump(
       },
     },
 
-    "AgentEnvService" => p("cpi.actions.agent_env_service"),
+    "AgentEnvService" => agent_env_service,
     "Registry" => {
-      "Host" => p("cpi.actions.registry.host"),
-      "Port" => p("cpi.actions.registry.port"),
-      "Username" => p("cpi.actions.registry.username"),
-      "Password" => p("cpi.actions.registry.password"),
+      "Host" => p("registry.host"),
+      "Port" => p("registry.port"),
+      "Username" => p("registry.username"),
+      "Password" => p("registry.password"),
     },
   }
 )

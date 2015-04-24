@@ -62,22 +62,18 @@ properties:
     description: "Directory with sub-directories at which persistent disks are mounted inside VMs"
     default: "/warden-cpi-dev"
 
-  cpi.actions.agent_env_service:
-    description: "Type of Agent Env Service to use, e.g. registry or file"
-    default: "file"
-
-  cpi.actions.registry.host:
+  registry.host:
     description: "Hostname of registry"
     default: ""
 
-  cpi.actions.registry.port:
+  registry.port:
     description: "Port of registry"
-    default: 6301
+    default: 6901
 
-  cpi.actions.registry.username:
+  registry.username:
     description: "Username for registry"
     default: ""
 
-  cpi.actions.registry.password:
+  registry.password:
     description: "Password for registry"
     default: ""
