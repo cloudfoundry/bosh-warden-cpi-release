@@ -105,13 +105,11 @@ var _ = Describe("WardenCreator", func() {
 				Expect(vm).To(Equal(WardenVM{}))
 			})
 
-			It("returns error if more than one network is provided", func() {
+			It("does not return error if more than one network is provided so that warden CPI can be used for testing multiple networks even though garden only supports single network", func() {
 				networks = Networks{"fake-net1": Network{}, "fake-net2": Network{}}
 
-				vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Expected exactly one network; received multiple"))
-				Expect(vm).To(Equal(WardenVM{}))
+				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("creates one container with generated VM id", func() {

@@ -133,14 +133,11 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 func (c WardenCreator) resolveNetworkIP(networks Networks) (string, error) {
 	var network Network
 
-	switch len(networks) {
-	case 0:
+	if len(networks) == 0 {
 		return "", bosherr.New("Expected exactly one network; received zero")
-	case 1:
-		network = networks.First()
-	default:
-		return "", bosherr.New("Expected exactly one network; received multiple")
 	}
+
+	network = networks.First()
 
 	if network.IsDynamic() {
 		return "", nil
