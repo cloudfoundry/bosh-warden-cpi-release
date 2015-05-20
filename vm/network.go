@@ -15,12 +15,18 @@ type Network struct {
 	CloudProperties map[string]interface{}
 }
 
-func (ns Networks) First() Network {
-	for _, net := range ns {
-		return net
+func (ns Networks) Default() Network {
+	var foundNetwork Network
+
+	for _, foundNetwork = range ns {
+		for _, networkDefault := range foundNetwork.Default {
+			if networkDefault == "gateway" {
+				return foundNetwork
+			}
+		}
 	}
 
-	return Network{}
+	return foundNetwork
 }
 
 func (n Network) IsDynamic() bool { return n.Type == "dynamic" }

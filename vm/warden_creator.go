@@ -137,7 +137,7 @@ func (c WardenCreator) resolveNetworkIP(networks Networks) (string, error) {
 		return "", bosherr.New("Expected exactly one network; received zero")
 	}
 
-	network = networks.First()
+	network = networks.Default()
 
 	if network.IsDynamic() {
 		return "", nil
