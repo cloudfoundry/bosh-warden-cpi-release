@@ -17,6 +17,10 @@ type registryAgentEnvService struct {
 	logTag   string
 }
 
+type registryResp struct {
+	Settings string
+}
+
 func NewRegistryAgentEnvService(
 	registryOptions RegistryOptions,
 	instanceID string,
@@ -58,8 +62,16 @@ func (s registryAgentEnvService) Fetch() (AgentEnv, error) {
 		return AgentEnv{}, bosherr.WrapError(err, "Reading response from registry endpoint %s", s.endpoint)
 	}
 
+	var resp registryResp
+
+	err = json.Unmarshal(httpBody, &resp)
+	if err != nil {
+		return AgentEnv{}, bosherr.WrapError(err, "Unmarshalling registry response")
+	}
+
 	var agentEnv AgentEnv
-	err = json.Unmarshal(httpBody, &agentEnv)
+
+	err = json.Unmarshal([]byte(resp.Settings), &agentEnv)
 	if err != nil {
 		return AgentEnv{}, bosherr.WrapError(err, "Unmarshalling agent env from registry")
 	}

@@ -13,6 +13,7 @@ var _ = Describe("AgentEnv", func() {
 	Describe("AttachPersistentDisk", func() {
 		It("sets persistent disk path for given disk id", func() {
 			agentEnv := AgentEnv{
+				AgentID: "fake-agent-id",
 				Disks: DisksSpec{
 					Persistent: PersistentSpec{
 						"fake-other-disk-id": "fake-other-disk-path",
@@ -23,6 +24,7 @@ var _ = Describe("AgentEnv", func() {
 			newAgentEnv := agentEnv.AttachPersistentDisk("fake-disk-id", "fake-disk-path")
 
 			Expect(newAgentEnv).To(Equal(AgentEnv{
+				AgentID: "fake-agent-id",
 				Disks: DisksSpec{
 					Persistent: PersistentSpec{
 						"fake-other-disk-id": "fake-other-disk-path",
@@ -33,6 +35,7 @@ var _ = Describe("AgentEnv", func() {
 
 			// keeps original agent env not modified
 			Expect(agentEnv).To(Equal(AgentEnv{
+				AgentID: "fake-agent-id",
 				Disks: DisksSpec{
 					Persistent: PersistentSpec{
 						"fake-other-disk-id": "fake-other-disk-path",

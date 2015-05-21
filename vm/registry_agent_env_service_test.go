@@ -125,6 +125,10 @@ func (s *registryServer) Stop() error {
 	return nil
 }
 
+type registryResp struct {
+	Settings string `json:"settings"`
+}
+
 func (s *registryServer) instanceHandler(w http.ResponseWriter, req *http.Request) {
 	if !s.isAuthorized(req) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -132,10 +136,19 @@ func (s *registryServer) instanceHandler(w http.ResponseWriter, req *http.Reques
 	}
 
 	if req.Method == "GET" {
-		if s.InstanceSettings != nil {
-			w.Write(s.InstanceSettings)
+		resp := registryResp{Settings: string(s.InstanceSettings)}
+
+		respBytes, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "Failed to marshal instance settings", 500)
 			return
 		}
+
+		if s.InstanceSettings != nil {
+			w.Write(respBytes)
+			return
+		}
+
 		http.NotFound(w, req)
 		return
 	}
@@ -143,7 +156,6 @@ func (s *registryServer) instanceHandler(w http.ResponseWriter, req *http.Reques
 	if req.Method == "PUT" {
 		reqBody, _ := ioutil.ReadAll(req.Body)
 		s.InstanceSettings = reqBody
-
 		w.WriteHeader(http.StatusOK)
 		return
 	}
