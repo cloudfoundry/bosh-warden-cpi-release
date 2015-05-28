@@ -60,7 +60,7 @@ func (hbm FSHostBindMounts) MakeEphemeral(id string) (string, error) {
 func (hbm FSHostBindMounts) DeleteEphemeral(id string) error {
 	path := filepath.Join(hbm.ephemeralBindMountsDir, id)
 
-	err := hbm.fs.RemoveAll(path)
+	err := hbm.deletePath(path)
 	if err != nil {
 		return bosherr.WrapError(err, "Removing ephemeral bind mount")
 	}
@@ -118,7 +118,7 @@ func (hbm FSHostBindMounts) DeletePersistent(id string) error {
 			return err
 		}
 
-		err = hbm.fs.RemoveAll(path)
+		err = hbm.deletePath(path)
 		if err != nil {
 			return bosherr.WrapError(err, "Removing persistent bind mounts")
 		}
@@ -174,4 +174,20 @@ func (hbm FSHostBindMounts) unmountPath(path string) error {
 	}
 
 	return bosherr.WrapError(lastErr, "Unmounting disk specific persistent bind mount")
+}
+
+func (hbm FSHostBindMounts) deletePath(path string) error {
+	var lastErr error
+
+	// Try multiple times to avoid 'device or resource busy' error
+	for i := 0; i < 60; i++ {
+		lastErr = hbm.fs.RemoveAll(path)
+		if lastErr == nil {
+			return nil
+		}
+
+		hbm.sleeper.Sleep(500 * time.Millisecond)
+	}
+
+	return lastErr
 }
