@@ -19,6 +19,7 @@ gem install bosh_cli --no-ri --no-rdoc
 1. Create a new VM with BOSH Director and BOSH Warden CPI releases
 
 ```
+git submodule update --init
 vagrant up
 ```
 
