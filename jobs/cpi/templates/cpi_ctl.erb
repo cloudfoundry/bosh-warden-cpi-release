@@ -3,6 +3,7 @@
 LOG_DIR=/var/vcap/sys/log/cpi
 RUN_DIR=/var/vcap/sys/run/cpi
 PIDFILE=$RUN_DIR/cpi.pid
+SUDOERS_FILE=/etc/sudoers.d/cpi
 
 case $1 in
 
@@ -18,19 +19,14 @@ case $1 in
     mkdir -p $LOG_DIR
     chown -R vcap:vcap $LOG_DIR
 
-    cp /var/vcap/jobs/cpi/config/sudoers /etc/sudoers.d/cpi
-    chmod 440 /etc/sudoers.d/cpi
+    cp /var/vcap/jobs/cpi/config/sudoers $SUDOERS_FILE
+    chmod 440 $SUDOERS_FILE
 
-    echo $$ > $PIDFILE
-
-    # Create a dummy process so monit will start it on system reboot
-    tail -f /dev/null
-
+    echo 1 > $PIDFILE
     ;;
 
   stop)
-    rm -f /etc/sudoers.d/cpi
-
+    rm -f $SUDOERS_FILE
     rm -f $PIDFILE
 
     ;;
