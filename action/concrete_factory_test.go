@@ -1,7 +1,8 @@
 package action_test
 
 import (
-	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
+	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -18,13 +19,15 @@ import (
 
 var _ = Describe("concreteFactory", func() {
 	var (
-		wardenClient *fakewrdnclient.FakeClient
-		fs           *fakesys.FakeFileSystem
-		cmdRunner    *fakesys.FakeCmdRunner
-		uuidGen      *fakeuuid.FakeGenerator
-		compressor   *fakecmd.FakeCompressor
-		sleeper      bwcutil.Sleeper
-		logger       boshlog.Logger
+		wardenConn   *fakewrdnconn.FakeConnection
+		wardenClient wrdnclient.Client
+
+		fs         *fakesys.FakeFileSystem
+		cmdRunner  *fakesys.FakeCmdRunner
+		uuidGen    *fakeuuid.FakeGenerator
+		compressor *fakecmd.FakeCompressor
+		sleeper    bwcutil.Sleeper
+		logger     boshlog.Logger
 
 		options = ConcreteFactoryOptions{
 			StemcellsDir: "/tmp/stemcells",
@@ -61,7 +64,9 @@ var _ = Describe("concreteFactory", func() {
 	)
 
 	BeforeEach(func() {
-		wardenClient = fakewrdnclient.New()
+		wardenConn = &fakewrdnconn.FakeConnection{}
+		wardenClient = wrdnclient.New(wardenConn)
+
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		uuidGen = &fakeuuid.FakeGenerator{}

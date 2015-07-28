@@ -1,37 +1,26 @@
 package connection
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net"
 	"sync"
 
-	protocol "github.com/cloudfoundry-incubator/garden/protocol"
-	"github.com/cloudfoundry-incubator/garden/warden"
+	"github.com/cloudfoundry-incubator/garden"
 )
 
 type process struct {
 	id uint32
 
-	stream *processStream
-
-	done       bool
-	exitStatus int
-	exitErr    error
-	doneL      *sync.Cond
+	processInputStream *processStream
+	done               bool
+	exitStatus         int
+	exitErr            error
+	doneL              *sync.Cond
 }
 
-func newProcess(id uint32, conn net.Conn) *process {
+func newProcess(id uint32, processInputStream *processStream) *process {
 	return &process{
-		id: id,
-
-		stream: &processStream{
-			id:   id,
-			conn: conn,
-		},
-
-		doneL: sync.NewCond(&sync.Mutex{}),
+		id:                 id,
+		processInputStream: processInputStream,
+		doneL:              sync.NewCond(&sync.Mutex{}),
 	}
 }
 
@@ -51,8 +40,12 @@ func (p *process) Wait() (int, error) {
 	return p.exitStatus, p.exitErr
 }
 
-func (p *process) SetTTY(tty warden.TTYSpec) error {
-	return p.stream.SetTTY(tty)
+func (p *process) SetTTY(tty garden.TTYSpec) error {
+	return p.processInputStream.SetTTY(tty)
+}
+
+func (p *process) Signal(signal garden.Signal) error {
+	return p.processInputStream.Signal(signal)
 }
 
 func (p *process) exited(exitStatus int, err error) {
@@ -63,52 +56,4 @@ func (p *process) exited(exitStatus int, err error) {
 	p.doneL.L.Unlock()
 
 	p.doneL.Broadcast()
-}
-
-func (p *process) streamPayloads(decoder *json.Decoder, processIO warden.ProcessIO) {
-	defer p.stream.Close()
-
-	if processIO.Stdin != nil {
-		writer := &stdinWriter{p.stream}
-
-		go func() {
-			_, err := io.Copy(writer, processIO.Stdin)
-			if err == nil {
-				writer.Close()
-			} else {
-				p.stream.Close()
-			}
-		}()
-	}
-
-	for {
-		payload := &protocol.ProcessPayload{}
-
-		err := decoder.Decode(payload)
-		if err != nil {
-			p.exited(0, err)
-			break
-		}
-
-		if payload.Error != nil {
-			p.exited(0, fmt.Errorf("process error: %s", payload.GetError()))
-			break
-		}
-
-		if payload.ExitStatus != nil {
-			p.exited(int(payload.GetExitStatus()), nil)
-			break
-		}
-
-		switch payload.GetSource() {
-		case protocol.ProcessPayload_stdout:
-			if processIO.Stdout != nil {
-				processIO.Stdout.Write([]byte(payload.GetData()))
-			}
-		case protocol.ProcessPayload_stderr:
-			if processIO.Stderr != nil {
-				processIO.Stderr.Write([]byte(payload.GetData()))
-			}
-		}
-	}
 }

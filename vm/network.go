@@ -1,5 +1,10 @@
 package vm
 
+import (
+	"fmt"
+	"net"
+)
+
 type Networks map[string]Network
 
 type Network struct {
@@ -30,3 +35,8 @@ func (ns Networks) Default() Network {
 }
 
 func (n Network) IsDynamic() bool { return n.Type == "dynamic" }
+
+func (n Network) IPWithSubnetMask() string {
+	ones, _ := net.IPMask(net.ParseIP(n.Netmask).To4()).Size()
+	return fmt.Sprintf("%s/%d", n.IP, ones)
+}

@@ -3,7 +3,8 @@ package vm_test
 import (
 	"errors"
 
-	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
+	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +15,9 @@ import (
 
 var _ = Describe("WardenFinder", func() {
 	var (
-		wardenClient           *fakewrdnclient.FakeClient
+		wardenConn   *fakewrdnconn.FakeConnection
+		wardenClient wrdnclient.Client
+
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
 		hostBindMounts         *fakevm.FakeHostBindMounts
 		guestBindMounts        *fakevm.FakeGuestBindMounts
@@ -23,7 +26,9 @@ var _ = Describe("WardenFinder", func() {
 	)
 
 	BeforeEach(func() {
-		wardenClient = fakewrdnclient.New()
+		wardenConn = &fakewrdnconn.FakeConnection{}
+		wardenClient = wrdnclient.New(wardenConn)
+
 		agentEnvServiceFactory = &fakevm.FakeAgentEnvServiceFactory{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{}
@@ -43,7 +48,7 @@ var _ = Describe("WardenFinder", func() {
 			agentEnvService := &fakevm.FakeAgentEnvService{}
 			agentEnvServiceFactory.NewAgentEnvService = agentEnvService
 
-			wardenClient.Connection.ListReturns([]string{"non-matching-vm-id", "fake-vm-id"}, nil)
+			wardenConn.ListReturns([]string{"non-matching-vm-id", "fake-vm-id"}, nil)
 
 			expectedVM := NewWardenVM(
 				"fake-vm-id",
@@ -62,12 +67,12 @@ var _ = Describe("WardenFinder", func() {
 
 			Expect(agentEnvServiceFactory.NewInstanceID).To(Equal("fake-vm-id"))
 
-			Expect(wardenClient.Connection.ListCallCount()).To(Equal(1))
-			Expect(wardenClient.Connection.ListArgsForCall(0)).To(BeNil())
+			Expect(wardenConn.ListCallCount()).To(Equal(1))
+			Expect(wardenConn.ListArgsForCall(0)).To(BeNil())
 		})
 
 		It("returns found as false if warden does not have container with VM ID as its handle", func() {
-			wardenClient.Connection.ListReturns([]string{"non-matching-vm-id"}, nil)
+			wardenConn.ListReturns([]string{"non-matching-vm-id"}, nil)
 
 			expectedVM := NewWardenVM(
 				"fake-vm-id",
@@ -86,7 +91,7 @@ var _ = Describe("WardenFinder", func() {
 		})
 
 		It("returns error if warden container listing fails", func() {
-			wardenClient.Connection.ListReturns(nil, errors.New("fake-list-err"))
+			wardenConn.ListReturns(nil, errors.New("fake-list-err"))
 
 			vm, found, err := finder.Find("fake-vm-id")
 			Expect(err).To(HaveOccurred())

@@ -10,9 +10,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
-	wrdn "github.com/cloudfoundry-incubator/garden/warden"
-	fakewrdn "github.com/cloudfoundry-incubator/garden/warden/fakes"
+	wrdn "github.com/cloudfoundry-incubator/garden"
+	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
+	fakewrdn "github.com/cloudfoundry-incubator/garden/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
@@ -20,14 +21,17 @@ import (
 
 var _ = Describe("WardenFileService", func() {
 	var (
+		wardenConn   *fakewrdnconn.FakeConnection
+		wardenClient wrdnclient.Client
+
 		wardenFileService WardenFileService
-		wardenClient      *fakewrdnclient.FakeClient
 	)
 
 	BeforeEach(func() {
-		wardenClient = fakewrdnclient.New()
+		wardenConn = &fakewrdnconn.FakeConnection{}
+		wardenClient = wrdnclient.New(wardenConn)
 
-		wardenClient.Connection.CreateReturns("fake-vm-id", nil)
+		wardenConn.CreateReturns("fake-vm-id", nil)
 
 		containerSpec := wrdn.ContainerSpec{
 			Handle:     "fake-vm-id",
@@ -49,21 +53,22 @@ var _ = Describe("WardenFileService", func() {
 		BeforeEach(func() {
 			runProcess = &fakewrdn.FakeProcess{}
 			runProcess.WaitReturns(0, nil)
-			wardenClient.Connection.RunReturns(runProcess, nil)
+			wardenConn.RunReturns(runProcess, nil)
 		})
 
 		It("places content into the container at /tmp/destination", func() {
 			err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 			Expect(err).ToNot(HaveOccurred())
 
-			count := wardenClient.Connection.StreamInCallCount()
+			count := wardenConn.StreamInCallCount()
 			Expect(count).To(Equal(1))
 
-			handle, dstPath, reader := wardenClient.Connection.StreamInArgsForCall(0)
+			handle, spec := wardenConn.StreamInArgsForCall(0)
 			Expect(handle).To(Equal("fake-vm-id"))
-			Expect(dstPath).To(Equal("/tmp/"))
+			Expect(spec.Path).To(Equal("/tmp/"))
+			Expect(spec.User).To(Equal("root"))
 
-			tarStream := tar.NewReader(reader)
+			tarStream := tar.NewReader(spec.TarStream)
 
 			header, err := tarStream.Next()
 			Expect(err).ToNot(HaveOccurred())
@@ -85,19 +90,18 @@ var _ = Describe("WardenFileService", func() {
 				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 				Expect(err).ToNot(HaveOccurred())
 
-				count := wardenClient.Connection.RunCallCount()
+				count := wardenConn.RunCallCount()
 				Expect(count).To(Equal(1))
 
 				expectedProcessSpec := wrdn.ProcessSpec{
-					Path:       "bash",
-					Args:       []string{"-c", "mv /tmp/file.ext /var/vcap/file.ext"},
-					Privileged: true,
+					Path: "bash",
+					Args: []string{"-c", "mv /tmp/file.ext /var/vcap/file.ext"},
+					User: "root",
 				}
 
-				handle, processSpec, processIO := wardenClient.Connection.RunArgsForCall(0)
+				handle, processSpec, _ := wardenConn.RunArgsForCall(0)
 				Expect(handle).To(Equal("fake-vm-id"))
 				Expect(processSpec).To(Equal(expectedProcessSpec))
-				Expect(processIO).To(Equal(wrdn.ProcessIO{}))
 			})
 
 			Context("when moving the temporary file into the final location fails because command exits with non-0 code", func() {
@@ -126,7 +130,7 @@ var _ = Describe("WardenFileService", func() {
 
 			Context("when moving the temporary file into the final location cannot start", func() {
 				BeforeEach(func() {
-					wardenClient.Connection.RunReturns(nil, errors.New("fake-run-err"))
+					wardenConn.RunReturns(nil, errors.New("fake-run-err"))
 				})
 
 				It("returns error", func() {
@@ -139,7 +143,7 @@ var _ = Describe("WardenFileService", func() {
 
 		Context("when container fails to stream in", func() {
 			BeforeEach(func() {
-				wardenClient.Connection.StreamInReturns(errors.New("fake-stream-in-err"))
+				wardenConn.StreamInReturns(errors.New("fake-stream-in-err"))
 			})
 
 			It("returns error", func() {
@@ -158,7 +162,7 @@ var _ = Describe("WardenFileService", func() {
 		BeforeEach(func() {
 			runProcess = &fakewrdn.FakeProcess{}
 			runProcess.WaitReturns(0, nil)
-			wardenClient.Connection.RunReturns(runProcess, nil)
+			wardenConn.RunReturns(runProcess, nil)
 		})
 
 		makeValidAgentEnvTar := func() io.ReadCloser {
@@ -186,26 +190,25 @@ var _ = Describe("WardenFileService", func() {
 		}
 
 		BeforeEach(func() {
-			wardenClient.Connection.StreamOutReturns(makeValidAgentEnvTar(), nil)
+			wardenConn.StreamOutReturns(makeValidAgentEnvTar(), nil)
 		})
 
 		It("copies agent env into temporary location", func() {
 			_, err := wardenFileService.Download("/fake-download-path/file.ext")
 			Expect(err).ToNot(HaveOccurred())
 
-			count := wardenClient.Connection.RunCallCount()
+			count := wardenConn.RunCallCount()
 			Expect(count).To(Equal(1))
 
 			expectedProcessSpec := wrdn.ProcessSpec{
-				Path:       "bash",
-				Args:       []string{"-c", "cp /fake-download-path/file.ext /tmp/file.ext && chown vcap:vcap /tmp/file.ext"},
-				Privileged: true,
+				Path: "bash",
+				Args: []string{"-c", "cp /fake-download-path/file.ext /tmp/file.ext && chown vcap:vcap /tmp/file.ext"},
+				User: "root",
 			}
 
-			handle, processSpec, processIO := wardenClient.Connection.RunArgsForCall(0)
+			handle, processSpec, _ := wardenConn.RunArgsForCall(0)
 			Expect(handle).To(Equal("fake-vm-id"))
 			Expect(processSpec).To(Equal(expectedProcessSpec))
-			Expect(processIO).To(Equal(wrdn.ProcessIO{}))
 		})
 
 		Context("when copying agent env into temporary location succeeds", func() {
@@ -215,18 +218,19 @@ var _ = Describe("WardenFileService", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(contents).To(Equal([]byte("fake-contents")))
 
-					count := wardenClient.Connection.StreamOutCallCount()
+					count := wardenConn.StreamOutCallCount()
 					Expect(count).To(Equal(1))
 
-					handle, srcPath := wardenClient.Connection.StreamOutArgsForCall(0)
+					handle, spec := wardenConn.StreamOutArgsForCall(0)
 					Expect(handle).To(Equal("fake-vm-id"))
-					Expect(srcPath).To(Equal("/tmp/file.ext"))
+					Expect(spec.Path).To(Equal("/tmp/file.ext"))
+					Expect(spec.User).To(Equal("root"))
 				})
 			})
 
 			Context("when container fails to stream out because tar stream contains bad header", func() {
 				BeforeEach(func() {
-					wardenClient.Connection.StreamOutReturns(ioutil.NopCloser(&bytes.Buffer{}), nil)
+					wardenConn.StreamOutReturns(ioutil.NopCloser(&bytes.Buffer{}), nil)
 				})
 
 				It("returns error", func() {
@@ -239,7 +243,7 @@ var _ = Describe("WardenFileService", func() {
 
 			Context("when container fails to stream out", func() {
 				BeforeEach(func() {
-					wardenClient.Connection.StreamOutReturns(nil, errors.New("fake-stream-out-err"))
+					wardenConn.StreamOutReturns(nil, errors.New("fake-stream-out-err"))
 				})
 
 				It("returns error", func() {
@@ -279,7 +283,7 @@ var _ = Describe("WardenFileService", func() {
 
 		Context("when copying file into temporary location cannot start", func() {
 			BeforeEach(func() {
-				wardenClient.Connection.RunReturns(nil, errors.New("fake-run-err"))
+				wardenConn.RunReturns(nil, errors.New("fake-run-err"))
 			})
 
 			It("returns error", func() {

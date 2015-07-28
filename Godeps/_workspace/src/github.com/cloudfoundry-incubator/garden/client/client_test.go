@@ -6,9 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry-incubator/garden"
 	. "github.com/cloudfoundry-incubator/garden/client"
+	"github.com/cloudfoundry-incubator/garden/client/connection"
 	"github.com/cloudfoundry-incubator/garden/client/connection/fakes"
-	"github.com/cloudfoundry-incubator/garden/warden"
 )
 
 var _ = Describe("Client", func() {
@@ -27,7 +28,7 @@ var _ = Describe("Client", func() {
 	Describe("Capacity", func() {
 		BeforeEach(func() {
 			fakeConnection.CapacityReturns(
-				warden.Capacity{
+				garden.Capacity{
 					MemoryInBytes: 1111,
 					DiskInBytes:   2222,
 					MaxContainers: 42,
@@ -47,7 +48,7 @@ var _ = Describe("Client", func() {
 			disaster := errors.New("oh no!")
 
 			BeforeEach(func() {
-				fakeConnection.CapacityReturns(warden.Capacity{}, disaster)
+				fakeConnection.CapacityReturns(garden.Capacity{}, disaster)
 			})
 
 			It("returns the error", func() {
@@ -57,9 +58,99 @@ var _ = Describe("Client", func() {
 		})
 	})
 
+	Describe("BulkInfo", func() {
+		expectedBulkInfo := map[string]garden.ContainerInfoEntry{
+			"handle1": garden.ContainerInfoEntry{
+				Info: garden.ContainerInfo{
+					State: "container1State",
+				},
+			},
+			"handle2": garden.ContainerInfoEntry{
+				Info: garden.ContainerInfo{
+					State: "container1State",
+				},
+			},
+		}
+		handles := []string{"handle1", "handle2"}
+
+		It("gets info for the requested containers", func() {
+			fakeConnection.BulkInfoReturns(expectedBulkInfo, nil)
+
+			bulkInfo, err := client.BulkInfo(handles)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			Ω(fakeConnection.BulkInfoCallCount()).Should(Equal(1))
+			Ω(fakeConnection.BulkInfoArgsForCall(0)).Should(Equal(handles))
+			Ω(bulkInfo).Should(Equal(expectedBulkInfo))
+		})
+
+		Context("when there is a error with the connection", func() {
+			expectedBulkInfo := map[string]garden.ContainerInfoEntry{}
+
+			BeforeEach(func() {
+				fakeConnection.BulkInfoReturns(expectedBulkInfo, errors.New("Oh noes!"))
+			})
+
+			It("returns the error", func() {
+				_, err := client.BulkInfo(handles)
+				Ω(err).Should(MatchError("Oh noes!"))
+			})
+		})
+	})
+
+	Describe("BulkMetrics", func() {
+		expectedBulkMetrics := map[string]garden.ContainerMetricsEntry{
+			"handle1": garden.ContainerMetricsEntry{
+				Metrics: garden.Metrics{
+					DiskStat: garden.ContainerDiskStat{
+						TotalInodesUsed:     1,
+						TotalBytesUsed:      2,
+						ExclusiveBytesUsed:  3,
+						ExclusiveInodesUsed: 4,
+					},
+				},
+			},
+			"handle2": garden.ContainerMetricsEntry{
+				Metrics: garden.Metrics{
+					DiskStat: garden.ContainerDiskStat{
+						TotalInodesUsed:     5,
+						TotalBytesUsed:      6,
+						ExclusiveBytesUsed:  7,
+						ExclusiveInodesUsed: 8,
+					},
+				},
+			},
+		}
+		handles := []string{"handle1", "handle2"}
+
+		It("gets info for the requested containers", func() {
+			fakeConnection.BulkMetricsReturns(expectedBulkMetrics, nil)
+
+			bulkInfo, err := client.BulkMetrics(handles)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			Ω(fakeConnection.BulkMetricsCallCount()).Should(Equal(1))
+			Ω(fakeConnection.BulkMetricsArgsForCall(0)).Should(Equal(handles))
+			Ω(bulkInfo).Should(Equal(expectedBulkMetrics))
+		})
+
+		Context("when there is a error with the connection", func() {
+			expectedBulkMetrics := map[string]garden.ContainerMetricsEntry{}
+
+			BeforeEach(func() {
+				fakeConnection.BulkMetricsReturns(expectedBulkMetrics, errors.New("Oh noes!"))
+			})
+
+			It("returns the error", func() {
+				_, err := client.BulkMetrics(handles)
+				Ω(err).Should(MatchError("Oh noes!"))
+			})
+		})
+	})
+
 	Describe("Create", func() {
 		It("sends a create request and returns a container", func() {
-			spec := warden.ContainerSpec{
+			spec := garden.ContainerSpec{
 				RootFSPath: "/some/roofs",
 			}
 
@@ -82,7 +173,7 @@ var _ = Describe("Client", func() {
 			})
 
 			It("returns it", func() {
-				_, err := client.Create(warden.ContainerSpec{})
+				_, err := client.Create(garden.ContainerSpec{})
 				Ω(err).Should(Equal(disaster))
 			})
 		})
@@ -92,7 +183,7 @@ var _ = Describe("Client", func() {
 		It("sends a list request and returns all containers", func() {
 			fakeConnection.ListReturns([]string{"handle-a", "handle-b"}, nil)
 
-			props := warden.Properties{"foo": "bar"}
+			props := garden.Properties{"foo": "bar"}
 
 			containers, err := client.Containers(props)
 			Ω(err).ShouldNot(HaveOccurred())
@@ -138,6 +229,19 @@ var _ = Describe("Client", func() {
 				Ω(err).Should(Equal(disaster))
 			})
 		})
+
+		Context("when the error is a 404", func() {
+			notFound := connection.Error{404, ""}
+
+			BeforeEach(func() {
+				fakeConnection.DestroyReturns(notFound)
+			})
+
+			It("returns an ContainerNotFoundError with the requested handle", func() {
+				err := client.Destroy("some-handle")
+				Ω(err).Should(MatchError(garden.ContainerNotFoundError{"some-handle"}))
+			})
+		})
 	})
 
 	Describe("Lookup", func() {
@@ -155,10 +259,9 @@ var _ = Describe("Client", func() {
 				fakeConnection.ListReturns([]string{"some-other-handle"}, nil)
 			})
 
-			It("returns an error", func() {
+			It("returns ContainerNotFoundError", func() {
 				_, err := client.Lookup("some-handle")
-				Ω(err).Should(HaveOccurred())
-				Ω(err.Error()).Should(Equal("container not found: some-handle"))
+				Ω(err).Should(MatchError(garden.ContainerNotFoundError{"some-handle"}))
 			})
 		})
 

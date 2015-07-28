@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	wrdn "github.com/cloudfoundry-incubator/garden"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
@@ -53,7 +53,12 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 		return []byte{}, bosherr.WrapError(err, "Running copy source file script")
 	}
 
-	streamOut, err := s.container.StreamOut(tmpFilePath)
+	spec := wrdn.StreamOutSpec{
+		Path: tmpFilePath,
+		User: "root",
+	}
+
+	streamOut, err := s.container.StreamOut(spec)
 	if err != nil {
 		return []byte{}, bosherr.WrapError(err, "Streaming out file %s", sourceFileName)
 	}
@@ -80,7 +85,13 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 		return bosherr.WrapError(err, "Creating tar")
 	}
 
-	err = s.container.StreamIn("/tmp/", tarReader)
+	spec := wrdn.StreamInSpec{
+		Path:      "/tmp/",
+		User:      "root",
+		TarStream: tarReader,
+	}
+
+	err = s.container.StreamIn(spec)
 	if err != nil {
 		return bosherr.WrapError(err, "Streaming in tar")
 	}
@@ -105,11 +116,15 @@ func (s *wardenFileService) runPrivilegedScript(script string) error {
 	processSpec := wrdn.ProcessSpec{
 		Path: "bash",
 		Args: []string{"-c", script},
-
-		Privileged: true,
+		User: "root",
 	}
 
-	process, err := s.container.Run(processSpec, wrdn.ProcessIO{})
+	// Collect output for debugging
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	processIO := wrdn.ProcessIO{Stdout: stdout, Stderr: stderr}
+
+	process, err := s.container.Run(processSpec, processIO)
 	if err != nil {
 		return bosherr.WrapError(err, "Running script")
 	}
@@ -120,7 +135,7 @@ func (s *wardenFileService) runPrivilegedScript(script string) error {
 	}
 
 	if exitCode != 0 {
-		return bosherr.New("Script exited with non-0 exit code")
+		return bosherr.New("Script exited with non-0 exit code, stdout: '%s' stderr: '%s'", stdout.String(), stderr.String())
 	}
 
 	return nil

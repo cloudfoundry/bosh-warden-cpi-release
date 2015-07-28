@@ -6,8 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
-	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	wrdn "github.com/cloudfoundry-incubator/garden"
+	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakestem "github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
@@ -18,8 +19,10 @@ import (
 
 var _ = Describe("WardenCreator", func() {
 	var (
+		wardenConn   *fakewrdnconn.FakeConnection
+		wardenClient wrdnclient.Client
+
 		uuidGen                *fakeuuid.FakeGenerator
-		wardenClient           *fakewrdnclient.FakeClient
 		fakeMetadataService    *fakevm.FakeMetadataService
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
 		hostBindMounts         *fakevm.FakeHostBindMounts
@@ -30,8 +33,10 @@ var _ = Describe("WardenCreator", func() {
 	)
 
 	BeforeEach(func() {
+		wardenConn = &fakewrdnconn.FakeConnection{}
+		wardenClient = wrdnclient.New(wardenConn)
+
 		uuidGen = &fakeuuid.FakeGenerator{}
-		wardenClient = fakewrdnclient.New()
 		fakeMetadataService = fakevm.NewFakeMetadataService()
 		agentEnvServiceFactory = &fakevm.FakeAgentEnvServiceFactory{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
@@ -116,10 +121,10 @@ var _ = Describe("WardenCreator", func() {
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				count := wardenClient.Connection.CreateCallCount()
+				count := wardenConn.CreateCallCount()
 				Expect(count).To(Equal(1))
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
+				containerSpec := wardenConn.CreateArgsForCall(0)
 				Expect(containerSpec.Handle).To(Equal("fake-vm-id"))
 			})
 
@@ -127,7 +132,7 @@ var _ = Describe("WardenCreator", func() {
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
+				containerSpec := wardenConn.CreateArgsForCall(0)
 				Expect(containerSpec.RootFSPath).To(Equal("/fake-stemcell-path"))
 			})
 
@@ -138,7 +143,7 @@ var _ = Describe("WardenCreator", func() {
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
+				containerSpec := wardenConn.CreateArgsForCall(0)
 				Expect(containerSpec.BindMounts).To(Equal(
 					[]wrdn.BindMount{
 						wrdn.BindMount{
@@ -178,15 +183,16 @@ var _ = Describe("WardenCreator", func() {
 
 			It("creates container with IP address if network is not dynamic", func() {
 				networks["fake-net-name"] = Network{
-					Type: "not-dynamic",
-					IP:   "fake-ip",
+					Type:    "not-dynamic",
+					IP:      "10.244.0.0",
+					Netmask: "255.255.255.0",
 				}
 
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
-				Expect(containerSpec.Network).To(Equal("fake-ip"))
+				containerSpec := wardenConn.CreateArgsForCall(0)
+				Expect(containerSpec.Network).To(Equal("10.244.0.0/24"))
 			})
 
 			It("creates container without IP address if network is dynamic", func() {
@@ -198,7 +204,7 @@ var _ = Describe("WardenCreator", func() {
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
+				containerSpec := wardenConn.CreateArgsForCall(0)
 				Expect(containerSpec.Network).To(BeEmpty()) // fake-ip is not used
 			})
 
@@ -206,7 +212,7 @@ var _ = Describe("WardenCreator", func() {
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
-				containerSpec := wardenClient.Connection.CreateArgsForCall(0)
+				containerSpec := wardenConn.CreateArgsForCall(0)
 				Expect(containerSpec.Properties).To(Equal(wrdn.Properties{}))
 			})
 
@@ -218,7 +224,7 @@ var _ = Describe("WardenCreator", func() {
 				BeforeEach(func() {
 					agentEnvService = &fakevm.FakeAgentEnvService{}
 					agentEnvServiceFactory.NewAgentEnvService = agentEnvService
-					wardenClient.Connection.CreateReturns("fake-vm-id", nil)
+					wardenConn.CreateReturns("fake-vm-id", nil)
 				})
 
 				It("updates container's agent env", func() {
@@ -239,7 +245,7 @@ var _ = Describe("WardenCreator", func() {
 				})
 
 				It("saves metadata", func() {
-					wardenClient.Connection.CreateReturns("fake-container-handle", nil)
+					wardenConn.CreateReturns("fake-container-handle", nil)
 					_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -252,17 +258,17 @@ var _ = Describe("WardenCreator", func() {
 						_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 						Expect(err).To(HaveOccurred())
 
-						count := wardenClient.Connection.StopCallCount()
+						count := wardenConn.StopCallCount()
 						Expect(count).To(Equal(1))
 
-						handle, force := wardenClient.Connection.StopArgsForCall(0)
+						handle, force := wardenConn.StopArgsForCall(0)
 						Expect(handle).To(Equal("fake-vm-id"))
 						Expect(force).To(BeFalse())
 					})
 
 					Context("when destroying created container fails", func() {
 						BeforeEach(func() {
-							wardenClient.Connection.StopReturns(errors.New("fake-stop-err"))
+							wardenConn.StopReturns(errors.New("fake-stop-err"))
 						})
 
 						It("returns running error and not destroy error", func() {
@@ -279,15 +285,15 @@ var _ = Describe("WardenCreator", func() {
 						_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 						Expect(err).ToNot(HaveOccurred())
 
-						count := wardenClient.Connection.RunCallCount()
+						count := wardenConn.RunCallCount()
 						Expect(count).To(Equal(1))
 
 						expectedProcessSpec := wrdn.ProcessSpec{
-							Path:       "/usr/sbin/runsvdir-start",
-							Privileged: true,
+							Path: "/usr/sbin/runsvdir-start",
+							User: "root",
 						}
 
-						handle, processSpec, processIO := wardenClient.Connection.RunArgsForCall(0)
+						handle, processSpec, processIO := wardenConn.RunArgsForCall(0)
 						Expect(handle).To(Equal("fake-vm-id"))
 						Expect(processSpec).To(Equal(expectedProcessSpec))
 						Expect(processIO).To(Equal(wrdn.ProcessIO{}))
@@ -295,7 +301,7 @@ var _ = Describe("WardenCreator", func() {
 
 					Context("when BOSH Agent fails to start", func() {
 						BeforeEach(func() {
-							wardenClient.Connection.RunReturns(nil, errors.New("fake-run-err"))
+							wardenConn.RunReturns(nil, errors.New("fake-run-err"))
 						})
 
 						It("returns error if starting BOSH Agent fails", func() {
@@ -327,7 +333,7 @@ var _ = Describe("WardenCreator", func() {
 
 			Context("when creating container fails", func() {
 				BeforeEach(func() {
-					wardenClient.Connection.CreateReturns("fake-vm-id", errors.New("fake-create-err"))
+					wardenConn.CreateReturns("fake-vm-id", errors.New("fake-create-err"))
 				})
 
 				It("returns error if creating container fails", func() {

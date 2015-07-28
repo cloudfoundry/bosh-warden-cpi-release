@@ -1,7 +1,7 @@
 package vm
 
 import (
-	wrdn "github.com/cloudfoundry-incubator/garden/warden"
+	wrdn "github.com/cloudfoundry-incubator/garden"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
@@ -85,6 +85,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 			},
 		},
 		Properties: wrdn.Properties{},
+		Privileged: true,
 	}
 
 	c.logger.Debug(wardenCreatorLogTag, "Creating container with spec %#v", containerSpec)
@@ -143,7 +144,7 @@ func (c WardenCreator) resolveNetworkIP(networks Networks) (string, error) {
 		return "", nil
 	}
 
-	return network.IP, nil
+	return network.IPWithSubnetMask(), nil
 }
 
 func (c WardenCreator) makeHostBindMounts(id string) (string, string, error) {
@@ -162,8 +163,8 @@ func (c WardenCreator) makeHostBindMounts(id string) (string, string, error) {
 
 func (c WardenCreator) startAgentInContainer(container wrdn.Container) error {
 	processSpec := wrdn.ProcessSpec{
-		Path:       "/usr/sbin/runsvdir-start",
-		Privileged: true,
+		Path: "/usr/sbin/runsvdir-start",
+		User: "root",
 	}
 
 	// Do not Wait() for the process to finish

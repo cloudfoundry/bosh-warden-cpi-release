@@ -77,11 +77,18 @@ var _ = Describe("Network", func() {
 	})
 
 	Describe("IsDynamic", func() {
-		It("Returns true if the type is 'dynamic'", func() {
+		It("returns true if the type is 'dynamic'", func() {
 			Expect(vm.Network{Type: "A"}.IsDynamic()).To(BeFalse())
 			Expect(vm.Network{Type: "manual"}.IsDynamic()).To(BeFalse())
 			Expect(vm.Network{Type: "Dynamic"}.IsDynamic()).To(BeFalse())
 			Expect(vm.Network{Type: "dynamic"}.IsDynamic()).To(BeTrue())
+		})
+	})
+
+	Describe("IPWithSubnetMask", func() {
+		It("returns 12.18.3.4/24 when IP is 12.18.3.4 and netmask is 255.255.255.0", func() {
+			net := vm.Network{IP: "12.18.3.4", Netmask: "255.255.255.0"}
+			Expect(net.IPWithSubnetMask()).To(Equal("12.18.3.4/24"))
 		})
 	})
 })

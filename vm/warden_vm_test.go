@@ -3,7 +3,8 @@ package vm_test
 import (
 	"errors"
 
-	fakewrdnclient "github.com/cloudfoundry-incubator/garden/client/fake_warden_client"
+	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,9 @@ import (
 
 var _ = Describe("WardenVM", func() {
 	var (
-		wardenClient    *fakewrdnclient.FakeClient
+		wardenConn   *fakewrdnconn.FakeConnection
+		wardenClient wrdnclient.Client
+
 		agentEnvService *fakevm.FakeAgentEnvService
 		hostBindMounts  *fakevm.FakeHostBindMounts
 		guestBindMounts *fakevm.FakeGuestBindMounts
@@ -24,7 +27,9 @@ var _ = Describe("WardenVM", func() {
 	)
 
 	BeforeEach(func() {
-		wardenClient = fakewrdnclient.New()
+		wardenConn = &fakewrdnconn.FakeConnection{}
+		wardenClient = wrdnclient.New(wardenConn)
+
 		agentEnvService = &fakevm.FakeAgentEnvService{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{
@@ -49,8 +54,8 @@ var _ = Describe("WardenVM", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(wardenClient.Connection.DestroyCallCount()).To(Equal(1))
-			Expect(wardenClient.Connection.DestroyArgsForCall(0)).To(Equal("fake-vm-id"))
+			Expect(wardenConn.DestroyCallCount()).To(Equal(1))
+			Expect(wardenConn.DestroyArgsForCall(0)).To(Equal("fake-vm-id"))
 		})
 
 		Context("when destroying container succeeds", func() {
@@ -97,7 +102,7 @@ var _ = Describe("WardenVM", func() {
 
 		Context("when destroying container fails", func() {
 			BeforeEach(func() {
-				wardenClient.Connection.DestroyReturns(errors.New("fake-destroy-err"))
+				wardenConn.DestroyReturns(errors.New("fake-destroy-err"))
 			})
 
 			It("returns error", func() {
