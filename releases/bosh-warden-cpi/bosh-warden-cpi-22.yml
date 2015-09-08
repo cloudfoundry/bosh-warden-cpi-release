@@ -1,0 +1,36 @@
+---
+packages:
+- name: cpi
+  version: !binary |-
+    NGU2YzkyNTdjMjZjODJiYTBmOThiZDBkNTkxZTM4NDlkMTg2MGYyZg==
+  fingerprint: !binary |-
+    NGU2YzkyNTdjMjZjODJiYTBmOThiZDBkNTkxZTM4NDlkMTg2MGYyZg==
+  sha1: !binary |-
+    Yjc4Y2Y2OTMzMWJmZDVjMTJmNmZlZmRjNDYwNmQ3ZGYwYTRjNGQxZA==
+  dependencies:
+  - golang_1.3
+- name: golang_1.3
+  version: !binary |-
+    ZmMzYmMxYjQ0MzFlODkxM2Q5MTM2MmMxMTgzYzk4NTI4MDlkMzVmNg==
+  fingerprint: !binary |-
+    ZmMzYmMxYjQ0MzFlODkxM2Q5MTM2MmMxMTgzYzk4NTI4MDlkMzVmNg==
+  sha1: 9d058d392dc2672326103c5e691c7e4e33199e61
+  dependencies: []
+jobs:
+- name: cpi
+  version: !binary |-
+    YjAxMmU3ODFjZGIzOGY1YWNiMDU0OGNhOTMxMmZlODgzNjgyN2NkYw==
+  fingerprint: !binary |-
+    YjAxMmU3ODFjZGIzOGY1YWNiMDU0OGNhOTMxMmZlODgzNjgyN2NkYw==
+  sha1: !binary |-
+    OTYzMzkwMTViN2Y4YWM0NTFmNjMyNzQyNzcyOTQ1YjM5NDZjNzI4OQ==
+license:
+  version: !binary |-
+    NmJjYTFiOTRiZjdjODY0NWFiMjg4MzlmZDRhNDNlZjBlZTczYjAxYg==
+  fingerprint: !binary |-
+    NmJjYTFiOTRiZjdjODY0NWFiMjg4MzlmZDRhNDNlZjBlZTczYjAxYg==
+  sha1: 36cb7c43a361da80b098e0ae5d62ea6505793716
+commit_hash: e81d7eb1
+uncommitted_changes: false
+name: bosh-warden-cpi
+version: '22'
