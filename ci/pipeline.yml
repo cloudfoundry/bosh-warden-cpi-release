@@ -15,6 +15,7 @@ jobs:
       image: docker:///cloudfoundry/bosh-lite-ci
       inputs:
       - name: bosh-warden-cpi-release
+      - name: dev-version
       run: {path: bosh-warden-cpi-release/ci/build-release.sh}
   - put: pipeline-bosh-warden-cpi-tarball
     params: {from: build/out/bosh-warden-cpi-.*\.tgz}
