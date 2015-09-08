@@ -1,6 +1,6 @@
 <%=
 
-agent_env_service = p("registry.host").empty? ? "file" : "registry"
+env_service = p("registry.host").empty? ? "file" : "registry"
 
 JSON.dump(
   "Warden" => {
@@ -28,7 +28,8 @@ JSON.dump(
       },
     },
 
-    "AgentEnvService" => agent_env_service,
+    "AgentEnvService" => env_service,
+
     "Registry" => {
       "Host" => p("registry.host"),
       "Port" => p("registry.port"),

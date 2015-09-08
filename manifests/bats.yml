@@ -11,7 +11,6 @@ releases:
 jobs:
 - name: bosh
   instances: 1
-
   templates:
   - {name: nats, release: bosh}
   - {name: redis, release: bosh}
@@ -21,9 +20,7 @@ jobs:
   - {name: health_monitor, release: bosh}
   - {name: cpi, release: bosh-warden-cpi}
   - {name: garden, release: garden-linux}
-
   resource_pool: default
-
   networks:
   - {name: default, static_ips: [10.244.8.2]}
 

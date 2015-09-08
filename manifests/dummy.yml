@@ -9,12 +9,9 @@ releases:
 jobs:
 - name: dummy
   instances: 1
-
   templates:
   - {name: dummy, release: dummy}
-
   resource_pool: default
-
   networks:
   - {name: default, static_ips: [10.244.20.2]}
 

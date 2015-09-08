@@ -3,11 +3,3 @@ golang_1.3/go1.3.linux-amd64.tar.gz:
   object_id: d6f550fc-c1e7-40a5-b96f-fe17f7a1dd04
   sha: b6b154933039987056ac307e20c25fa508a06ba6
   size: 51123994
-iptables/iptables-1.4.21.tar.bz2:
-  object_id: b4176037-2ec5-4a6d-aa65-b89b7901592c
-  sha: 85d4160537546a23a7e42bc26dd7ee62a0ede4c8
-  size: 547439
-shadow/shadow-4.2.1.tar.gz:
-  object_id: 66ae2b77-1abb-4b4f-b901-1efb2c970524
-  sha: 1d205418863dd02b2b8af0fa78fcce5d7c848d1f
-  size: 3686676
