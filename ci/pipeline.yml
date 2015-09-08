@@ -52,7 +52,7 @@ jobs:
   plan:
   - aggregate:
     - {get: bosh-warden-cpi-release, passed: [bats]}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats]}
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats], trigger: true}
   - task: promote
     file:
     config:

@@ -22,9 +22,10 @@ bosh finalize release `echo ../pipeline-bosh-warden-cpi-tarball/*.tgz`
 # Be extra careful about not committing private.yml
 rm config/private.yml
 
+final_version=`git diff releases/*/index.yml | grep -E "^\+.+version" | sed s/[^0-9]*//g`
 git diff | cat
 git add .
 
 git config --global user.email "cf-bosh-eng@pivotal.io"
 git config --global user.name "CI"
-git commit -m "New final release"
+git commit -m "New final release v$final_version"
