@@ -33,7 +33,7 @@ var _ = Describe("FSImporter", func() {
 
 	Describe("ImportFromPath", func() {
 		It("returns unique stemcell id", func() {
-			uuidGen.GeneratedUuid = "fake-uuid"
+			uuidGen.GeneratedUUID = "fake-uuid"
 
 			stemcell, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).ToNot(HaveOccurred())
@@ -52,7 +52,7 @@ var _ = Describe("FSImporter", func() {
 		})
 
 		It("creates directory in collection directory that will contain unpacked stemcell", func() {
-			uuidGen.GeneratedUuid = "fake-uuid"
+			uuidGen.GeneratedUUID = "fake-uuid"
 
 			_, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).ToNot(HaveOccurred())
@@ -72,7 +72,7 @@ var _ = Describe("FSImporter", func() {
 		})
 
 		It("unpacks stemcell into directory that will contain this unpacked stemcell", func() {
-			uuidGen.GeneratedUuid = "fake-uuid"
+			uuidGen.GeneratedUUID = "fake-uuid"
 
 			_, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).ToNot(HaveOccurred())

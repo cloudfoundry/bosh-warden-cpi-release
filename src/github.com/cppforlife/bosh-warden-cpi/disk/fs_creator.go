@@ -10,15 +10,15 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
-const fsCreatorLogTag = "FSCreator"
-
 type FSCreator struct {
 	dirPath string
 
 	fs        boshsys.FileSystem
 	uuidGen   boshuuid.Generator
 	cmdRunner boshsys.CmdRunner
-	logger    boshlog.Logger
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewFSCreator(
@@ -29,16 +29,19 @@ func NewFSCreator(
 	logger boshlog.Logger,
 ) FSCreator {
 	return FSCreator{
-		dirPath:   dirPath,
+		dirPath: dirPath,
+
 		fs:        fs,
 		uuidGen:   uuidGen,
 		cmdRunner: cmdRunner,
-		logger:    logger,
+
+		logTag: "FSCreator",
+		logger: logger,
 	}
 }
 
 func (c FSCreator) Create(size int) (Disk, error) {
-	c.logger.Debug(fsCreatorLogTag, "Creating disk of size '%d'", size)
+	c.logger.Debug(c.logTag, "Creating disk of size '%d'", size)
 
 	id, err := c.uuidGen.Generate()
 	if err != nil {
@@ -57,13 +60,13 @@ func (c FSCreator) Create(size int) (Disk, error) {
 	_, _, _, err = c.cmdRunner.RunCommand("truncate", "-s", sizeStr, diskPath)
 	if err != nil {
 		c.cleanUpFile(diskPath)
-		return nil, bosherr.WrapError(err, "Resizing disk to '%s'", sizeStr)
+		return nil, bosherr.WrapErrorf(err, "Resizing disk to '%s'", sizeStr)
 	}
 
 	_, _, _, err = c.cmdRunner.RunCommand("/sbin/mkfs", "-t", "ext4", "-F", diskPath)
 	if err != nil {
 		c.cleanUpFile(diskPath)
-		return nil, bosherr.WrapError(err, "Building disk filesystem '%s'", diskPath)
+		return nil, bosherr.WrapErrorf(err, "Building disk filesystem '%s'", diskPath)
 	}
 
 	return NewFSDisk(id, diskPath, c.fs, c.logger), nil
@@ -72,6 +75,6 @@ func (c FSCreator) Create(size int) (Disk, error) {
 func (c FSCreator) cleanUpFile(path string) {
 	err := c.fs.RemoveAll(path)
 	if err != nil {
-		c.logger.Error(fsCreatorLogTag, "Failed deleting file '%s': %s", path, err.Error())
+		c.logger.Error(c.logTag, "Failed deleting file '%s': %s", path, err.Error())
 	}
 }

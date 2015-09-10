@@ -17,7 +17,7 @@ func NewHasVM(vmFinder bwcvm.Finder) HasVM {
 func (a HasVM) Run(vmCID VMCID) (bool, error) {
 	_, found, err := a.vmFinder.Find(string(vmCID))
 	if err != nil {
-		return false, bosherr.WrapError(err, "Finding VM '%s'", vmCID)
+		return false, bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
 	}
 
 	return found, nil

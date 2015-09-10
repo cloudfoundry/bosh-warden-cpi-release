@@ -70,7 +70,7 @@ func (vm WardenVM) Delete() error {
 
 func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
 	if !vm.containerExists {
-		return bosherr.New("VM does not exist")
+		return bosherr.Error("VM does not exist")
 	}
 
 	agentEnv, err := vm.agentEnvService.Fetch()
@@ -97,7 +97,7 @@ func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
 
 func (vm WardenVM) DetachDisk(disk bwcdisk.Disk) error {
 	if !vm.containerExists {
-		return bosherr.New("VM does not exist")
+		return bosherr.Error("VM does not exist")
 	}
 
 	agentEnv, err := vm.agentEnvService.Fetch()

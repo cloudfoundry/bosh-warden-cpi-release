@@ -6,8 +6,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-const fsDiskLogTag = "FSDisk"
-
 type FSDisk struct {
 	id   string
 	path string
@@ -30,11 +28,11 @@ func (s FSDisk) ID() string { return s.id }
 func (s FSDisk) Path() string { return s.path }
 
 func (s FSDisk) Delete() error {
-	s.logger.Debug(fsDiskLogTag, "Deleting disk '%s'", s.id)
+	s.logger.Debug("FSDisk", "Deleting disk '%s'", s.id)
 
 	err := s.fs.RemoveAll(s.path)
 	if err != nil {
-		return bosherr.WrapError(err, "Deleting disk '%s'", s.path)
+		return bosherr.WrapErrorf(err, "Deleting disk '%s'", s.path)
 	}
 
 	return nil

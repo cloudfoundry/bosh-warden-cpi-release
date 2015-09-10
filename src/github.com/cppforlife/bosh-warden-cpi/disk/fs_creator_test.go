@@ -31,7 +31,7 @@ var _ = Describe("FSCreator", func() {
 
 	Describe("Create", func() {
 		It("returns unique disk id", func() {
-			uuidGen.GeneratedUuid = "fake-uuid"
+			uuidGen.GeneratedUUID = "fake-uuid"
 
 			disk, err := creator.Create(40)
 			Expect(err).ToNot(HaveOccurred())
@@ -42,11 +42,11 @@ var _ = Describe("FSCreator", func() {
 
 		Context("when generating unique id succeeds", func() {
 			BeforeEach(func() {
-				uuidGen.GeneratedUuid = "fake-uuid"
+				uuidGen.GeneratedUUID = "fake-uuid"
 			})
 
 			It("touches disk path in disks directory", func() {
-				uuidGen.GeneratedUuid = "fake-uuid"
+				uuidGen.GeneratedUUID = "fake-uuid"
 
 				_, err := creator.Create(40)
 				Expect(err).ToNot(HaveOccurred())
@@ -141,7 +141,7 @@ var _ = Describe("FSCreator", func() {
 
 			Context("when touching disk path fails", func() {
 				It("returns error if touching disk path fails", func() {
-					fs.WriteToFileError = errors.New("fake-write-file-err")
+					fs.WriteFileError = errors.New("fake-write-file-err")
 
 					disk, err := creator.Create(40)
 					Expect(err).To(HaveOccurred())

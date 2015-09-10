@@ -28,7 +28,7 @@ func NewConfigFromPath(path string, fs boshsys.FileSystem) (Config, error) {
 
 	bytes, err := fs.ReadFile(path)
 	if err != nil {
-		return config, bosherr.WrapError(err, "Reading config %s", path)
+		return config, bosherr.WrapErrorf(err, "Reading config '%s'", path)
 	}
 
 	err = json.Unmarshal(bytes, &config)
@@ -60,11 +60,11 @@ func (c Config) Validate() error {
 
 func (c WardenConfig) Validate() error {
 	if c.ConnectNetwork == "" {
-		return bosherr.New("Must provide non-empty ConnectNetwork")
+		return bosherr.Error("Must provide non-empty ConnectNetwork")
 	}
 
 	if c.ConnectAddress == "" {
-		return bosherr.New("Must provide non-empty ConnectAddress")
+		return bosherr.Error("Must provide non-empty ConnectAddress")
 	}
 
 	return nil

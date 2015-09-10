@@ -103,13 +103,13 @@ func (hbm FSHostBindMounts) DeletePersistent(id string) error {
 	if hbm.fs.FileExists(path) {
 		mountedDiskPaths, err := hbm.fs.Glob(filepath.Join(path, "*"))
 		if err != nil {
-			return bosherr.WrapError(err, "Getting mounted disk paths in '%s'", path)
+			return bosherr.WrapErrorf(err, "Getting mounted disk paths in '%s'", path)
 		}
 
 		for _, mountedDiskPath := range mountedDiskPaths {
 			err := hbm.unmountPath(mountedDiskPath)
 			if err != nil {
-				return bosherr.WrapError(err, "Unmounting persistent disk '%s'", mountedDiskPath)
+				return bosherr.WrapErrorf(err, "Unmounting persistent disk '%s'", mountedDiskPath)
 			}
 		}
 

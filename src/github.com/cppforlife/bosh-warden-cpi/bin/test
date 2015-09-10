@@ -4,23 +4,23 @@ result=0
 
 bin=$(dirname $0)
 
-echo -e "\n Formatting packages..."
-$bin/go fmt github.com/cppforlife/bosh-warden-cpi/...
-let "result+=$?"
+GOBIN=$bin go install github.com/onsi/ginkgo/ginkgo
 
-echo -e "\n Installing ginkgo..."
-$bin/go install github.com/onsi/ginkgo/ginkgo
+echo -e "\n Formatting packages..."
+go fmt github.com/cppforlife/bosh-warden-cpi/...
 let "result+=$?"
 
 echo -e "\n Testing packages..."
-$bin/env ginkgo -r $bin/..
+$bin/ginkgo -r $bin/..
 let "result+=$?"
 
-echo -e "\n Vetting packages for potential issues..."
-$bin/go vet github.com/cppforlife/bosh-warden-cpi/...
-let "result+=$?"
+# todo vet
+# echo -e "\n Vetting packages for potential issues..."
+# go vet github.com/cppforlife/bosh-warden-cpi/...
+# let "result+=$?"
 
 echo -e "\n Running build script to confirm everything compiles..."
+$bin/build
 $bin/build-linux-amd64
 let "result+=$?"
 

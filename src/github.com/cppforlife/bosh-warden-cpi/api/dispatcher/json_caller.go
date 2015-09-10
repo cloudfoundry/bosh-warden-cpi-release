@@ -24,13 +24,13 @@ func (r JSONCaller) Call(action bwcaction.Action, args []interface{}) (value int
 	actionValue := reflect.ValueOf(action)
 	runMethodValue := actionValue.MethodByName("Run")
 	if runMethodValue.Kind() != reflect.Func {
-		err = bosherr.New("Run method not found")
+		err = bosherr.Error("Run method not found")
 		return
 	}
 
 	runMethodType := runMethodValue.Type()
 	if r.invalidReturnTypes(runMethodType) {
-		err = bosherr.New("Run method should return a value and an error")
+		err = bosherr.Error("Run method should return a value and an error")
 		return
 	}
 
@@ -54,7 +54,7 @@ func (r JSONCaller) invalidReturnTypes(methodType reflect.Type) (valid bool) {
 		return true
 	}
 
-	errorType := reflect.TypeOf(bosherr.New(""))
+	errorType := reflect.TypeOf(bosherr.Error(""))
 	secondReturnIsError := errorType.Implements(secondReturnType)
 	if !secondReturnIsError {
 		return true
@@ -72,7 +72,7 @@ func (r JSONCaller) extractMethodArgs(runMethodType reflect.Type, args []interfa
 	}
 
 	if len(args) < numberOfReqArgs {
-		err = bosherr.New("Not enough arguments, expected %d, got %d", numberOfReqArgs, len(args))
+		err = bosherr.Errorf("Not enough arguments, expected %d, got %d", numberOfReqArgs, len(args))
 		return
 	}
 

@@ -11,8 +11,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
-const fsImporterLogTag = "FSImporter"
-
 type FSImporter struct {
 	dirPath string
 
@@ -20,6 +18,7 @@ type FSImporter struct {
 	uuidGen    boshuuid.Generator
 	compressor boshcmd.Compressor
 
+	logTag string
 	logger boshlog.Logger
 }
 
@@ -37,12 +36,13 @@ func NewFSImporter(
 		uuidGen:    uuidGen,
 		compressor: compressor,
 
+		logTag: "FSImporter",
 		logger: logger,
 	}
 }
 
 func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
-	i.logger.Debug(fsImporterLogTag, "Importing stemcell from path '%s'", imagePath)
+	i.logger.Debug(i.logTag, "Importing stemcell from path '%s'", imagePath)
 
 	id, err := i.uuidGen.Generate()
 	if err != nil {
@@ -53,15 +53,15 @@ func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 
 	err = i.fs.MkdirAll(stemcellPath, os.FileMode(0755))
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating stemcell directory '%s'", stemcellPath)
+		return nil, bosherr.WrapErrorf(err, "Creating stemcell directory '%s'", stemcellPath)
 	}
 
 	err = i.compressor.DecompressFileToDir(imagePath, stemcellPath, boshcmd.CompressorOptions{SameOwner: true})
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Unpacking stemcell '%s' to '%s'", imagePath, stemcellPath)
+		return nil, bosherr.WrapErrorf(err, "Unpacking stemcell '%s' to '%s'", imagePath, stemcellPath)
 	}
 
-	i.logger.Debug(fsImporterLogTag, "Imported stemcell from path '%s'", imagePath)
+	i.logger.Debug(i.logTag, "Imported stemcell from path '%s'", imagePath)
 
 	return NewFSStemcell(id, stemcellPath, i.fs, i.logger), nil
 }

@@ -60,14 +60,14 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 
 	streamOut, err := s.container.StreamOut(spec)
 	if err != nil {
-		return []byte{}, bosherr.WrapError(err, "Streaming out file %s", sourceFileName)
+		return []byte{}, bosherr.WrapErrorf(err, "Streaming out file '%s'", sourceFileName)
 	}
 
 	tarReader := tar.NewReader(streamOut)
 
 	_, err = tarReader.Next()
 	if err != nil {
-		return []byte{}, bosherr.WrapError(err, "Reading tar header for %s", sourceFileName)
+		return []byte{}, bosherr.WrapErrorf(err, "Reading tar header for '%s'", sourceFileName)
 	}
 
 	return ioutil.ReadAll(tarReader)
@@ -106,7 +106,7 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 
 	err = s.runPrivilegedScript(script)
 	if err != nil {
-		return bosherr.WrapError(err, "Moving temporary file to destination %s", destinationPath)
+		return bosherr.WrapErrorf(err, "Moving temporary file to destination '%s'", destinationPath)
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func (s *wardenFileService) runPrivilegedScript(script string) error {
 	}
 
 	if exitCode != 0 {
-		return bosherr.New("Script exited with non-0 exit code, stdout: '%s' stderr: '%s'", stdout.String(), stderr.String())
+		return bosherr.Errorf("Script exited with non-0 exit code, stdout: '%s' stderr: '%s'", stdout.String(), stderr.String())
 	}
 
 	return nil

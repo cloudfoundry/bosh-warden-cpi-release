@@ -24,27 +24,27 @@ type ConcreteFactoryOptions struct {
 
 func (o ConcreteFactoryOptions) Validate() error {
 	if o.StemcellsDir == "" {
-		return bosherr.New("Must provide non-empty StemcellsDir")
+		return bosherr.Error("Must provide non-empty StemcellsDir")
 	}
 
 	if o.DisksDir == "" {
-		return bosherr.New("Must provide non-empty DisksDir")
+		return bosherr.Error("Must provide non-empty DisksDir")
 	}
 
 	if o.HostEphemeralBindMountsDir == "" {
-		return bosherr.New("Must provide non-empty HostEphemeralBindMountsDir")
+		return bosherr.Error("Must provide non-empty HostEphemeralBindMountsDir")
 	}
 
 	if o.HostPersistentBindMountsDir == "" {
-		return bosherr.New("Must provide non-empty HostPersistentBindMountsDir")
+		return bosherr.Error("Must provide non-empty HostPersistentBindMountsDir")
 	}
 
 	if o.GuestEphemeralBindMountPath == "" {
-		return bosherr.New("Must provide non-empty GuestEphemeralBindMountPath")
+		return bosherr.Error("Must provide non-empty GuestEphemeralBindMountPath")
 	}
 
 	if o.GuestPersistentBindMountsDir == "" {
-		return bosherr.New("Must provide non-empty GuestPersistentBindMountsDir")
+		return bosherr.Error("Must provide non-empty GuestPersistentBindMountsDir")
 	}
 
 	err := o.Agent.Validate()

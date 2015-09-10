@@ -78,7 +78,7 @@ var _ = Describe("WardenCreator", func() {
 		})
 
 		It("returns created vm", func() {
-			uuidGen.GeneratedUuid = "fake-vm-id"
+			uuidGen.GeneratedUUID = "fake-vm-id"
 
 			agentEnvService := &fakevm.FakeAgentEnvService{}
 			agentEnvServiceFactory.NewAgentEnvService = agentEnvService
@@ -100,7 +100,7 @@ var _ = Describe("WardenCreator", func() {
 
 		Context("when generating VM id succeeds", func() {
 			BeforeEach(func() {
-				uuidGen.GeneratedUuid = "fake-vm-id"
+				uuidGen.GeneratedUUID = "fake-vm-id"
 			})
 
 			It("returns error if zero networks are provided", func() {

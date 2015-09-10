@@ -53,13 +53,12 @@ func (s registryAgentEnvService) Fetch() (AgentEnv, error) {
 	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
-		return AgentEnv{},
-			bosherr.New("Received non-200 status code when contacting registry: %d", httpResponse.StatusCode)
+		return AgentEnv{}, bosherr.Errorf("Received non-200 status code when contacting registry: '%d'", httpResponse.StatusCode)
 	}
 
 	httpBody, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
-		return AgentEnv{}, bosherr.WrapError(err, "Reading response from registry endpoint %s", s.endpoint)
+		return AgentEnv{}, bosherr.WrapErrorf(err, "Reading response from registry endpoint '%s'", s.endpoint)
 	}
 
 	var resp registryResp
@@ -76,7 +75,7 @@ func (s registryAgentEnvService) Fetch() (AgentEnv, error) {
 		return AgentEnv{}, bosherr.WrapError(err, "Unmarshalling agent env from registry")
 	}
 
-	s.logger.Debug(s.logTag, "Received agent env from registry endpoint %s, contents: %s", s.endpoint, httpBody)
+	s.logger.Debug(s.logTag, "Received agent env from registry endpoint '%s', contents: '%s'", s.endpoint, httpBody)
 
 	return agentEnv, nil
 }
@@ -87,28 +86,24 @@ func (s registryAgentEnvService) Update(agentEnv AgentEnv) error {
 		return bosherr.WrapError(err, "Marshalling agent env")
 	}
 
-	s.logger.Debug(s.logTag, "Updating registry endpoint %s with agent env: %s", s.endpoint, settingsJSON)
+	s.logger.Debug(s.logTag, "Updating registry endpoint '%s' with agent env: '%s'", s.endpoint, settingsJSON)
 
 	putPayload := bytes.NewReader(settingsJSON)
 	request, err := http.NewRequest("PUT", s.endpoint, putPayload)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating PUT request to update registry at %s with settings %s", s.endpoint, settingsJSON)
+		return bosherr.WrapErrorf(err, "Creating PUT request to update registry at '%s' with settings '%s'", s.endpoint, settingsJSON)
 	}
 
 	httpClient := http.Client{}
 	httpResponse, err := httpClient.Do(request)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating registry endpoint %s with settings: %s", s.endpoint, settingsJSON)
+		return bosherr.WrapErrorf(err, "Updating registry endpoint '%s' with settings: '%s'", s.endpoint, settingsJSON)
 	}
 
 	defer httpResponse.Body.Close()
 
-	if httpResponse.StatusCode != http.StatusOK &&
-		httpResponse.StatusCode != http.StatusCreated {
-		return bosherr.New(
-			"Received non-2xx status code when contacting registry: %d",
-			httpResponse.StatusCode,
-		)
+	if httpResponse.StatusCode != http.StatusOK && httpResponse.StatusCode != http.StatusCreated {
+		return bosherr.Errorf("Received non-2xx status code when contacting registry: '%d'", httpResponse.StatusCode)
 	}
 
 	return nil

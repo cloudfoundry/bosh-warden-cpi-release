@@ -30,7 +30,7 @@ type BlobstoreOptions struct {
 
 func (o AgentOptions) Validate() error {
 	if o.Mbus == "" {
-		return bosherr.New("Must provide non-empty Mbus")
+		return bosherr.Error("Must provide non-empty Mbus")
 	}
 
 	err := o.Blobstore.Validate()
@@ -43,7 +43,7 @@ func (o AgentOptions) Validate() error {
 
 func (o BlobstoreOptions) Validate() error {
 	if o.Type == "" {
-		return bosherr.New("Must provide non-empty Type")
+		return bosherr.Error("Must provide non-empty Type")
 	}
 
 	return nil

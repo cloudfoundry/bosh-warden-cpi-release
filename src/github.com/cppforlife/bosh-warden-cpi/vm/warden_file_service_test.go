@@ -236,7 +236,7 @@ var _ = Describe("WardenFileService", func() {
 				It("returns error", func() {
 					contents, err := wardenFileService.Download("/fake-download-path/file.ext")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Reading tar header for file.ext"))
+					Expect(err.Error()).To(ContainSubstring("Reading tar header for 'file.ext'"))
 					Expect(contents).To(Equal([]byte{}))
 				})
 			})

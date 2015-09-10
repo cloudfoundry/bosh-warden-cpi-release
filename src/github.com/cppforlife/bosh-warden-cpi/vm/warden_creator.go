@@ -9,8 +9,6 @@ import (
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
-const wardenCreatorLogTag = "WardenCreator"
-
 type WardenCreator struct {
 	uuidGen boshuuid.Generator
 
@@ -88,7 +86,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		Privileged: true,
 	}
 
-	c.logger.Debug(wardenCreatorLogTag, "Creating container with spec %#v", containerSpec)
+	c.logger.Debug("WardenCreator", "Creating container with spec %#v", containerSpec)
 
 	container, err := c.wardenClient.Create(containerSpec)
 	if err != nil {
@@ -135,7 +133,7 @@ func (c WardenCreator) resolveNetworkIP(networks Networks) (string, error) {
 	var network Network
 
 	if len(networks) == 0 {
-		return "", bosherr.New("Expected exactly one network; received zero")
+		return "", bosherr.Error("Expected exactly one network; received zero")
 	}
 
 	network = networks.Default()
@@ -180,6 +178,6 @@ func (c WardenCreator) cleanUpContainer(container wrdn.Container) {
 	// false is to kill immediately
 	err := container.Stop(false)
 	if err != nil {
-		c.logger.Error(wardenCreatorLogTag, "Failed destroying container '%s': %s", container.Handle, err.Error())
+		c.logger.Error("WardenCreator", "Failed destroying container '%s': %s", container.Handle, err.Error())
 	}
 }

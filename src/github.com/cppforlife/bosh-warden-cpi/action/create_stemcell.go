@@ -19,7 +19,7 @@ func NewCreateStemcell(stemcellImporter bwcstem.Importer) CreateStemcell {
 func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (StemcellCID, error) {
 	stemcell, err := a.stemcellImporter.ImportFromPath(imagePath)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Importing stemcell from '%s'", imagePath)
+		return "", bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
 	return StemcellCID(stemcell.ID()), nil

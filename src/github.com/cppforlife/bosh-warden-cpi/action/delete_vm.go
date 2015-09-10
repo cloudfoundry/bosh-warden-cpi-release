@@ -18,12 +18,12 @@ func NewDeleteVM(vmFinder bwcvm.Finder, hostBindMounts bwcvm.HostBindMounts) Del
 func (a DeleteVM) Run(vmCID VMCID) (interface{}, error) {
 	vm, _, err := a.vmFinder.Find(string(vmCID))
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Finding vm '%s'", vmCID)
+		return nil, bosherr.WrapErrorf(err, "Finding vm '%s'", vmCID)
 	}
 
 	err = vm.Delete()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Deleting vm '%s'", vmCID)
+		return nil, bosherr.WrapErrorf(err, "Deleting vm '%s'", vmCID)
 	}
 
 	return nil, nil
