@@ -14,7 +14,7 @@ import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	fakewrdn "github.com/cloudfoundry-incubator/garden/fakes"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )

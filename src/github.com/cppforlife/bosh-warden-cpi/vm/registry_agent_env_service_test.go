@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )

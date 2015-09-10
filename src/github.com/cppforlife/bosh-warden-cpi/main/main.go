@@ -6,10 +6,10 @@ import (
 
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	wrdnconn "github.com/cloudfoundry-incubator/garden/client/connection"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 	bwcdisp "github.com/cppforlife/bosh-warden-cpi/api/dispatcher"

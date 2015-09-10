@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 
 	. "github.com/onsi/ginkgo"

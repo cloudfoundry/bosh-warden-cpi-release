@@ -2,9 +2,9 @@ package vm
 
 import (
 	wrdn "github.com/cloudfoundry-incubator/garden"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )

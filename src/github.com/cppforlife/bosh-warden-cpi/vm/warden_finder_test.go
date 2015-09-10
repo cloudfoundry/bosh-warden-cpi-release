@@ -5,7 +5,7 @@ import (
 
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

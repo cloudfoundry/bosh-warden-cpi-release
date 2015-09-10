@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 	. "github.com/cppforlife/bosh-warden-cpi/main"

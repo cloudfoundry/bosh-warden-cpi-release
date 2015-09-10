@@ -3,7 +3,7 @@ package vm
 import (
 	"path/filepath"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 // FSGuestBindMounts represents bind mounts from the perspective of a VM

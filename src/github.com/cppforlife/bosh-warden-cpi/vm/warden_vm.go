@@ -2,8 +2,8 @@ package vm
 
 import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )

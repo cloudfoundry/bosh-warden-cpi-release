@@ -3,7 +3,7 @@ package dispatcher
 import (
 	"encoding/json"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 	bwcapi "github.com/cppforlife/bosh-warden-cpi/api"

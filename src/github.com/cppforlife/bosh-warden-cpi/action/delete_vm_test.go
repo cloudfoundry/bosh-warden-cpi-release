@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/cppforlife/bosh-warden-cpi/action"
 	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"

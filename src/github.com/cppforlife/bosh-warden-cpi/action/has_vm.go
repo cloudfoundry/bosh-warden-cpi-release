@@ -1,7 +1,7 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )

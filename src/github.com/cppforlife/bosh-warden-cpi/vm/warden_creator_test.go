@@ -9,8 +9,8 @@ import (
 	wrdn "github.com/cloudfoundry-incubator/garden"
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	fakestem "github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
 	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 

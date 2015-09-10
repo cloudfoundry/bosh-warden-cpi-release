@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"

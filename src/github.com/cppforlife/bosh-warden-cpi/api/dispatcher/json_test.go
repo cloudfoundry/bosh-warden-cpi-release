@@ -3,7 +3,7 @@ package dispatcher_test
 import (
 	"errors"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -47,7 +47,7 @@ var _ = Describe("JSON", func() {
 				dispatcher.Dispatch([]byte(`{
           "method":"fake-action",
           "arguments":[
-            123, 
+            123,
             "fake-arg",
             [123, "fake-arg"],
             {"fake-arg2-key":"fake-arg2-value"}
