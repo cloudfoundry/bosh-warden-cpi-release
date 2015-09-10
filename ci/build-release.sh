@@ -8,6 +8,10 @@ dev_version=`cat dev-version/number`
 
 cd bosh-warden-cpi-release
 
+source .envrc
+
+./src/github.com/cppforlife/bosh-warden-cpi/bin/test
+
 # todo remove installation
 gem install bosh_cli --no-ri --no-rdoc
 
