@@ -11,6 +11,11 @@ case $1 in
     mkdir -p $RUN_DIR
     chown -R vcap:vcap $RUN_DIR
 
+    # todo hacky solution to load overlayfs at the outermost level ie VM
+    # where modprobe is not going to complain about mismatched kernel version
+    modprobe -q overlayfs || true
+    modprobe -q overlay || true
+
     <% if_p('cpi.host_ip') do |host_ip| %>
     ifconfig lo:1 <%= host_ip %> netmask 255.255.255.0
     <% end %>
