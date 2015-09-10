@@ -1,3 +1,0 @@
-[submodule "src/bosh-warden-cpi"]
-	path = src/bosh-warden-cpi
-	url = https://github.com/cppforlife/bosh-warden-cpi.git
