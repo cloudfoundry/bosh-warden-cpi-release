@@ -1,17 +1,17 @@
-set -e
+set -e -x
 
-mkdir -p go/src/github.com/cppforlife
+if [ -z "$BOSH_PACKAGES_DIR" ]; then
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang_1.3)
+else
+	pkg_dir=$BOSH_PACKAGES_DIR/golang_1.3
+fi
 
-mv bosh-warden-cpi go/src/github.com/cppforlife/
-
-cd go/src/github.com/cppforlife/bosh-warden-cpi
-
-pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
-export GOROOT=$(readlink -nf $pkgs_dir/golang_1.3)
+export GOROOT=$pkg_dir
+export GOPATH=$PWD
 export PATH=$GOROOT/bin:$PATH
 
-bin/build-linux-amd64
+mkdir ../src && cp -a * ../src/ && mv ../src ./src
 
-mkdir -p ${BOSH_INSTALL_TARGET}/bin
+mkdir $BOSH_INSTALL_TARGET/bin
 
-cp out/cpi ${BOSH_INSTALL_TARGET}/bin/
+go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/cppforlife/bosh-warden-cpi/main/*.go

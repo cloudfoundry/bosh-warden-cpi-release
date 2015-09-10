@@ -5,4 +5,8 @@ dependencies:
 - golang_1.3
 
 files:
-- bosh-warden-cpi/**/*
+- "**/*.go"
+
+excluded_files:
+- github.com/onsi/ginkgo/**/*
+- github.com/onsi/gomega/**/*
