@@ -29,3 +29,5 @@ git add .
 git config --global user.email "cf-bosh-eng@pivotal.io"
 git config --global user.name "CI"
 git commit -m "New final release v$final_version"
+
+echo $final_version > ../final_version

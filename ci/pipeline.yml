@@ -68,7 +68,11 @@ jobs:
         BOSH_AWS_SECRET_ACCESS_KEY: {{promote_secret_access_key}}
   - put: bosh-warden-cpi-release
     resource: promoted-bosh-warden-cpi-release
-    params: {repository: promote/bosh-warden-cpi-release, rebase: true}
+    params:
+      repository: promote/bosh-warden-cpi-release
+      rebase: true
+      tag_prefix: v
+      tag: promote/final_version
 
 resources:
 - name: dev-version
