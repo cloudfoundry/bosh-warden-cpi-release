@@ -11,8 +11,9 @@ case $1 in
     mkdir -p $RUN_DIR
     chown -R vcap:vcap $RUN_DIR
 
-    # todo hacky solution to load overlayfs at the outermost level ie VM
+    # todo hacky solution to load aufs/overlayfs at the outermost level ie VM
     # where modprobe is not going to complain about mismatched kernel version
+    modprobe -q aufs || true
     modprobe -q overlayfs || true
     modprobe -q overlay || true
 
