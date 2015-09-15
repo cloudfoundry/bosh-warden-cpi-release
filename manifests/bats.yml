@@ -89,6 +89,8 @@ properties:
     listen_address: 0.0.0.0:7777
     disk_quota_enabled: false
     allow_host_access: true
+    # todo expecting fix for this from garden team
+    mount_btrfs_loopback: false
 
 resource_pools:
 - name: default
