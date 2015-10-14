@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -41,8 +40,7 @@ func (s *GardenServer) handlePing(w http.ResponseWriter, r *http.Request) {
 
 	err := s.backend.Ping()
 	if err != nil {
-		hLog.Error("failed", err)
-		w.WriteHeader(http.StatusServiceUnavailable)
+		s.writeError(w, err, hLog)
 		return
 	}
 
@@ -845,6 +843,32 @@ func (s *GardenServer) handleRemoveProperty(w http.ResponseWriter, r *http.Reque
 	s.writeSuccess(w)
 }
 
+func (s *GardenServer) handleSetGraceTime(w http.ResponseWriter, r *http.Request) {
+	handle := r.FormValue(":handle")
+
+	var graceTime time.Duration
+	if !s.readRequest(&graceTime, w, r) {
+		return
+	}
+
+	hLog := s.logger.Session("set-grace-time", lager.Data{
+		"handle": handle,
+	})
+
+	container, err := s.backend.Lookup(handle)
+	if err != nil {
+		s.writeError(w, err, hLog)
+		return
+	}
+
+	container.SetGraceTime(graceTime)
+
+	s.bomberman.Defuse(container.Handle())
+	s.bomberman.Strap(container)
+
+	s.writeSuccess(w)
+}
+
 func (s *GardenServer) handleRun(w http.ResponseWriter, r *http.Request) {
 	handle := r.FormValue(":handle")
 
@@ -927,17 +951,11 @@ func (s *GardenServer) handleRun(w http.ResponseWriter, r *http.Request) {
 func (s *GardenServer) handleAttach(w http.ResponseWriter, r *http.Request) {
 	handle := r.FormValue(":handle")
 
-	var processID uint32
-
 	hLog := s.logger.Session("attach", lager.Data{
 		"handle": handle,
 	})
 
-	_, err := fmt.Sscanf(r.FormValue(":pid"), "%d", &processID)
-	if err != nil {
-		s.writeError(w, err, hLog)
-		return
-	}
+	processID := r.FormValue(":pid")
 
 	container, err := s.backend.Lookup(handle)
 	if err != nil {
@@ -1030,7 +1048,7 @@ func (s *GardenServer) handleInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *GardenServer) handleBulkInfo(w http.ResponseWriter, r *http.Request) {
-	handles := strings.Split(r.URL.Query()["handles"][0], ",")
+	handles := splitHandles(r.URL.Query()["handles"][0])
 
 	hLog := s.logger.Session("bulk_info", lager.Data{
 		"handles": handles,
@@ -1049,7 +1067,7 @@ func (s *GardenServer) handleBulkInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *GardenServer) handleBulkMetrics(w http.ResponseWriter, r *http.Request) {
-	handles := strings.Split(r.URL.Query()["handles"][0], ",")
+	handles := splitHandles(r.URL.Query()["handles"][0])
 
 	hLog := s.logger.Session("bulk_metrics", lager.Data{
 		"handles": handles,
@@ -1070,16 +1088,11 @@ func (s *GardenServer) handleBulkMetrics(w http.ResponseWriter, r *http.Request)
 func (s *GardenServer) writeError(w http.ResponseWriter, err error, logger lager.Logger) {
 	logger.Error("failed", err)
 
-	statusCode := http.StatusInternalServerError
-	if _, ok := err.(*garden.ServiceUnavailableError); ok {
-		statusCode = http.StatusServiceUnavailable
-	} else if _, ok := err.(garden.ContainerNotFoundError); ok {
-		statusCode = http.StatusNotFound
-	}
+	w.Header().Set("Content-Type", "application/json")
+	merr := &garden.Error{Err: err}
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(statusCode)
-	w.Write([]byte(err.Error()))
+	w.WriteHeader(merr.StatusCode())
+	json.NewEncoder(w).Encode(merr)
 }
 
 func (s *GardenServer) writeResponse(w http.ResponseWriter, msg interface{}) {
@@ -1206,4 +1219,12 @@ func (s *GardenServer) streamProcess(logger lager.Logger, conn net.Conn, process
 			return
 		}
 	}
+}
+
+func splitHandles(queryHandles string) []string {
+	handles := []string{}
+	if queryHandles != "" {
+		handles = strings.Split(queryHandles, ",")
+	}
+	return handles
 }

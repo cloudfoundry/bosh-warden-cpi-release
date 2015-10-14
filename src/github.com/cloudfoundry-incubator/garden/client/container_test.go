@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -454,7 +455,7 @@ var _ = Describe("Container", func() {
 			fakeConnection.RunStub = func(handle string, spec garden.ProcessSpec, io garden.ProcessIO) (garden.Process, error) {
 				process := new(wfakes.FakeProcess)
 
-				process.IDReturns(42)
+				process.IDReturns("process-handle")
 				process.WaitReturns(123, nil)
 
 				go func() {
@@ -490,7 +491,7 @@ var _ = Describe("Container", func() {
 			Ω(ranSpec).Should(Equal(spec))
 			Ω(ranIO).Should(Equal(processIO))
 
-			Ω(process.ID()).Should(Equal(uint32(42)))
+			Ω(process.ID()).Should(Equal("process-handle"))
 
 			status, err := process.Wait()
 			Ω(err).ShouldNot(HaveOccurred())
@@ -503,10 +504,10 @@ var _ = Describe("Container", func() {
 
 	Describe("Attach", func() {
 		It("sends an attach request and returns a stream", func() {
-			fakeConnection.AttachStub = func(handle string, processID uint32, io garden.ProcessIO) (garden.Process, error) {
+			fakeConnection.AttachStub = func(handle string, processID string, io garden.ProcessIO) (garden.Process, error) {
 				process := new(wfakes.FakeProcess)
 
-				process.IDReturns(42)
+				process.IDReturns("process-handle")
 				process.WaitReturns(123, nil)
 
 				go func() {
@@ -530,15 +531,15 @@ var _ = Describe("Container", func() {
 				Stderr: stderr,
 			}
 
-			process, err := container.Attach(42, processIO)
+			process, err := container.Attach("process-handle", processIO)
 			Ω(err).ShouldNot(HaveOccurred())
 
 			attachedHandle, attachedID, attachedIO := fakeConnection.AttachArgsForCall(0)
 			Ω(attachedHandle).Should(Equal("some-handle"))
-			Ω(attachedID).Should(Equal(uint32(42)))
+			Ω(attachedID).Should(Equal("process-handle"))
 			Ω(attachedIO).Should(Equal(processIO))
 
-			Ω(process.ID()).Should(Equal(uint32(42)))
+			Ω(process.ID()).Should(Equal("process-handle"))
 
 			status, err := process.Wait()
 			Ω(err).ShouldNot(HaveOccurred())
@@ -598,6 +599,32 @@ var _ = Describe("Container", func() {
 			Ω(rule.Ports[0]).Should(Equal(garden.PortRange{Start: 12, End: 24}))
 
 			Ω(rule.Log).Should(Equal(true))
+		})
+	})
+
+	Describe(("GraceTime"), func() {
+		It("send the set grace time request", func() {
+			graceTime := time.Second * 5
+
+			Ω(container.SetGraceTime(graceTime)).Should(Succeed())
+
+			Ω(fakeConnection.SetGraceTimeCallCount()).Should(Equal(1))
+			handle, actualGraceTime := fakeConnection.SetGraceTimeArgsForCall(0)
+			Ω(handle).Should(Equal("some-handle"))
+			Ω(actualGraceTime).Should(Equal(graceTime))
+		})
+
+		Context("when the request fails", func() {
+			disaster := errors.New("banana")
+
+			BeforeEach(func() {
+				fakeConnection.SetGraceTimeReturns(disaster)
+			})
+
+			It("returns the error", func() {
+				err := container.SetGraceTime(time.Second * 5)
+				Ω(err).Should(Equal(disaster))
+			})
 		})
 	})
 

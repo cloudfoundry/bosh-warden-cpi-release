@@ -4,6 +4,7 @@ package fakes
 import (
 	"io"
 	"sync"
+	"time"
 
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden/client/connection"
@@ -191,11 +192,11 @@ type FakeConnection struct {
 		result1 garden.Process
 		result2 error
 	}
-	AttachStub        func(handle string, processID uint32, io garden.ProcessIO) (garden.Process, error)
+	AttachStub        func(handle string, processID string, io garden.ProcessIO) (garden.Process, error)
 	attachMutex       sync.RWMutex
 	attachArgsForCall []struct {
 		handle    string
-		processID uint32
+		processID string
 		io        garden.ProcessIO
 	}
 	attachReturns struct {
@@ -221,6 +222,15 @@ type FakeConnection struct {
 		rule   garden.NetOutRule
 	}
 	netOutReturns struct {
+		result1 error
+	}
+	SetGraceTimeStub        func(handle string, graceTime time.Duration) error
+	setGraceTimeMutex       sync.RWMutex
+	setGraceTimeArgsForCall []struct {
+		handle    string
+		graceTime time.Duration
+	}
+	setGraceTimeReturns struct {
 		result1 error
 	}
 	PropertiesStub        func(handle string) (garden.Properties, error)
@@ -921,11 +931,11 @@ func (fake *FakeConnection) RunReturns(result1 garden.Process, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeConnection) Attach(handle string, processID uint32, io garden.ProcessIO) (garden.Process, error) {
+func (fake *FakeConnection) Attach(handle string, processID string, io garden.ProcessIO) (garden.Process, error) {
 	fake.attachMutex.Lock()
 	fake.attachArgsForCall = append(fake.attachArgsForCall, struct {
 		handle    string
-		processID uint32
+		processID string
 		io        garden.ProcessIO
 	}{handle, processID, io})
 	fake.attachMutex.Unlock()
@@ -942,7 +952,7 @@ func (fake *FakeConnection) AttachCallCount() int {
 	return len(fake.attachArgsForCall)
 }
 
-func (fake *FakeConnection) AttachArgsForCall(i int) (string, uint32, garden.ProcessIO) {
+func (fake *FakeConnection) AttachArgsForCall(i int) (string, string, garden.ProcessIO) {
 	fake.attachMutex.RLock()
 	defer fake.attachMutex.RUnlock()
 	return fake.attachArgsForCall[i].handle, fake.attachArgsForCall[i].processID, fake.attachArgsForCall[i].io
@@ -1021,6 +1031,39 @@ func (fake *FakeConnection) NetOutArgsForCall(i int) (string, garden.NetOutRule)
 func (fake *FakeConnection) NetOutReturns(result1 error) {
 	fake.NetOutStub = nil
 	fake.netOutReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeConnection) SetGraceTime(handle string, graceTime time.Duration) error {
+	fake.setGraceTimeMutex.Lock()
+	fake.setGraceTimeArgsForCall = append(fake.setGraceTimeArgsForCall, struct {
+		handle    string
+		graceTime time.Duration
+	}{handle, graceTime})
+	fake.setGraceTimeMutex.Unlock()
+	if fake.SetGraceTimeStub != nil {
+		return fake.SetGraceTimeStub(handle, graceTime)
+	} else {
+		return fake.setGraceTimeReturns.result1
+	}
+}
+
+func (fake *FakeConnection) SetGraceTimeCallCount() int {
+	fake.setGraceTimeMutex.RLock()
+	defer fake.setGraceTimeMutex.RUnlock()
+	return len(fake.setGraceTimeArgsForCall)
+}
+
+func (fake *FakeConnection) SetGraceTimeArgsForCall(i int) (string, time.Duration) {
+	fake.setGraceTimeMutex.RLock()
+	defer fake.setGraceTimeMutex.RUnlock()
+	return fake.setGraceTimeArgsForCall[i].handle, fake.setGraceTimeArgsForCall[i].graceTime
+}
+
+func (fake *FakeConnection) SetGraceTimeReturns(result1 error) {
+	fake.SetGraceTimeStub = nil
+	fake.setGraceTimeReturns = struct {
 		result1 error
 	}{result1}
 }

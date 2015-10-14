@@ -1,7 +1,7 @@
 b8a3500 github.com/bmizerany/pat/.git
-a9a5f38 github.com/cloudfoundry/bosh-utils/.git
-6659952 github.com/cloudfoundry-incubator/garden/.git
-1b59c57 github.com/onsi/ginkgo/.git
-6331bf5 github.com/onsi/gomega/.git
-c88fa6d github.com/pivotal-golang/lager/.git
+bcb196b github.com/cloudfoundry/bosh-utils/.git
+295b3b7 github.com/cloudfoundry-incubator/garden/.git
+39d2c24 github.com/onsi/ginkgo/.git
+2152b45 github.com/onsi/gomega/.git
+be52ae6 github.com/pivotal-golang/lager/.git
 b15ebd8 github.com/tedsuo/rata/.git
