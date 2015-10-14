@@ -80,6 +80,8 @@ var _ = Describe("NewAgentEnvForVM", func() {
 
 					MAC: "",
 
+					Preconfigured: true,
+
 					CloudProperties: map[string]interface{}{
 						"fake-cp-key": "fake-cp-value",
 					},

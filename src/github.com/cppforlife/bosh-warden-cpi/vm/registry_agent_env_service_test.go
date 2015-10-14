@@ -26,19 +26,37 @@ var _ = Describe("RegistryAgentEnvService", func() {
 	)
 
 	BeforeEach(func() {
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+
 		registryOptions := RegistryOptions{
 			Host:     "127.0.0.1",
 			Port:     6307,
 			Username: "fake-username",
 			Password: "fake-password",
 		}
-		registryServer = NewRegistryServer(registryOptions)
-		readyCh := make(chan struct{})
-		go registryServer.Start(readyCh)
-		<-readyCh
+
+		if registryServer == nil {
+			registryServer = NewRegistryServer(registryOptions)
+
+			readyCh := make(chan struct{})
+			stopCh := make(chan error)
+
+			go func() {
+				err := registryServer.Start(readyCh)
+				if err != nil {
+					stopCh <- err
+				}
+			}()
+
+			select {
+			case <-readyCh:
+				// ok, continue
+			case err := <-stopCh:
+				panic(fmt.Sprintf("Error occurred waiting for registry server to start: %s", err))
+			}
+		}
 
 		instanceID := "fake-instance-id"
-		logger = boshlog.NewLogger(boshlog.LevelNone)
 		agentEnvService = NewRegistryAgentEnvService(registryOptions, instanceID, logger)
 
 		expectedAgentEnv = AgentEnv{AgentID: "fake-agent-id"}
@@ -48,6 +66,7 @@ var _ = Describe("RegistryAgentEnvService", func() {
 	})
 
 	AfterEach(func() {
+		// Leaking registry server on purpose
 		registryServer.Stop()
 	})
 
@@ -75,7 +94,7 @@ var _ = Describe("RegistryAgentEnvService", func() {
 
 	Describe("Update", func() {
 		It("updates settings in the registry", func() {
-			Expect(registryServer.InstanceSettings).To(Equal([]byte{}))
+			Expect(registryServer.InstanceSettings).To(BeNil())
 			err := agentEnvService.Update(expectedAgentEnv)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(registryServer.InstanceSettings).To(Equal(expectedAgentEnvJSON))
@@ -90,37 +109,30 @@ type registryServer struct {
 }
 
 func NewRegistryServer(options RegistryOptions) *registryServer {
-	return &registryServer{
-		InstanceSettings: []byte{},
-		options:          options,
-	}
+	return &registryServer{options: options}
 }
 
 func (s *registryServer) Start(readyCh chan struct{}) error {
-	var err error
-	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", s.options.Host, s.options.Port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.options.Host, s.options.Port))
 	if err != nil {
 		return err
 	}
 
+	s.listener = listener
+
 	readyCh <- struct{}{}
 
-	httpServer := http.Server{}
 	mux := http.NewServeMux()
-	httpServer.Handler = mux
 	mux.HandleFunc("/instances/fake-instance-id/settings", s.instanceHandler)
 
-	return httpServer.Serve(s.listener)
+	server := &http.Server{Handler: mux}
+
+	return server.Serve(s.listener)
 }
 
 func (s *registryServer) Stop() error {
 	// if client keeps connection alive, server will still be running
 	s.InstanceSettings = nil
-
-	err := s.listener.Close()
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -164,6 +176,5 @@ func (s *registryServer) instanceHandler(w http.ResponseWriter, req *http.Reques
 func (s *registryServer) isAuthorized(req *http.Request) bool {
 	auth := s.options.Username + ":" + s.options.Password
 	expectedAuthorizationHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
-
 	return expectedAuthorizationHeader == req.Header.Get("Authorization")
 }

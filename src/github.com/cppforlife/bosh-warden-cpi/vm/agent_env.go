@@ -42,6 +42,8 @@ type NetworkSpec struct {
 
 	MAC string `json:"mac"`
 
+	Preconfigured bool `json:"preconfigured"`
+
 	CloudProperties map[string]interface{} `json:"cloud_properties"`
 }
 
@@ -82,6 +84,8 @@ func NewAgentEnvForVM(agentID, vmCID string, networks Networks, env Environment,
 
 			DNS:     network.DNS,
 			Default: network.Default,
+
+			Preconfigured: true,
 
 			MAC: "",
 
