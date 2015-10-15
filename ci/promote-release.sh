@@ -7,6 +7,8 @@ cd bosh-warden-cpi-release
 # todo remove installation
 ls -la /root/.gem
 rm -rf /root/.gem
+gem install net-ssh -v 2.10.0.beta2
+gem install fog-google -v 0.1.0
 gem install bosh_cli --no-ri --no-rdoc
 
 cat > config/private.yml << EOF
