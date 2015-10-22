@@ -1,9 +1,9 @@
 #!/bin/bash
 
-LOG_DIR=/var/vcap/sys/log/cpi
-RUN_DIR=/var/vcap/sys/run/cpi
+LOG_DIR=/var/vcap/sys/log/warden_cpi
+RUN_DIR=/var/vcap/sys/run/warden_cpi
 PIDFILE=$RUN_DIR/cpi.pid
-SUDOERS_FILE=/etc/sudoers.d/cpi
+SUDOERS_FILE=/etc/sudoers.d/warden_cpi
 
 case $1 in
 
@@ -17,11 +17,11 @@ case $1 in
     modprobe -q overlayfs || true
     modprobe -q overlay || true
 
-    <% if_p('cpi.host_ip') do |host_ip| %>
+    <% if_p('warden_cpi.host_ip') do |host_ip| %>
     ifconfig lo:1 <%= host_ip %> netmask 255.255.255.0
     <% end %>
 
-    <% if_p('cpi.loopback_range') do |r| %>
+    <% if_p('warden_cpi.loopback_range') do |r| %>
     (
         set -e
 
@@ -52,7 +52,7 @@ case $1 in
     mkdir -p $LOG_DIR
     chown -R vcap:vcap $LOG_DIR
 
-    cp /var/vcap/jobs/cpi/config/sudoers $SUDOERS_FILE
+    cp /var/vcap/jobs/warden_cpi/config/sudoers $SUDOERS_FILE
     chmod 440 $SUDOERS_FILE
 
     echo 1 > $PIDFILE

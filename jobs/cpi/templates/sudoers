@@ -1,3 +1,0 @@
-vcap ALL= NOPASSWD: /var/vcap/packages/cpi/bin/cpi
-
-Defaults:vcap !requiretty

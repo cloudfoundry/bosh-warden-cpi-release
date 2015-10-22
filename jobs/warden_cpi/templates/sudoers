@@ -1,0 +1,3 @@
+vcap ALL= NOPASSWD: /var/vcap/packages/warden_cpi/bin/cpi
+
+Defaults:vcap !requiretty

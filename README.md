@@ -11,5 +11,3 @@ This is a BOSH release for the Garden (used to be called Warden) CPI. It's used 
 ## Development
 
 Run `./src/github.com/cppforlife/bosh-warden-cpi/bin/test` for unit tests.
-
-See [bosh-init-config doc](docs/bosh-init-config.md).

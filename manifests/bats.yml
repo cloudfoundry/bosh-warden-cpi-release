@@ -18,7 +18,7 @@ jobs:
   - {name: postgres, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
-  - {name: cpi, release: bosh-warden-cpi}
+  - {name: warden_cpi, release: bosh-warden-cpi}
   - {name: garden, release: garden-linux}
   resource_pool: default
   networks:
@@ -54,7 +54,7 @@ properties:
     name: bats
     address: 127.0.0.1
     enable_snapshots: true
-    cpi_job: cpi
+    cpi_job: warden_cpi
     db: *db
 
     # Compatibility with current garden networking manifest config
@@ -64,16 +64,16 @@ properties:
     director_account: {user: admin, password: admin-password}
 
   # cpi job template
-  cpi:
+  warden_cpi:
     loopback_range: [100, 130]
     warden:
       connect_network: tcp
       connect_address: 127.0.0.1:7777
     actions:
-      stemcells_dir: "/var/vcap/data/cpi/stemcells"
-      disks_dir: "/var/vcap/store/cpi/disks"
-      host_ephemeral_bind_mounts_dir: "/var/vcap/data/cpi/ephemeral_bind_mounts_dir"
-      host_persistent_bind_mounts_dir: "/var/vcap/data/cpi/persistent_bind_mounts_dir"
+      stemcells_dir: "/var/vcap/data/warden_cpi/stemcells"
+      disks_dir: "/var/vcap/store/warden_cpi/disks"
+      host_ephemeral_bind_mounts_dir: "/var/vcap/data/warden_cpi/ephemeral_bind_mounts_dir"
+      host_persistent_bind_mounts_dir: "/var/vcap/data/warden_cpi/persistent_bind_mounts_dir"
     agent:
       mbus: nats://nats:nats-password@10.244.8.2:4222
       blobstore:

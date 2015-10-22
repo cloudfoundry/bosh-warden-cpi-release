@@ -1,68 +1,67 @@
 ---
-name: cpi
+name: warden_cpi
 
 templates:
-  cpi.erb:           bin/cpi
-
-  cpi_ctl.erb:  bin/cpi_ctl
+  cpi.erb: bin/cpi
+  cpi_ctl.erb: bin/cpi_ctl
   cpi.json.erb: config/cpi.json
-  sudoers:      config/sudoers
+  sudoers: config/sudoers
 
 packages:
-- cpi
+- warden_cpi
 
 properties:
-  cpi.host_ip:
+  warden_cpi.host_ip:
     description: "IP address of the host that will be used by containers, must be the same as mbus IP"
     example: "10.254.50.4"
 
-  cpi.loopback_range:
+  warden_cpi.loopback_range:
     description: "Range of loopback devices that will be used by the CPI for mounting persistent disks (example shows /dev/loop100 to /dev/loop130)"
     example: [100, 130]
 
-  cpi.warden.connect_network:
+  warden_cpi.warden.connect_network:
     description: "Connection type warden client will use to connect (tcp or unix)"
 
-  cpi.warden.connect_address:
+  warden_cpi.warden.connect_address:
     description: "Address warden client will use to connect (ip:port or sock path)"
 
-  cpi.agent.mbus:
+  warden_cpi.agent.mbus:
     description: "Mbus URL used by deployed BOSH agents"
     example: "nats://nats:nats-password@10.254.50.4:4222"
 
-  cpi.agent.ntp:
+  warden_cpi.agent.ntp:
     description: "NTP configuration used by deployed BOSH agents"
     default: []
 
-  cpi.agent.blobstore.provider:
+  warden_cpi.agent.blobstore.provider:
     description: "Provider type for the blobstore used by deployed BOSH agents (e.g. dav, s3)"
     default: "dav"
 
-  cpi.agent.blobstore.options:
+  warden_cpi.agent.blobstore.options:
     description: "Options for the blobstore used by deployed BOSH agents"
     default: {}
 
-  cpi.actions.stemcells_dir:
+  warden_cpi.actions.stemcells_dir:
     description: "Directory where stemcells are stored"
-    default: "/var/vcap/store/cpi/stemcells"
+    default: "/var/vcap/store/warden_cpi/stemcells"
 
-  cpi.actions.disks_dir:
+  warden_cpi.actions.disks_dir:
     description: "Directory where disks are stored"
-    default: "/var/vcap/store/cpi/disks"
+    default: "/var/vcap/store/warden_cpi/disks"
 
-  cpi.actions.host_ephemeral_bind_mounts_dir:
+  warden_cpi.actions.host_ephemeral_bind_mounts_dir:
     description: "Directory with sub-directories at which ephemeral disks are mounted on the host"
-    default: "/var/vcap/store/cpi/ephemeral_bind_mounts_dir"
+    default: "/var/vcap/store/warden_cpi/ephemeral_bind_mounts_dir"
 
-  cpi.actions.host_persistent_bind_mounts_dir:
+  warden_cpi.actions.host_persistent_bind_mounts_dir:
     description: "Directory with sub-directories at which persistent disks are mounted on the host"
-    default: "/var/vcap/store/cpi/persistent_bind_mounts_dir"
+    default: "/var/vcap/store/warden_cpi/persistent_bind_mounts_dir"
 
-  cpi.actions.guest_ephemeral_bind_mount_path:
+  warden_cpi.actions.guest_ephemeral_bind_mount_path:
     description: "Path at which ephemeral disk is mounted inside VMs"
     default: "/var/vcap/data"
 
-  cpi.actions.guest_persistent_bind_mounts_dir:
+  warden_cpi.actions.guest_persistent_bind_mounts_dir:
     description: "Directory with sub-directories at which persistent disks are mounted inside VMs"
     default: "/warden-cpi-dev"
 

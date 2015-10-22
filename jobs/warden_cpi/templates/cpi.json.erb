@@ -1,0 +1,42 @@
+<%=
+
+env_service = p("registry.host").empty? ? "file" : "registry"
+
+JSON.dump(
+  "Warden" => {
+    "ConnectNetwork" => p("warden_cpi.warden.connect_network"),
+    "ConnectAddress" => p("warden_cpi.warden.connect_address"),
+  },
+
+  "Actions" => {
+    "StemcellsDir" => p("warden_cpi.actions.stemcells_dir"),
+    "DisksDir"     => p("warden_cpi.actions.disks_dir"),
+
+    "HostEphemeralBindMountsDir"  => p("warden_cpi.actions.host_ephemeral_bind_mounts_dir"),
+    "HostPersistentBindMountsDir" => p("warden_cpi.actions.host_persistent_bind_mounts_dir"),
+
+    "GuestEphemeralBindMountPath"  => p("warden_cpi.actions.guest_ephemeral_bind_mount_path"),
+    "GuestPersistentBindMountsDir" => p("warden_cpi.actions.guest_persistent_bind_mounts_dir"),
+
+    "Agent" => {
+      "Mbus" => p("warden_cpi.agent.mbus"),
+      "NTP"  => p("warden_cpi.agent.ntp"),
+
+      "Blobstore" => {
+        "Type"    => p("warden_cpi.agent.blobstore.provider"),
+        "Options" => p("warden_cpi.agent.blobstore.options"),
+      },
+    },
+
+    "AgentEnvService" => env_service,
+
+    "Registry" => {
+      "Host" => p("registry.host"),
+      "Port" => p("registry.port"),
+      "Username" => p("registry.username"),
+      "Password" => p("registry.password"),
+    },
+  }
+)
+
+%>

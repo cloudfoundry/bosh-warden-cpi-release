@@ -3,13 +3,13 @@
 pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 jobs_dir=${BOSH_JOBS_DIR:-/var/vcap/jobs}
 
-cmd="$pkgs_dir/cpi/bin/cpi -configPath=$jobs_dir/cpi/config/cpi.json"
+cmd="$pkgs_dir/warden_cpi/bin/cpi -configPath=$jobs_dir/warden_cpi/config/cpi.json"
 
-# If this cpi release is used with bosh-micro
+# If this cpi release is used with bosh-init
 # there is no guarantee that /var/vcap/sys/log is present
 if [ -d /var/vcap/sys/log ]; then
   # todo do not use sudo
-  exec sudo $cmd 2>>/var/vcap/sys/log/cpi/cpi.stderr.log <&0
+  exec sudo $cmd 2>>/var/vcap/sys/log/warden_cpi/cpi.stderr.log <&0
 else
   exec sudo $cmd <&0
 fi

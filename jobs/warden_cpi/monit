@@ -1,0 +1,5 @@
+check process warden_cpi
+  with pidfile /var/vcap/sys/run/warden_cpi/cpi.pid
+  start program "/var/vcap/jobs/warden_cpi/bin/cpi_ctl start"
+  stop program "/var/vcap/jobs/warden_cpi/bin/cpi_ctl stop"
+  group vcap
