@@ -1,5 +1,5 @@
 ---
-name: cpi
+name: warden_cpi
 
 dependencies:
 - golang_1.3
