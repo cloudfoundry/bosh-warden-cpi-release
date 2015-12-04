@@ -17,6 +17,11 @@ vagrant_up() {
 Vagrant.configure("2") do |config|
   config.vm.box = "cloudfoundry/bosh-lite"
   config.vm.provider :aws do |aws, _|
+    # Following minimal config is for Vagrant 1.7 since it loads this file before downloading the box.
+    # (Must not fail due to missing ENV variables because this file is loaded for all providers)
+    aws.access_key_id = ENV['BOSH_AWS_ACCESS_KEY_ID'] || ''
+    aws.secret_access_key = ENV['BOSH_AWS_SECRET_ACCESS_KEY'] || ''
+    aws.ami = ''
   end
 end
 EOF
