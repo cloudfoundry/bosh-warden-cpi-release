@@ -145,20 +145,9 @@ var _ = Describe("concreteFactory", func() {
 	})
 
 	It("create_vm", func() {
-		vmCreator := bwcvm.NewWardenCreator(
-			uuidGen,
-			wardenClient,
-			metadataService,
-			agentEnvServiceFactory,
-			hostBindMounts,
-			guestBindMounts,
-			options.Agent,
-			logger,
-		)
-
 		action, err := factory.Create("create_vm")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewCreateVM(stemcellFinder, vmCreator)))
+		Expect(action).ToNot(BeNil())
 	})
 
 	It("delete_vm", func() {

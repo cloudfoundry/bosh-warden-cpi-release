@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
@@ -21,17 +22,51 @@ type Network struct {
 }
 
 func (ns Networks) Default() Network {
-	var foundNetwork Network
+	var n Network
 
-	for _, foundNetwork = range ns {
-		for _, networkDefault := range foundNetwork.Default {
-			if networkDefault == "gateway" {
-				return foundNetwork
-			}
+	for _, n = range ns {
+		if n.IsDefaultFor("gateway") {
+			break
 		}
 	}
 
-	return foundNetwork
+	return n // returns last network
+}
+
+func (ns Networks) BackfillDefaultDNS(nameservers []string) Networks {
+	bytes, err := json.Marshal(ns)
+	if err != nil {
+		panic("struct marshaling failed")
+	}
+
+	var backfilledNs Networks
+
+	err = json.Unmarshal(bytes, &backfilledNs)
+	if err != nil {
+		panic("struct marshaling failed")
+	}
+
+	for name, n := range backfilledNs {
+		if n.IsDefaultFor("dns") {
+			if len(n.DNS) == 0 {
+				n.DNS = nameservers
+				backfilledNs[name] = n
+			}
+			break
+		}
+	}
+
+	return backfilledNs
+}
+
+func (n Network) IsDefaultFor(what string) bool {
+	for _, def := range n.Default {
+		if def == what {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (n Network) IsDynamic() bool { return n.Type == "dynamic" }

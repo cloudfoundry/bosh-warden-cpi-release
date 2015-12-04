@@ -27,9 +27,13 @@ var _ = Describe("WardenCreator", func() {
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
 		hostBindMounts         *fakevm.FakeHostBindMounts
 		guestBindMounts        *fakevm.FakeGuestBindMounts
-		agentOptions           AgentOptions
-		logger                 boshlog.Logger
-		creator                WardenCreator
+
+		systemResolvConfProviderConf ResolvConf
+		systemResolvConfProviderErr  error
+		agentOptions                 AgentOptions
+
+		logger  boshlog.Logger
+		creator WardenCreator
 	)
 
 	BeforeEach(func() {
@@ -44,7 +48,11 @@ var _ = Describe("WardenCreator", func() {
 			EphemeralBindMountPath:  "/fake-guest-ephemeral-bind-mount-path",
 			PersistentBindMountsDir: "/fake-guest-persistent-bind-mounts-dir",
 		}
+
+		systemResolvConfProviderConf = ResolvConf{}
+		systemResolvConfProviderErr = nil
 		agentOptions = AgentOptions{Mbus: "fake-mbus"}
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		creator = NewWardenCreator(
@@ -54,6 +62,7 @@ var _ = Describe("WardenCreator", func() {
 			agentEnvServiceFactory,
 			hostBindMounts,
 			guestBindMounts,
+			func() (ResolvConf, error) { return systemResolvConfProviderConf, systemResolvConfProviderErr },
 			agentOptions,
 			logger,
 		)
@@ -115,6 +124,30 @@ var _ = Describe("WardenCreator", func() {
 
 				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns error if system resolv conf cannot be obtained", func() {
+				systemResolvConfProviderErr = errors.New("fake-err")
+
+				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("backfills DNS for the default networks if not set", func() {
+				systemResolvConfProviderConf = ResolvConf{Nameservers: []string{"8.8.8.8"}}
+
+				agentEnvService := &fakevm.FakeAgentEnvService{}
+				agentEnvServiceFactory.NewAgentEnvService = agentEnvService
+
+				network := networks["fake-net-name"]
+				network.Default = []string{"dns"}
+				networks["fake-net-name"] = network
+
+				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(agentEnvService.UpdateAgentEnv.Networks["fake-net-name"].DNS).To(Equal([]string{"8.8.8.8"}))
 			})
 
 			It("creates one container with generated VM id", func() {

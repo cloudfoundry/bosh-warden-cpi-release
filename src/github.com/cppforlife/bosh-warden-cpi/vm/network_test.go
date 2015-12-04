@@ -11,6 +11,7 @@ var _ = Describe("Network", func() {
 		networks                     vm.Networks
 		networkA, networkB, networkC vm.Network
 	)
+
 	BeforeEach(func() {
 		networks = make(map[string]vm.Network)
 		networkA = vm.Network{Type: "A"}
@@ -20,13 +21,13 @@ var _ = Describe("Network", func() {
 
 	Describe("Default", func() {
 		Context("when there are no networks defined", func() {
-			It("Returns and empty network", func() {
+			It("returns and empty network", func() {
 				Expect(networks.Default()).To(Equal(vm.Network{}))
 			})
 		})
 
 		Context("when is only one network defined", func() {
-			It("Returns the deinfed network", func() {
+			It("returns the deinfed network", func() {
 				networks["A"] = networkA
 				Expect(networks.Default()).To(Equal(networkA))
 			})
@@ -34,7 +35,8 @@ var _ = Describe("Network", func() {
 
 		Context("when are multiple networks defined", func() {
 			var allNetworks []vm.Network
-			It("Returns the one that has the default gateway", func() {
+
+			It("returns the one that has the default gateway", func() {
 				networkB.Default = []string{"gateway"}
 				networks["A"] = networkA
 				networks["B"] = networkB
@@ -42,7 +44,7 @@ var _ = Describe("Network", func() {
 				Expect(networks.Default()).To(Equal(networkB))
 			})
 
-			It("Returns the one that has the default gateway even with others have other defaults", func() {
+			It("returns the one that has the default gateway even with others have other defaults", func() {
 				networkA.Default = []string{"dns"}
 				networkB.Default = []string{"other"}
 				networkC.Default = []string{"gateway"}
@@ -72,6 +74,117 @@ var _ = Describe("Network", func() {
 					allNetworks = append(allNetworks, net)
 				}
 				Expect(allNetworks).To(ContainElement(networks.Default()))
+			})
+		})
+	})
+
+	Describe("BackfillDefaultDNS", func() {
+		Context("when default network for DNS already has DNS servers", func() {
+			It("sets DNS servers on that network", func() {
+				networkA.Default = []string{"dns", "foo"}
+				networks["A"] = networkA
+
+				networkB.Default = []string{"gateway"}
+				networks["B"] = networkB
+
+				updatedNetworks := networks.BackfillDefaultDNS([]string{"8.8.8.8", "4.4.4.4"})
+
+				Expect(updatedNetworks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"dns", "foo"},
+						DNS:     []string{"8.8.8.8", "4.4.4.4"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"gateway"},
+					},
+				}))
+
+				Expect(networks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"dns", "foo"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"gateway"},
+					},
+				}))
+			})
+		})
+
+		Context("when default network for DNS already has DNS servers", func() {
+			It("keeps already set DNS servers", func() {
+				networkA.Default = []string{"gateway"}
+				networks["A"] = networkA
+
+				networkB.Default = []string{"dns", "foo"}
+				networkB.DNS = []string{"127.0.0.1"}
+				networks["B"] = networkB
+
+				updatedNetworks := networks.BackfillDefaultDNS([]string{"8.8.8.8", "4.4.4.4"})
+
+				Expect(updatedNetworks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"gateway"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"dns", "foo"},
+						DNS:     []string{"127.0.0.1"},
+					},
+				}))
+
+				Expect(networks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"gateway"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"dns", "foo"},
+						DNS:     []string{"127.0.0.1"},
+					},
+				}))
+			})
+		})
+
+		Context("when there is no default network for DNS", func() {
+			It("does not do anything", func() {
+				networkA.Default = []string{"foo"}
+				networks["A"] = networkA
+
+				networkB.Default = []string{"gateway"}
+				networkB.DNS = []string{"127.0.0.1"}
+				networks["B"] = networkB
+
+				updatedNetworks := networks.BackfillDefaultDNS([]string{"8.8.8.8", "4.4.4.4"})
+
+				Expect(updatedNetworks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"foo"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"gateway"},
+						DNS:     []string{"127.0.0.1"},
+					},
+				}))
+
+				Expect(networks).To(Equal(vm.Networks{
+					"A": vm.Network{
+						Type:    "A",
+						Default: []string{"foo"},
+					},
+					"B": vm.Network{
+						Type:    "B",
+						Default: []string{"gateway"},
+						DNS:     []string{"127.0.0.1"},
+					},
+				}))
 			})
 		})
 	})

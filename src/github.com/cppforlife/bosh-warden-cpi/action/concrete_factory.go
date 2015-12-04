@@ -53,7 +53,12 @@ func NewConcreteFactory(
 		logger,
 	)
 
+	systemResolvConfProvider := func() (bwcvm.ResolvConf, error) {
+		return bwcvm.NewSystemResolvConfFromPath(fs)
+	}
+
 	metadataService := bwcvm.NewMetadataService(options.AgentEnvService, options.Registry, logger)
+
 	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(options.AgentEnvService, options.Registry, logger)
 
 	vmCreator := bwcvm.NewWardenCreator(
@@ -63,6 +68,7 @@ func NewConcreteFactory(
 		agentEnvServiceFactory,
 		hostBindMounts,
 		guestBindMounts,
+		systemResolvConfProvider,
 		options.Agent,
 		logger,
 	)

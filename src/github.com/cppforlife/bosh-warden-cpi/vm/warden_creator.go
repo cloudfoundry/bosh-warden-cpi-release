@@ -19,6 +19,8 @@ type WardenCreator struct {
 	hostBindMounts  HostBindMounts
 	guestBindMounts GuestBindMounts
 
+	systemResolvConfProvider func() (ResolvConf, error)
+
 	agentOptions AgentOptions
 	logger       boshlog.Logger
 }
@@ -30,6 +32,7 @@ func NewWardenCreator(
 	agentEnvServiceFactory AgentEnvServiceFactory,
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
+	systemResolvConfProvider func() (ResolvConf, error),
 	agentOptions AgentOptions,
 	logger boshlog.Logger,
 ) WardenCreator {
@@ -42,6 +45,8 @@ func NewWardenCreator(
 
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
+
+		systemResolvConfProvider: systemResolvConfProvider,
 
 		agentOptions: agentOptions,
 		logger:       logger,
@@ -58,6 +63,13 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 	if err != nil {
 		return WardenVM{}, err
 	}
+
+	systemResolvConf, err := c.systemResolvConfProvider()
+	if err != nil {
+		return WardenVM{}, err
+	}
+
+	networks = networks.BackfillDefaultDNS(systemResolvConf.Nameservers)
 
 	hostEphemeralBindMountPath, hostPersistentBindMountsDir, err := c.makeHostBindMounts(id)
 	if err != nil {
