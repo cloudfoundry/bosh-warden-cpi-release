@@ -1,0 +1,26 @@
+---
+packages:
+- name: warden_cpi
+  version: 9665dea8a7152fd9333072824bf61c09193b7a00
+  fingerprint: 9665dea8a7152fd9333072824bf61c09193b7a00
+  sha1: 47e696eb2d9381e0da803368b131148a4e39e750
+  dependencies:
+  - golang_1.3
+- name: golang_1.3
+  version: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  fingerprint: fc3bc1b4431e8913d91362c1183c9852809d35f6
+  sha1: 9d058d392dc2672326103c5e691c7e4e33199e61
+  dependencies: []
+jobs:
+- name: warden_cpi
+  version: 62460ba1c3639a878b079ba2bf1be4d4b549b199
+  fingerprint: 62460ba1c3639a878b079ba2bf1be4d4b549b199
+  sha1: 2ca4c031413534d0d60f23461f2bfb33f9dc547a
+license:
+  version: 6bca1b94bf7c8645ab28839fd4a43ef0ee73b01b
+  fingerprint: 6bca1b94bf7c8645ab28839fd4a43ef0ee73b01b
+  sha1: 36cb7c43a361da80b098e0ae5d62ea6505793716
+commit_hash: b8c37c01
+uncommitted_changes: false
+name: bosh-warden-cpi
+version: '29'
