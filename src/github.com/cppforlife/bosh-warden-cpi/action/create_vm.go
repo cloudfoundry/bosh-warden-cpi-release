@@ -12,8 +12,6 @@ type CreateVM struct {
 	vmCreator      bwcvm.Creator
 }
 
-type VMCloudProperties struct{}
-
 type Environment map[string]interface{}
 
 func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator) CreateVM {
@@ -23,7 +21,7 @@ func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator) CreateV
 	}
 }
 
-func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
+func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, cloudProperties VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
 	stemcell, found, err := a.stemcellFinder.Find(string(stemcellCID))
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
@@ -34,10 +32,10 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 	}
 
 	vmNetworks := networks.AsVMNetworks()
-
+	vmCloudProperties := cloudProperties.AsVMCloudProperties()
 	vmEnv := bwcvm.Environment(env)
 
-	vm, err := a.vmCreator.Create(agentID, stemcell, vmNetworks, vmEnv)
+	vm, err := a.vmCreator.Create(agentID, stemcell, vmNetworks, vmCloudProperties, vmEnv)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
 	}

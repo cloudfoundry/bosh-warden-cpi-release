@@ -53,7 +53,7 @@ func NewWardenCreator(
 	}
 }
 
-func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, networks Networks, env Environment) (VM, error) {
+func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, networks Networks, cloudProperties CloudProperties, env Environment) (VM, error) {
 	id, err := c.uuidGen.Generate()
 	if err != nil {
 		return WardenVM{}, bosherr.WrapError(err, "Generating VM id")
@@ -122,7 +122,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		return WardenVM{}, bosherr.WrapError(err, "Updating container's metadata")
 	}
 
-	err = c.startAgentInContainer(container)
+	err = c.startAgentInContainer(container, cloudProperties)
 	if err != nil {
 		c.cleanUpContainer(container)
 		return WardenVM{}, err
@@ -171,10 +171,22 @@ func (c WardenCreator) makeHostBindMounts(id string) (string, string, error) {
 	return ephemeralBindMountPath, persistentBindMountsDir, nil
 }
 
-func (c WardenCreator) startAgentInContainer(container wrdn.Container) error {
+func (c WardenCreator) startAgentInContainer(container wrdn.Container, cloudProperties CloudProperties) error {
+	path := "/usr/sbin/runsvdir-start"
+	var args []string
+
+	if cloudProperties.LaunchUpstart {
+		path = "/var/vcap/bosh/bin/unshare"
+		args = []string{
+			"-p",
+			"sudo",
+			"/sbin/init",
+		}
+	}
 	processSpec := wrdn.ProcessSpec{
-		Path: "/usr/sbin/runsvdir-start",
+		Path: path,
 		User: "root",
+		Args: args,
 	}
 
 	// Do not Wait() for the process to finish

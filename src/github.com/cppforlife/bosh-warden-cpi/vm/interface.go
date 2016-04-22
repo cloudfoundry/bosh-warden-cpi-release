@@ -7,7 +7,7 @@ import (
 
 type Creator interface {
 	// Create takes an agent id and creates a VM with provided configuration
-	Create(string, bwcstem.Stemcell, Networks, Environment) (VM, error)
+	Create(string, bwcstem.Stemcell, Networks, CloudProperties, Environment) (VM, error)
 }
 
 type Finder interface {
