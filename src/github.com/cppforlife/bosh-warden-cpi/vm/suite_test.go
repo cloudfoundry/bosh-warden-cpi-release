@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestVM(t *testing.T) {
+func TestReg(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Vm Suite")
+	RunSpecs(t, "vm")
 }
 
 type NonJSONMarshable struct{}

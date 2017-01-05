@@ -28,13 +28,7 @@ func NewConcreteFactory(
 	options ConcreteFactoryOptions,
 	logger boshlog.Logger,
 ) concreteFactory {
-	stemcellImporter := bwcstem.NewFSImporter(
-		options.StemcellsDir,
-		fs,
-		uuidGen,
-		compressor,
-		logger,
-	)
+	stemcellImporter := bwcstem.NewFSImporter(options.StemcellsDir, fs, uuidGen, compressor, logger)
 
 	stemcellFinder := bwcstem.NewFSFinder(options.StemcellsDir, fs, logger)
 
@@ -85,13 +79,7 @@ func NewConcreteFactory(
 		logger,
 	)
 
-	diskCreator := bwcdisk.NewFSCreator(
-		options.DisksDir,
-		fs,
-		uuidGen,
-		cmdRunner,
-		logger,
-	)
+	diskCreator := bwcdisk.NewFSCreator(options.DisksDir, fs, uuidGen, cmdRunner, logger)
 
 	diskFinder := bwcdisk.NewFSFinder(options.DisksDir, fs, logger)
 
@@ -102,25 +90,17 @@ func NewConcreteFactory(
 			"delete_stemcell": NewDeleteStemcell(stemcellFinder),
 
 			// VM management
-			"create_vm":          NewCreateVM(stemcellFinder, vmCreator),
-			"delete_vm":          NewDeleteVM(vmFinder, hostBindMounts),
-			"has_vm":             NewHasVM(vmFinder),
-			"reboot_vm":          NewRebootVM(),
-			"set_vm_metadata":    NewSetVMMetadata(),
-			"configure_networks": NewConfigureNetworks(),
+			"create_vm":       NewCreateVM(stemcellFinder, vmCreator),
+			"delete_vm":       NewDeleteVM(vmFinder),
+			"has_vm":          NewHasVM(vmFinder),
+			"reboot_vm":       NewRebootVM(),
+			"set_vm_metadata": NewSetVMMetadata(),
 
 			// Disk management
 			"create_disk": NewCreateDisk(diskCreator),
 			"delete_disk": NewDeleteDisk(diskFinder),
 			"attach_disk": NewAttachDisk(vmFinder, diskFinder),
 			"detach_disk": NewDetachDisk(vmFinder, diskFinder),
-
-			// Not implemented:
-			//   current_vm_id
-			//   snapshot_disk
-			//   delete_snapshot
-			//   get_disks
-			//   ping
 		},
 	}
 }

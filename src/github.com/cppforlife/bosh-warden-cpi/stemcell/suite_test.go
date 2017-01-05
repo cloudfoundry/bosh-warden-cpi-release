@@ -1,4 +1,4 @@
-package main_test
+package stemcell_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMain(t *testing.T) {
+func TestReg(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Main Suite")
+	RunSpecs(t, "stemcell")
 }

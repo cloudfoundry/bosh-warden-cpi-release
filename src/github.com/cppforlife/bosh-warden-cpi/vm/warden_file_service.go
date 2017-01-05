@@ -15,15 +15,17 @@ import (
 
 type wardenFileService struct {
 	container wrdn.Container
-	logger    boshlog.Logger
-	logTag    string
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewWardenFileService(container wrdn.Container, logger boshlog.Logger) WardenFileService {
 	return &wardenFileService{
 		container: container,
-		logger:    logger,
-		logTag:    "wardenFileService",
+
+		logTag: "vm.wardenFileService",
+		logger: logger,
 	}
 }
 

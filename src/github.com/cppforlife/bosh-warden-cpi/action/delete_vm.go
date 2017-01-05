@@ -7,12 +7,11 @@ import (
 )
 
 type DeleteVM struct {
-	vmFinder       bwcvm.Finder
-	hostBindMounts bwcvm.HostBindMounts
+	vmFinder bwcvm.Finder
 }
 
-func NewDeleteVM(vmFinder bwcvm.Finder, hostBindMounts bwcvm.HostBindMounts) DeleteVM {
-	return DeleteVM{vmFinder: vmFinder, hostBindMounts: hostBindMounts}
+func NewDeleteVM(vmFinder bwcvm.Finder) DeleteVM {
+	return DeleteVM{vmFinder: vmFinder}
 }
 
 func (a DeleteVM) Run(vmCID VMCID) (interface{}, error) {

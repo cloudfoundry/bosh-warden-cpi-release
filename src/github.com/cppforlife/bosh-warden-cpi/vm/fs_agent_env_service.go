@@ -10,8 +10,9 @@ import (
 type fsAgentEnvService struct {
 	wardenFileService WardenFileService
 	settingsPath      string
-	logger            boshlog.Logger
-	logTag            string
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewFSAgentEnvService(
@@ -21,8 +22,9 @@ func NewFSAgentEnvService(
 	return fsAgentEnvService{
 		wardenFileService: wardenFileService,
 		settingsPath:      "/var/vcap/bosh/warden-cpi-agent-env.json",
-		logger:            logger,
-		logTag:            "FSAgentEnvService",
+
+		logTag: "vm.FSAgentEnvService",
+		logger: logger,
 	}
 }
 

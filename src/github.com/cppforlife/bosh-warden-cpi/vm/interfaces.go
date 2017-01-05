@@ -6,7 +6,6 @@ import (
 )
 
 type Creator interface {
-	// Create takes an agent id and creates a VM with provided configuration
 	Create(string, bwcstem.Stemcell, VMProps, Networks, Environment) (VM, error)
 }
 

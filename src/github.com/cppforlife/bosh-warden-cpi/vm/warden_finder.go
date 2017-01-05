@@ -6,8 +6,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-const wardenFinderLogTag = "WardenFinder"
-
 type WardenFinder struct {
 	wardenClient           wrdnclient.Client
 	agentEnvServiceFactory AgentEnvServiceFactory
@@ -16,6 +14,7 @@ type WardenFinder struct {
 	hostBindMounts  HostBindMounts
 	guestBindMounts GuestBindMounts
 
+	logTag string
 	logger boshlog.Logger
 }
 
@@ -35,12 +34,13 @@ func NewWardenFinder(
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
 
+		logTag: "vm.WardenFinder",
 		logger: logger,
 	}
 }
 
 func (f WardenFinder) Find(id string) (VM, bool, error) {
-	f.logger.Debug(wardenFinderLogTag, "Finding container with ID '%s'", id)
+	f.logger.Debug(f.logTag, "Finding container with ID '%s'", id)
 
 	// Cannot just use Lookup(id) since we need to differentiate between error and not found
 	containers, err := f.wardenClient.Containers(nil)
@@ -50,7 +50,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 
 	for _, container := range containers {
 		if container.Handle() == id {
-			f.logger.Debug(wardenFinderLogTag, "Found container with ID '%s'", id)
+			f.logger.Debug(f.logTag, "Found container with ID '%s'", id)
 
 			wardenFileService := NewWardenFileService(container, f.logger)
 			agentEnvService := f.agentEnvServiceFactory.New(wardenFileService, id)
@@ -61,7 +61,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 		}
 	}
 
-	f.logger.Debug(wardenFinderLogTag, "Did not find container with ID '%s'", id)
+	f.logger.Debug(f.logTag, "Did not find container with ID '%s'", id)
 
 	vm := NewWardenVM(id, f.wardenClient, nil, f.ports, f.hostBindMounts, f.guestBindMounts, f.logger, false)
 

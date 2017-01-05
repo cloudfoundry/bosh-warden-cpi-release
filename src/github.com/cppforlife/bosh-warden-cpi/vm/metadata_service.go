@@ -13,8 +13,9 @@ type metadataService struct {
 	registryOptions  RegistryOptions
 	userDataFilePath string
 	metadataFilePath string
-	logger           boshlog.Logger
-	logTag           string
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewMetadataService(
@@ -27,8 +28,9 @@ func NewMetadataService(
 		registryOptions:  registryOptions,
 		userDataFilePath: "/var/vcap/bosh/warden-cpi-user-data.json",
 		metadataFilePath: "/var/vcap/bosh/warden-cpi-metadata.json",
-		logger:           logger,
-		logTag:           "metadataService",
+
+		logTag: "vm.metadataService",
+		logger: logger,
 	}
 }
 

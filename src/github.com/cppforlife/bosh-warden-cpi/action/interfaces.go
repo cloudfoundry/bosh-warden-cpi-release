@@ -1,5 +1,9 @@
 package action
 
+type Factory interface {
+	Create(method string) (Action, error)
+}
+
 type Action interface {
 	// Action should implement Run
 	// Arguments should be the list of arguments the payload will include
@@ -13,3 +17,9 @@ type Action interface {
 	//
 	// See Runner for more details
 }
+
+type StemcellCID string
+
+type VMCID string
+
+type DiskCID string

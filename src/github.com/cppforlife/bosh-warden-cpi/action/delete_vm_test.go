@@ -10,38 +10,26 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/cppforlife/bosh-warden-cpi/action"
 	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
-	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 	fakevm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("DeleteVM", func() {
 	var (
-		vmFinder       *fakevm.FakeFinder
-		action         DeleteVM
-		fs             *fakesys.FakeFileSystem
-		cmdRunner      *fakesys.FakeCmdRunner
-		sleeper        bwcutil.Sleeper
-		logger         boshlog.Logger
-		hostBindMounts bwcvm.FSHostBindMounts
+		vmFinder  *fakevm.FakeFinder
+		action    DeleteVM
+		fs        *fakesys.FakeFileSystem
+		cmdRunner *fakesys.FakeCmdRunner
+		sleeper   bwcutil.Sleeper
+		logger    boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		vmFinder = &fakevm.FakeFinder{}
-
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		sleeper = bwcutil.RealSleeper{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		hostBindMounts = bwcvm.NewFSHostBindMounts(
-			"/tmp/host-ephemeral-bind-mounts-dir",
-			"/tmp/host-persistent-bind-mounts-dir",
-			sleeper,
-			fs,
-			cmdRunner,
-			logger,
-		)
-
-		action = NewDeleteVM(vmFinder, hostBindMounts)
+		action = NewDeleteVM(vmFinder)
 	})
 
 	Describe("Run", func() {

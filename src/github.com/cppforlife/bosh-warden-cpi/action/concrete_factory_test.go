@@ -74,16 +74,7 @@ var _ = Describe("concreteFactory", func() {
 		sleeper = bwcutil.RealSleeper{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		factory = NewConcreteFactory(
-			wardenClient,
-			fs,
-			cmdRunner,
-			uuidGen,
-			compressor,
-			sleeper,
-			options,
-			logger,
-		)
+		factory = NewConcreteFactory(wardenClient, fs, cmdRunner, uuidGen, compressor, sleeper, options, logger)
 	})
 
 	BeforeEach(func() {
@@ -128,13 +119,7 @@ var _ = Describe("concreteFactory", func() {
 	})
 
 	It("create_stemcell", func() {
-		stemcellImporter := bwcstem.NewFSImporter(
-			"/tmp/stemcells",
-			fs,
-			uuidGen,
-			compressor,
-			logger,
-		)
+		stemcellImporter := bwcstem.NewFSImporter("/tmp/stemcells", fs, uuidGen, compressor, logger)
 
 		action, err := factory.Create("create_stemcell")
 		Expect(err).ToNot(HaveOccurred())
@@ -156,7 +141,7 @@ var _ = Describe("concreteFactory", func() {
 	It("delete_vm", func() {
 		action, err := factory.Create("delete_vm")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewDeleteVM(vmFinder, hostBindMounts)))
+		Expect(action).To(Equal(NewDeleteVM(vmFinder)))
 	})
 
 	It("has_vm", func() {
@@ -177,20 +162,8 @@ var _ = Describe("concreteFactory", func() {
 		Expect(action).To(Equal(NewSetVMMetadata()))
 	})
 
-	It("configure_networks", func() {
-		action, err := factory.Create("configure_networks")
-		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewConfigureNetworks()))
-	})
-
 	It("create_disk", func() {
-		diskCreator := bwcdisk.NewFSCreator(
-			"/tmp/disks",
-			fs,
-			uuidGen,
-			cmdRunner,
-			logger,
-		)
+		diskCreator := bwcdisk.NewFSCreator("/tmp/disks", fs, uuidGen, cmdRunner, logger)
 
 		action, err := factory.Create("create_disk")
 		Expect(err).ToNot(HaveOccurred())

@@ -37,7 +37,7 @@ func NewRegistryAgentEnvService(
 	return registryAgentEnvService{
 		endpoint: endpoint,
 		logger:   logger,
-		logTag:   "registryAgentEnvService",
+		logTag:   "vm.registryAgentEnvService",
 	}
 }
 

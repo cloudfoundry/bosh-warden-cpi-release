@@ -35,7 +35,7 @@ func NewFSCreator(
 		uuidGen:   uuidGen,
 		cmdRunner: cmdRunner,
 
-		logTag: "FSCreator",
+		logTag: "disk.FSCreator",
 		logger: logger,
 	}
 }

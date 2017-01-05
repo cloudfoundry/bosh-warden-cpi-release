@@ -1,13 +1,13 @@
-package disk_test
+package action_test
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"testing"
 )
 
-func TestDisk(t *testing.T) {
+func TestReg(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Disk Suite")
+	RunSpecs(t, "action")
 }
