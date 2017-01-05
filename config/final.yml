@@ -1,5 +1,5 @@
 ---
-final_name: bosh-warden-cpi
+name: bosh-warden-cpi
 blobstore:
   provider: s3
   options:
