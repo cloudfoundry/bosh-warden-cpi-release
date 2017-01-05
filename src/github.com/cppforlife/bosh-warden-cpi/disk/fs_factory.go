@@ -10,7 +10,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
-type FSCreator struct {
+type FSFactory struct {
 	dirPath string
 
 	fs        boshsys.FileSystem
@@ -21,60 +21,64 @@ type FSCreator struct {
 	logger boshlog.Logger
 }
 
-func NewFSCreator(
+func NewFSFactory(
 	dirPath string,
 	fs boshsys.FileSystem,
 	uuidGen boshuuid.Generator,
 	cmdRunner boshsys.CmdRunner,
 	logger boshlog.Logger,
-) FSCreator {
-	return FSCreator{
+) FSFactory {
+	return FSFactory{
 		dirPath: dirPath,
 
 		fs:        fs,
 		uuidGen:   uuidGen,
 		cmdRunner: cmdRunner,
 
-		logTag: "disk.FSCreator",
+		logTag: "disk.FSFactory",
 		logger: logger,
 	}
 }
 
-func (c FSCreator) Create(size int) (Disk, error) {
-	c.logger.Debug(c.logTag, "Creating disk of size '%d'", size)
+func (f FSFactory) Create(size int) (Disk, error) {
+	f.logger.Debug(f.logTag, "Creating disk of size '%d'", size)
 
-	id, err := c.uuidGen.Generate()
+	id, err := f.uuidGen.Generate()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Generating disk id")
 	}
 
-	diskPath := filepath.Join(c.dirPath, id)
+	diskPath := filepath.Join(f.dirPath, id)
 
-	err = c.fs.WriteFile(diskPath, []byte{})
+	err = f.fs.WriteFile(diskPath, []byte{})
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating empty disk")
 	}
 
 	sizeStr := strconv.Itoa(size) + "MB"
 
-	_, _, _, err = c.cmdRunner.RunCommand("truncate", "-s", sizeStr, diskPath)
+	_, _, _, err = f.cmdRunner.RunCommand("truncate", "-s", sizeStr, diskPath)
 	if err != nil {
-		c.cleanUpFile(diskPath)
+		f.cleanUpFile(diskPath)
 		return nil, bosherr.WrapErrorf(err, "Resizing disk to '%s'", sizeStr)
 	}
 
-	_, _, _, err = c.cmdRunner.RunCommand("/sbin/mkfs", "-t", "ext4", "-F", diskPath)
+	_, _, _, err = f.cmdRunner.RunCommand("/sbin/mkfs", "-t", "ext4", "-F", diskPath)
 	if err != nil {
-		c.cleanUpFile(diskPath)
+		f.cleanUpFile(diskPath)
 		return nil, bosherr.WrapErrorf(err, "Building disk filesystem '%s'", diskPath)
 	}
 
-	return NewFSDisk(id, diskPath, c.fs, c.logger), nil
+	return NewFSDisk(id, diskPath, f.fs, f.logger), nil
 }
 
-func (c FSCreator) cleanUpFile(path string) {
-	err := c.fs.RemoveAll(path)
+func (f FSFactory) Find(id string) (Disk, error) {
+	return NewFSDisk(id, filepath.Join(f.dirPath, id), f.fs, f.logger), nil
+}
+
+func (f FSFactory) cleanUpFile(path string) {
+	err := f.fs.RemoveAll(path)
 	if err != nil {
-		c.logger.Error(c.logTag, "Failed deleting file '%s': %s", path, err.Error())
+		f.logger.Error(f.logTag, "Failed deleting file '%s': %s", path, err.Error())
 	}
 }

@@ -79,9 +79,7 @@ func NewConcreteFactory(
 		logger,
 	)
 
-	diskCreator := bwcdisk.NewFSCreator(options.DisksDir, fs, uuidGen, cmdRunner, logger)
-
-	diskFinder := bwcdisk.NewFSFinder(options.DisksDir, fs, logger)
+	diskFactory := bwcdisk.NewFSFactory(options.DisksDir, fs, uuidGen, cmdRunner, logger)
 
 	return concreteFactory{
 		availableActions: map[string]Action{
@@ -97,10 +95,10 @@ func NewConcreteFactory(
 			"set_vm_metadata": NewSetVMMetadata(),
 
 			// Disk management
-			"create_disk": NewCreateDisk(diskCreator),
-			"delete_disk": NewDeleteDisk(diskFinder),
-			"attach_disk": NewAttachDisk(vmFinder, diskFinder),
-			"detach_disk": NewDetachDisk(vmFinder, diskFinder),
+			"create_disk": NewCreateDisk(diskFactory),
+			"delete_disk": NewDeleteDisk(diskFactory),
+			"attach_disk": NewAttachDisk(vmFinder, diskFactory),
+			"detach_disk": NewDetachDisk(vmFinder, diskFactory),
 		},
 	}
 }

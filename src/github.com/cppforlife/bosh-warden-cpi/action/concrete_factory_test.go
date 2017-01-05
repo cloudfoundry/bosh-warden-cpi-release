@@ -60,7 +60,7 @@ var _ = Describe("concreteFactory", func() {
 
 		stemcellFinder bwcstem.Finder
 		vmFinder       bwcvm.Finder
-		diskFinder     bwcdisk.Finder
+		diskFactory    bwcdisk.FSFactory
 	)
 
 	BeforeEach(func() {
@@ -109,7 +109,7 @@ var _ = Describe("concreteFactory", func() {
 			logger,
 		)
 
-		diskFinder = bwcdisk.NewFSFinder("/tmp/disks", fs, logger)
+		diskFactory = bwcdisk.NewFSFactory("/tmp/disks", fs, uuidGen, cmdRunner, logger)
 	})
 
 	It("returns error if action cannot be created", func() {
@@ -163,29 +163,27 @@ var _ = Describe("concreteFactory", func() {
 	})
 
 	It("create_disk", func() {
-		diskCreator := bwcdisk.NewFSCreator("/tmp/disks", fs, uuidGen, cmdRunner, logger)
-
 		action, err := factory.Create("create_disk")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewCreateDisk(diskCreator)))
+		Expect(action).To(Equal(NewCreateDisk(diskFactory)))
 	})
 
 	It("delete_disk", func() {
 		action, err := factory.Create("delete_disk")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewDeleteDisk(diskFinder)))
+		Expect(action).To(Equal(NewDeleteDisk(diskFactory)))
 	})
 
 	It("attach_disk", func() {
 		action, err := factory.Create("attach_disk")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewAttachDisk(vmFinder, diskFinder)))
+		Expect(action).To(Equal(NewAttachDisk(vmFinder, diskFactory)))
 	})
 
 	It("detach_disk", func() {
 		action, err := factory.Create("detach_disk")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(action).To(Equal(NewDetachDisk(vmFinder, diskFinder)))
+		Expect(action).To(Equal(NewDetachDisk(vmFinder, diskFactory)))
 	})
 
 	It("returns error because CPI machine is not self-aware if action is current_vm_id", func() {

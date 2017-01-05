@@ -5,12 +5,13 @@ type Creator interface {
 }
 
 type Finder interface {
-	Find(id string) (Disk, bool, error)
+	Find(id string) (Disk, error)
 }
 
 type Disk interface {
 	ID() string
 	Path() string
 
+	Exists() (bool, error)
 	Delete() error
 }

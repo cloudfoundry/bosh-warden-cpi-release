@@ -12,13 +12,13 @@ import (
 	. "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
-var _ = Describe("FSCreator", func() {
+var _ = Describe("FSFactory", func() {
 	var (
 		fs        *fakesys.FakeFileSystem
 		uuidGen   *fakeuuid.FakeGenerator
 		cmdRunner *fakesys.FakeCmdRunner
 		logger    boshlog.Logger
-		creator   FSCreator
+		factory   FSFactory
 	)
 
 	BeforeEach(func() {
@@ -26,14 +26,14 @@ var _ = Describe("FSCreator", func() {
 		uuidGen = &fakeuuid.FakeGenerator{}
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		creator = NewFSCreator("/fake-disks-dir", fs, uuidGen, cmdRunner, logger)
+		factory = NewFSFactory("/fake-disks-dir", fs, uuidGen, cmdRunner, logger)
 	})
 
 	Describe("Create", func() {
 		It("returns unique disk id", func() {
 			uuidGen.GeneratedUUID = "fake-uuid"
 
-			disk, err := creator.Create(40)
+			disk, err := factory.Create(40)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedDisk := NewFSDisk("fake-uuid", "/fake-disks-dir/fake-uuid", fs, logger)
@@ -48,7 +48,7 @@ var _ = Describe("FSCreator", func() {
 			It("touches disk path in disks directory", func() {
 				uuidGen.GeneratedUUID = "fake-uuid"
 
-				_, err := creator.Create(40)
+				_, err := factory.Create(40)
 				Expect(err).ToNot(HaveOccurred())
 
 				bytes, err := fs.ReadFile("/fake-disks-dir/fake-uuid")
@@ -58,7 +58,7 @@ var _ = Describe("FSCreator", func() {
 
 			Context("when touching disk path succeeds", func() {
 				It("increases size of the file to given size in MB", func() {
-					_, err := creator.Create(40)
+					_, err := factory.Create(40)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(len(cmdRunner.RunCommands)).To(BeNumerically(">", 0))
@@ -69,7 +69,7 @@ var _ = Describe("FSCreator", func() {
 
 				ItDestroysFile := func(errMsg string) {
 					It("deletes file since it was not turned into a filesystem", func() {
-						disk, err := creator.Create(40)
+						disk, err := factory.Create(40)
 						Expect(err).To(HaveOccurred())
 						Expect(disk).To(BeNil())
 
@@ -82,7 +82,7 @@ var _ = Describe("FSCreator", func() {
 						})
 
 						It("returns running error and not destroy error", func() {
-							disk, err := creator.Create(40)
+							disk, err := factory.Create(40)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring(errMsg))
 							Expect(disk).To(BeNil())
@@ -92,7 +92,7 @@ var _ = Describe("FSCreator", func() {
 
 				Context("when increasing file size succeeds", func() {
 					It("turns file into a filesystem", func() {
-						_, err := creator.Create(40)
+						_, err := factory.Create(40)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(cmdRunner.RunCommands).To(HaveLen(2))
@@ -110,7 +110,7 @@ var _ = Describe("FSCreator", func() {
 						})
 
 						It("returns an error", func() {
-							disk, err := creator.Create(40)
+							disk, err := factory.Create(40)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 							Expect(disk).To(BeNil())
@@ -129,7 +129,7 @@ var _ = Describe("FSCreator", func() {
 					})
 
 					It("returns an error", func() {
-						disk, err := creator.Create(40)
+						disk, err := factory.Create(40)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 						Expect(disk).To(BeNil())
@@ -143,7 +143,7 @@ var _ = Describe("FSCreator", func() {
 				It("returns error if touching disk path fails", func() {
 					fs.WriteFileError = errors.New("fake-write-file-err")
 
-					disk, err := creator.Create(40)
+					disk, err := factory.Create(40)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-write-file-err"))
 					Expect(disk).To(BeNil())
@@ -155,11 +155,22 @@ var _ = Describe("FSCreator", func() {
 			It("returns error if generating disk id fails", func() {
 				uuidGen.GenerateError = errors.New("fake-generate-err")
 
-				disk, err := creator.Create(40)
+				disk, err := factory.Create(40)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-generate-err"))
 				Expect(disk).To(BeNil())
 			})
+		})
+	})
+
+	Describe("Find", func() {
+		It("returns disk", func() {
+			err := fs.WriteFile("/fake-disks-dir/fake-disk-id", []byte{})
+			Expect(err).ToNot(HaveOccurred())
+
+			disk, err := factory.Find("fake-disk-id")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disk).To(Equal(NewFSDisk("fake-disk-id", "/fake-disks-dir/fake-disk-id", fs, logger)))
 		})
 	})
 })

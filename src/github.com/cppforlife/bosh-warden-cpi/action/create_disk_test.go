@@ -12,28 +12,28 @@ import (
 
 var _ = Describe("CreateDisk", func() {
 	var (
-		diskCreator *fakedisk.FakeCreator
+		diskFactory *fakedisk.FakeFactory
 		action      CreateDisk
 	)
 
 	BeforeEach(func() {
-		diskCreator = &fakedisk.FakeCreator{}
-		action = NewCreateDisk(diskCreator)
+		diskFactory = &fakedisk.FakeFactory{}
+		action = NewCreateDisk(diskFactory)
 	})
 
 	Describe("Run", func() {
 		It("returns id for created disk for specific size", func() {
-			diskCreator.CreateDisk = fakedisk.NewFakeDisk("fake-disk-id")
+			diskFactory.CreateDisk = fakedisk.NewFakeDisk("fake-disk-id")
 
 			id, err := action.Run(20, DiskCloudProperties{}, VMCID("fake-vm-id"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(id).To(Equal(DiskCID("fake-disk-id")))
 
-			Expect(diskCreator.CreateSize).To(Equal(20))
+			Expect(diskFactory.CreateSize).To(Equal(20))
 		})
 
 		It("returns error if creating disk fails", func() {
-			diskCreator.CreateErr = errors.New("fake-create-err")
+			diskFactory.CreateErr = errors.New("fake-create-err")
 
 			id, err := action.Run(20, DiskCloudProperties{}, VMCID("fake-vm-id"))
 			Expect(err).To(HaveOccurred())

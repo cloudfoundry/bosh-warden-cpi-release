@@ -13,10 +13,7 @@ type DetachDisk struct {
 }
 
 func NewDetachDisk(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) DetachDisk {
-	return DetachDisk{
-		vmFinder:   vmFinder,
-		diskFinder: diskFinder,
-	}
+	return DetachDisk{vmFinder, diskFinder}
 }
 
 func (a DetachDisk) Run(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
@@ -29,13 +26,9 @@ func (a DetachDisk) Run(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
 		return nil, bosherr.Errorf("Expected to find VM '%s'", vmCID)
 	}
 
-	disk, found, err := a.diskFinder.Find(string(diskCID))
+	disk, err := a.diskFinder.Find(string(diskCID))
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
-	}
-
-	if !found {
-		return nil, bosherr.Errorf("Expected to find disk '%s'", diskCID)
 	}
 
 	err = vm.DetachDisk(disk)

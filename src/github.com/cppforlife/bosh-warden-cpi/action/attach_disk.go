@@ -13,10 +13,7 @@ type AttachDisk struct {
 }
 
 func NewAttachDisk(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) AttachDisk {
-	return AttachDisk{
-		vmFinder:   vmFinder,
-		diskFinder: diskFinder,
-	}
+	return AttachDisk{vmFinder, diskFinder}
 }
 
 func (a AttachDisk) Run(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
@@ -29,13 +26,9 @@ func (a AttachDisk) Run(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
 		return nil, bosherr.Errorf("Expected to find VM '%s'", vmCID)
 	}
 
-	disk, found, err := a.diskFinder.Find(string(diskCID))
+	disk, err := a.diskFinder.Find(string(diskCID))
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
-	}
-
-	if !found {
-		return nil, bosherr.Errorf("Expected to find disk '%s'", diskCID)
 	}
 
 	err = vm.AttachDisk(disk)

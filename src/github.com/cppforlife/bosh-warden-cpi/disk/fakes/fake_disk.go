@@ -20,6 +20,8 @@ func (s FakeDisk) ID() string { return s.id }
 
 func (s FakeDisk) Path() string { return s.path }
 
+func (s *FakeDisk) Exists() (bool, error) { return false, nil }
+
 func (s *FakeDisk) Delete() error {
 	s.DeleteCalled = true
 	return s.DeleteErr
