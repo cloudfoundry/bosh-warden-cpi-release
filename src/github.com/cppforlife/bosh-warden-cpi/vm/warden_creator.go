@@ -114,7 +114,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props V
 		return WardenVM{}, bosherr.WrapError(err, "Getting container info")
 	}
 
-	err = c.ports.Forward(id, info.ContainerIP, props.Ports)
+	err = c.ports.Forward(id, info.ContainerIP, props.PortMappings)
 	if err != nil {
 		c.cleanUpContainer(container)
 		return WardenVM{}, bosherr.WrapError(err, "Forwarding host ports")

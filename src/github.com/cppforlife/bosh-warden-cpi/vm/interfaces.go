@@ -23,19 +23,13 @@ type VM interface {
 }
 
 type VMProps struct {
-	Ports []VMPropsPort
-}
-
-type VMPropsPort struct {
-	Host      int
-	Container int
-	Protocol  string
+	PortMappings []PortMapping
 }
 
 type Environment map[string]interface{}
 
 type Ports interface {
-	Forward(string, string, []VMPropsPort) error
+	Forward(string, string, []PortMapping) error
 	RemoveForwarded(string) error
 }
 
