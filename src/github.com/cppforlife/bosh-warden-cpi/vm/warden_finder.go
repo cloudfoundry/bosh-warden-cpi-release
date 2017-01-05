@@ -12,6 +12,7 @@ type WardenFinder struct {
 	wardenClient           wrdnclient.Client
 	agentEnvServiceFactory AgentEnvServiceFactory
 
+	ports           Ports
 	hostBindMounts  HostBindMounts
 	guestBindMounts GuestBindMounts
 
@@ -21,6 +22,7 @@ type WardenFinder struct {
 func NewWardenFinder(
 	wardenClient wrdnclient.Client,
 	agentEnvServiceFactory AgentEnvServiceFactory,
+	ports Ports,
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
 	logger boshlog.Logger,
@@ -29,6 +31,7 @@ func NewWardenFinder(
 		wardenClient:           wardenClient,
 		agentEnvServiceFactory: agentEnvServiceFactory,
 
+		ports:           ports,
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
 
@@ -52,15 +55,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 			wardenFileService := NewWardenFileService(container, f.logger)
 			agentEnvService := f.agentEnvServiceFactory.New(wardenFileService, id)
 
-			vm := NewWardenVM(
-				id,
-				f.wardenClient,
-				agentEnvService,
-				f.hostBindMounts,
-				f.guestBindMounts,
-				f.logger,
-				true,
-			)
+			vm := NewWardenVM(id, f.wardenClient, agentEnvService, f.ports, f.hostBindMounts, f.guestBindMounts, f.logger, true)
 
 			return vm, true, nil
 		}
@@ -68,15 +63,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 
 	f.logger.Debug(wardenFinderLogTag, "Did not find container with ID '%s'", id)
 
-	vm := NewWardenVM(
-		id,
-		f.wardenClient,
-		nil,
-		f.hostBindMounts,
-		f.guestBindMounts,
-		f.logger,
-		false,
-	)
+	vm := NewWardenVM(id, f.wardenClient, nil, f.ports, f.hostBindMounts, f.guestBindMounts, f.logger, false)
 
 	return vm, false, nil
 }

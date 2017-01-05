@@ -13,11 +13,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-type WardenFileService interface {
-	Upload(string, []byte) error
-	Download(string) ([]byte, error)
-}
-
 type wardenFileService struct {
 	container wrdn.Container
 	logger    boshlog.Logger

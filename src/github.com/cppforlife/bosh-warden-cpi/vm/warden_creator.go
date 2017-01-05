@@ -16,6 +16,7 @@ type WardenCreator struct {
 	metadataService        MetadataService
 	agentEnvServiceFactory AgentEnvServiceFactory
 
+	ports           Ports
 	hostBindMounts  HostBindMounts
 	guestBindMounts GuestBindMounts
 
@@ -30,6 +31,7 @@ func NewWardenCreator(
 	wardenClient wrdn.Client,
 	metadataService MetadataService,
 	agentEnvServiceFactory AgentEnvServiceFactory,
+	ports Ports,
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
 	systemResolvConfProvider func() (ResolvConf, error),
@@ -43,6 +45,7 @@ func NewWardenCreator(
 		metadataService:        metadataService,
 		agentEnvServiceFactory: agentEnvServiceFactory,
 
+		ports:           ports,
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
 
@@ -53,13 +56,13 @@ func NewWardenCreator(
 	}
 }
 
-func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, networks Networks, env Environment) (VM, error) {
+func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props VMProps, networks Networks, env Environment) (VM, error) {
 	id, err := c.uuidGen.Generate()
 	if err != nil {
 		return WardenVM{}, bosherr.WrapError(err, "Generating VM id")
 	}
 
-	networkIP, err := c.resolveNetworkIP(networks)
+	networkIPCIDR, err := c.resolveNetworkIPCIDR(networks)
 	if err != nil {
 		return WardenVM{}, err
 	}
@@ -79,7 +82,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 	containerSpec := wrdn.ContainerSpec{
 		Handle:     id,
 		RootFSPath: stemcell.DirPath(),
-		Network:    networkIP,
+		Network:    networkIPCIDR,
 		BindMounts: []wrdn.BindMount{
 			wrdn.BindMount{
 				SrcPath: hostEphemeralBindMountPath,
@@ -105,6 +108,18 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		return WardenVM{}, bosherr.WrapError(err, "Creating container")
 	}
 
+	info, err := container.Info()
+	if err != nil {
+		c.cleanUpContainer(container)
+		return WardenVM{}, bosherr.WrapError(err, "Getting container info")
+	}
+
+	err = c.ports.Forward(id, info.ContainerIP, props.Ports)
+	if err != nil {
+		c.cleanUpContainer(container)
+		return WardenVM{}, bosherr.WrapError(err, "Forwarding host ports")
+	}
+
 	agentEnv := NewAgentEnvForVM(agentID, id, networks, env, c.agentOptions)
 
 	wardenFileService := NewWardenFileService(container, c.logger)
@@ -128,20 +143,12 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, network
 		return WardenVM{}, err
 	}
 
-	vm := NewWardenVM(
-		id,
-		c.wardenClient,
-		agentEnvService,
-		c.hostBindMounts,
-		c.guestBindMounts,
-		c.logger,
-		true,
-	)
+	vm := NewWardenVM(id, c.wardenClient, agentEnvService, c.ports, c.hostBindMounts, c.guestBindMounts, c.logger, true)
 
 	return vm, nil
 }
 
-func (c WardenCreator) resolveNetworkIP(networks Networks) (string, error) {
+func (c WardenCreator) resolveNetworkIPCIDR(networks Networks) (string, error) {
 	var network Network
 
 	if len(networks) == 0 {

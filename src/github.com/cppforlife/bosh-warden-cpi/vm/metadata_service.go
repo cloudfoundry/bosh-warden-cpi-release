@@ -17,10 +17,6 @@ type metadataService struct {
 	logTag           string
 }
 
-type MetadataService interface {
-	Save(WardenFileService, string) error
-}
-
 func NewMetadataService(
 	agentEnvService string,
 	registryOptions RegistryOptions,

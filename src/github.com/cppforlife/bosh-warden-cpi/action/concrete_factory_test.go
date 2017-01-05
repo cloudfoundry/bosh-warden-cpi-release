@@ -87,6 +87,8 @@ var _ = Describe("concreteFactory", func() {
 	})
 
 	BeforeEach(func() {
+		ports := bwcvm.NewIPTablesPorts(cmdRunner)
+
 		hostBindMounts = bwcvm.NewFSHostBindMounts(
 			"/tmp/host-ephemeral-bind-mounts-dir",
 			"/tmp/host-persistent-bind-mounts-dir",
@@ -110,6 +112,7 @@ var _ = Describe("concreteFactory", func() {
 		vmFinder = bwcvm.NewWardenFinder(
 			wardenClient,
 			agentEnvServiceFactory,
+			ports,
 			hostBindMounts,
 			guestBindMounts,
 			logger,

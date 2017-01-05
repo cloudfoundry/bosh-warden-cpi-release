@@ -19,6 +19,7 @@ var _ = Describe("WardenFinder", func() {
 		wardenClient wrdnclient.Client
 
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
+		ports                  *fakevm.FakePorts
 		hostBindMounts         *fakevm.FakeHostBindMounts
 		guestBindMounts        *fakevm.FakeGuestBindMounts
 		logger                 boshlog.Logger
@@ -30,17 +31,11 @@ var _ = Describe("WardenFinder", func() {
 		wardenClient = wrdnclient.New(wardenConn)
 
 		agentEnvServiceFactory = &fakevm.FakeAgentEnvServiceFactory{}
+		ports = &fakevm.FakePorts{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-
-		finder = NewWardenFinder(
-			wardenClient,
-			agentEnvServiceFactory,
-			hostBindMounts,
-			guestBindMounts,
-			logger,
-		)
+		finder = NewWardenFinder(wardenClient, agentEnvServiceFactory, ports, hostBindMounts, guestBindMounts, logger)
 	})
 
 	Describe("Find", func() {
@@ -50,15 +45,7 @@ var _ = Describe("WardenFinder", func() {
 
 			wardenConn.ListReturns([]string{"non-matching-vm-id", "fake-vm-id"}, nil)
 
-			expectedVM := NewWardenVM(
-				"fake-vm-id",
-				wardenClient,
-				agentEnvService,
-				hostBindMounts,
-				guestBindMounts,
-				logger,
-				true,
-			)
+			expectedVM := NewWardenVM("fake-vm-id", wardenClient, agentEnvService, ports, hostBindMounts, guestBindMounts, logger, true)
 
 			vm, found, err := finder.Find("fake-vm-id")
 			Expect(err).ToNot(HaveOccurred())
@@ -74,15 +61,7 @@ var _ = Describe("WardenFinder", func() {
 		It("returns found as false if warden does not have container with VM ID as its handle", func() {
 			wardenConn.ListReturns([]string{"non-matching-vm-id"}, nil)
 
-			expectedVM := NewWardenVM(
-				"fake-vm-id",
-				wardenClient,
-				nil,
-				hostBindMounts,
-				guestBindMounts,
-				logger,
-				false,
-			)
+			expectedVM := NewWardenVM("fake-vm-id", wardenClient, nil, ports, hostBindMounts, guestBindMounts, logger, false)
 
 			vm, found, err := finder.Find("fake-vm-id")
 			Expect(err).ToNot(HaveOccurred())

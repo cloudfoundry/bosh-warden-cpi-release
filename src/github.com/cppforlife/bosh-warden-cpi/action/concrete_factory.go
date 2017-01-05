@@ -38,6 +38,8 @@ func NewConcreteFactory(
 
 	stemcellFinder := bwcstem.NewFSFinder(options.StemcellsDir, fs, logger)
 
+	ports := bwcvm.NewIPTablesPorts(cmdRunner)
+
 	hostBindMounts := bwcvm.NewFSHostBindMounts(
 		options.HostEphemeralBindMountsDir,
 		options.HostPersistentBindMountsDir,
@@ -66,6 +68,7 @@ func NewConcreteFactory(
 		wardenClient,
 		metadataService,
 		agentEnvServiceFactory,
+		ports,
 		hostBindMounts,
 		guestBindMounts,
 		systemResolvConfProvider,
@@ -76,6 +79,7 @@ func NewConcreteFactory(
 	vmFinder := bwcvm.NewWardenFinder(
 		wardenClient,
 		agentEnvServiceFactory,
+		ports,
 		hostBindMounts,
 		guestBindMounts,
 		logger,

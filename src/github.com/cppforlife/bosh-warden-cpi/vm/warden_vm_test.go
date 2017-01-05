@@ -20,6 +20,7 @@ var _ = Describe("WardenVM", func() {
 		wardenClient wrdnclient.Client
 
 		agentEnvService *fakevm.FakeAgentEnvService
+		ports           *fakevm.FakePorts
 		hostBindMounts  *fakevm.FakeHostBindMounts
 		guestBindMounts *fakevm.FakeGuestBindMounts
 		logger          boshlog.Logger
@@ -31,6 +32,7 @@ var _ = Describe("WardenVM", func() {
 		wardenClient = wrdnclient.New(wardenConn)
 
 		agentEnvService = &fakevm.FakeAgentEnvService{}
+		ports = &fakevm.FakePorts{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{
 			EphemeralBindMountPath:  "/fake-guest-ephemeral-bind-mount-path",
@@ -38,15 +40,7 @@ var _ = Describe("WardenVM", func() {
 		}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		vm = NewWardenVM(
-			"fake-vm-id",
-			wardenClient,
-			agentEnvService,
-			hostBindMounts,
-			guestBindMounts,
-			logger,
-			true,
-		)
+		vm = NewWardenVM("fake-vm-id", wardenClient, agentEnvService, ports, hostBindMounts, guestBindMounts, logger, true)
 	})
 
 	Describe("Delete", func() {
@@ -128,15 +122,7 @@ var _ = Describe("WardenVM", func() {
 
 		Context("when the container does not exist", func() {
 			BeforeEach(func() {
-				vm = NewWardenVM(
-					"fake-vm-id",
-					wardenClient,
-					nil,
-					hostBindMounts,
-					guestBindMounts,
-					logger,
-					false,
-				)
+				vm = NewWardenVM("fake-vm-id", wardenClient, nil, ports, hostBindMounts, guestBindMounts, logger, false)
 			})
 
 			It("deletes ephemeral and persistent bind mount dirs", func() {

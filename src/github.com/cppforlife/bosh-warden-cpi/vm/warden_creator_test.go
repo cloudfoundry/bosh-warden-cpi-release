@@ -25,6 +25,7 @@ var _ = Describe("WardenCreator", func() {
 		uuidGen                *fakeuuid.FakeGenerator
 		fakeMetadataService    *fakevm.FakeMetadataService
 		agentEnvServiceFactory *fakevm.FakeAgentEnvServiceFactory
+		ports                  *fakevm.FakePorts
 		hostBindMounts         *fakevm.FakeHostBindMounts
 		guestBindMounts        *fakevm.FakeGuestBindMounts
 
@@ -43,6 +44,7 @@ var _ = Describe("WardenCreator", func() {
 		uuidGen = &fakeuuid.FakeGenerator{}
 		fakeMetadataService = fakevm.NewFakeMetadataService()
 		agentEnvServiceFactory = &fakevm.FakeAgentEnvServiceFactory{}
+		ports = &fakevm.FakePorts{}
 		hostBindMounts = &fakevm.FakeHostBindMounts{}
 		guestBindMounts = &fakevm.FakeGuestBindMounts{
 			EphemeralBindMountPath:  "/fake-guest-ephemeral-bind-mount-path",
@@ -53,19 +55,11 @@ var _ = Describe("WardenCreator", func() {
 		systemResolvConfProviderErr = nil
 		agentOptions = AgentOptions{Mbus: "fake-mbus"}
 
+		resolvProvider := func() (ResolvConf, error) { return systemResolvConfProviderConf, systemResolvConfProviderErr }
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		creator = NewWardenCreator(
-			uuidGen,
-			wardenClient,
-			fakeMetadataService,
-			agentEnvServiceFactory,
-			hostBindMounts,
-			guestBindMounts,
-			func() (ResolvConf, error) { return systemResolvConfProviderConf, systemResolvConfProviderErr },
-			agentOptions,
-			logger,
-		)
+		creator = NewWardenCreator(uuidGen, wardenClient, fakeMetadataService, agentEnvServiceFactory,
+			ports, hostBindMounts, guestBindMounts, resolvProvider, agentOptions, logger)
 	})
 
 	Describe("Create", func() {
@@ -92,17 +86,9 @@ var _ = Describe("WardenCreator", func() {
 			agentEnvService := &fakevm.FakeAgentEnvService{}
 			agentEnvServiceFactory.NewAgentEnvService = agentEnvService
 
-			expectedVM := NewWardenVM(
-				"fake-vm-id",
-				wardenClient,
-				agentEnvService,
-				hostBindMounts,
-				guestBindMounts,
-				logger,
-				true,
-			)
+			expectedVM := NewWardenVM("fake-vm-id", wardenClient, agentEnvService, ports, hostBindMounts, guestBindMounts, logger, true)
 
-			vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+			vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vm).To(Equal(expectedVM))
 		})
@@ -113,7 +99,7 @@ var _ = Describe("WardenCreator", func() {
 			})
 
 			It("returns error if zero networks are provided", func() {
-				vm, err := creator.Create("fake-agent-id", stemcell, Networks{}, env)
+				vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, Networks{}, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Expected exactly one network; received zero"))
 				Expect(vm).To(Equal(WardenVM{}))
@@ -122,14 +108,14 @@ var _ = Describe("WardenCreator", func() {
 			It("does not return error if more than one network is provided so that warden CPI can be used for testing multiple networks even though garden only supports single network", func() {
 				networks = Networks{"fake-net1": Network{}, "fake-net2": Network{}}
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns error if system resolv conf cannot be obtained", func() {
 				systemResolvConfProviderErr = errors.New("fake-err")
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
@@ -144,14 +130,14 @@ var _ = Describe("WardenCreator", func() {
 				network.Default = []string{"dns"}
 				networks["fake-net-name"] = network
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(agentEnvService.UpdateAgentEnv.Networks["fake-net-name"].DNS).To(Equal([]string{"8.8.8.8"}))
 			})
 
 			It("creates one container with generated VM id", func() {
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				count := wardenConn.CreateCallCount()
@@ -162,7 +148,7 @@ var _ = Describe("WardenCreator", func() {
 			})
 
 			It("creates container with stemcell as its root fs", func() {
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
@@ -173,7 +159,7 @@ var _ = Describe("WardenCreator", func() {
 				hostBindMounts.MakeEphemeralPath = "/fake-host-ephemeral-bind-mount-path"
 				hostBindMounts.MakePersistentPath = "/fake-host-persistent-bind-mounts-dir"
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
@@ -201,7 +187,7 @@ var _ = Describe("WardenCreator", func() {
 			It("returns error if making host ephemeral bind mount fails", func() {
 				hostBindMounts.MakeEphemeralErr = errors.New("fake-make-ephemeral-err")
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-make-ephemeral-err"))
 			})
@@ -209,7 +195,7 @@ var _ = Describe("WardenCreator", func() {
 			It("returns error if making host persistent bind mount fails", func() {
 				hostBindMounts.MakePersistentErr = errors.New("fake-make-persistent-err")
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-make-persistent-err"))
 			})
@@ -221,7 +207,7 @@ var _ = Describe("WardenCreator", func() {
 					Netmask: "255.255.255.0",
 				}
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
@@ -234,7 +220,7 @@ var _ = Describe("WardenCreator", func() {
 					IP:   "fake-ip", // is not usually set
 				}
 
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
@@ -242,7 +228,7 @@ var _ = Describe("WardenCreator", func() {
 			})
 
 			It("creates container without properties", func() {
-				_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
@@ -261,7 +247,7 @@ var _ = Describe("WardenCreator", func() {
 				})
 
 				It("updates container's agent env", func() {
-					_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+					_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 					Expect(err).ToNot(HaveOccurred())
 
 					expectedAgentEnv := NewAgentEnvForVM(
@@ -279,7 +265,7 @@ var _ = Describe("WardenCreator", func() {
 
 				It("saves metadata", func() {
 					wardenConn.CreateReturns("fake-container-handle", nil)
-					_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+					_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeMetadataService.Saved).To(BeTrue())
@@ -288,7 +274,7 @@ var _ = Describe("WardenCreator", func() {
 
 				ItDestroysContainer := func(errMsg string) {
 					It("destroys created container", func() {
-						_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+						_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 						Expect(err).To(HaveOccurred())
 
 						count := wardenConn.StopCallCount()
@@ -305,7 +291,7 @@ var _ = Describe("WardenCreator", func() {
 						})
 
 						It("returns running error and not destroy error", func() {
-							vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+							vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring(errMsg))
 							Expect(vm).To(Equal(WardenVM{}))
@@ -315,7 +301,7 @@ var _ = Describe("WardenCreator", func() {
 
 				Context("when container's agent env succeeds", func() {
 					It("starts BOSH Agent in the container", func() {
-						_, err := creator.Create("fake-agent-id", stemcell, networks, env)
+						_, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 						Expect(err).ToNot(HaveOccurred())
 
 						count := wardenConn.RunCallCount()
@@ -338,7 +324,7 @@ var _ = Describe("WardenCreator", func() {
 						})
 
 						It("returns error if starting BOSH Agent fails", func() {
-							vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+							vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 							Expect(vm).To(Equal(WardenVM{}))
@@ -354,7 +340,7 @@ var _ = Describe("WardenCreator", func() {
 					})
 
 					It("returns error because BOSH Agent will fail to start without agent env", func() {
-						vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+						vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-update-err"))
 						Expect(vm).To(Equal(WardenVM{}))
@@ -370,7 +356,7 @@ var _ = Describe("WardenCreator", func() {
 				})
 
 				It("returns error if creating container fails", func() {
-					vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+					vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-create-err"))
 					Expect(vm).To(Equal(WardenVM{}))
@@ -384,7 +370,7 @@ var _ = Describe("WardenCreator", func() {
 			})
 
 			It("returns error if generating VM id fails", func() {
-				vm, err := creator.Create("fake-agent-id", stemcell, networks, env)
+				vm, err := creator.Create("fake-agent-id", stemcell, VMProps{}, networks, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-generate-err"))
 				Expect(vm).To(Equal(WardenVM{}))

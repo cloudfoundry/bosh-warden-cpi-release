@@ -14,6 +14,7 @@ type WardenVM struct {
 	wardenClient    wrdnclient.Client
 	agentEnvService AgentEnvService
 
+	ports           Ports
 	hostBindMounts  HostBindMounts
 	guestBindMounts GuestBindMounts
 
@@ -26,6 +27,7 @@ func NewWardenVM(
 	id string,
 	wardenClient wrdnclient.Client,
 	agentEnvService AgentEnvService,
+	ports Ports,
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
 	logger boshlog.Logger,
@@ -37,6 +39,7 @@ func NewWardenVM(
 		wardenClient:    wardenClient,
 		agentEnvService: agentEnvService,
 
+		ports:           ports,
 		hostBindMounts:  hostBindMounts,
 		guestBindMounts: guestBindMounts,
 
@@ -55,7 +58,12 @@ func (vm WardenVM) Delete() error {
 		}
 	}
 
-	err := vm.hostBindMounts.DeleteEphemeral(vm.id)
+	err := vm.ports.RemoveForwarded(vm.id)
+	if err != nil {
+		return err
+	}
+
+	err = vm.hostBindMounts.DeleteEphemeral(vm.id)
 	if err != nil {
 		return err
 	}
