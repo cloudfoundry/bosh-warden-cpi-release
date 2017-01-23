@@ -1,6 +1,6 @@
 <%=
 
-env_service = p("registry.host").empty? ? "file" : "registry"
+env_service = p("warden_cpi.registry.host").empty? ? "file" : "registry"
 
 JSON.dump(
   "Warden" => {
