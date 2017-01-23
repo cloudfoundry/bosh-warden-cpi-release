@@ -65,18 +65,18 @@ properties:
     description: "Directory with sub-directories at which persistent disks are mounted inside VMs"
     default: "/warden-cpi-dev"
 
-  registry.host:
+  warden_cpi.registry.host:
     description: "Hostname of registry"
     default: ""
 
-  registry.port:
+  warden_cpi.registry.port:
     description: "Port of registry"
     default: 6901
 
-  registry.username:
+  warden_cpi.registry.username:
     description: "Username for registry"
     default: ""
 
-  registry.password:
+  warden_cpi.registry.password:
     description: "Password for registry"
     default: ""
