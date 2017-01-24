@@ -1,6 +1,6 @@
 <%=
 
-env_service = p("warden_cpi.registry.host").empty? ? "file" : "registry"
+env_service = p("warden_cpi.enable_registry") ? "registry" : "file"
 
 JSON.dump(
   "Warden" => {
@@ -31,10 +31,10 @@ JSON.dump(
     "AgentEnvService" => env_service,
 
     "Registry" => {
-      "Host" => p("warden_cpi.registry.host"),
-      "Port" => p("warden_cpi.registry.port"),
-      "Username" => p("warden_cpi.registry.username"),
-      "Password" => p("warden_cpi.registry.password"),
+      "Host" => p("registry.host"),
+      "Port" => p("registry.port"),
+      "Username" => p("registry.username"),
+      "Password" => p("registry.password"),
     },
   }
 )
