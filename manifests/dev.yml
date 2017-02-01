@@ -1,0 +1,6 @@
+- type: replace
+  path: /releases/name=bosh-warden-cpi/url
+  value: file:///tmp/warden-cpi
+
+- type: remove
+  path: /releases/name=bosh-warden-cpi/sha1

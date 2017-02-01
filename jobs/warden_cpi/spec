@@ -19,6 +19,12 @@ properties:
     description: "Range of loopback devices that will be used by the CPI for mounting persistent disks (example shows /dev/loop100 to /dev/loop130)"
     example: [100, 130]
 
+  warden_cpi.no_masq_cidrs:
+    description: |
+      Do not masquerade NAT traffic internally.
+      Related: https://github.com/cloudfoundry/bosh-lite/pull/364
+    default: ["10.244.0.0/16"]
+
   warden_cpi.warden.connect_network:
     description: "Connection type warden client will use to connect (tcp or unix)"
 
