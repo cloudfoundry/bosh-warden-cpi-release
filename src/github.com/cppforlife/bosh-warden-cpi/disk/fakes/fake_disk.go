@@ -1,22 +1,26 @@
 package fakes
 
+import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+)
+
 type FakeDisk struct {
-	id   string
+	id   apiv1.DiskCID
 	path string
 
 	DeleteCalled bool
 	DeleteErr    error
 }
 
-func NewFakeDisk(id string) *FakeDisk {
+func NewFakeDisk(id apiv1.DiskCID) *FakeDisk {
 	return &FakeDisk{id: id}
 }
 
-func NewFakeDiskWithPath(id, path string) *FakeDisk {
+func NewFakeDiskWithPath(id apiv1.DiskCID, path string) *FakeDisk {
 	return &FakeDisk{id: id, path: path}
 }
 
-func (s FakeDisk) ID() string { return s.id }
+func (s FakeDisk) ID() apiv1.DiskCID { return s.id }
 
 func (s FakeDisk) Path() string { return s.path }
 

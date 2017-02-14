@@ -4,10 +4,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type FSDisk struct {
-	id   string
+	id   apiv1.DiskCID
 	path string
 
 	fs     boshsys.FileSystem
@@ -15,7 +16,7 @@ type FSDisk struct {
 }
 
 func NewFSDisk(
-	id string,
+	id apiv1.DiskCID,
 	path string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -23,7 +24,7 @@ func NewFSDisk(
 	return FSDisk{id: id, path: path, fs: fs, logger: logger}
 }
 
-func (s FSDisk) ID() string { return s.id }
+func (s FSDisk) ID() apiv1.DiskCID { return s.id }
 
 func (s FSDisk) Path() string { return s.path }
 

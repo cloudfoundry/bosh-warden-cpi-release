@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 // FSGuestBindMounts represents bind mounts from the perspective of a VM
@@ -38,6 +39,6 @@ func (gbm FSGuestBindMounts) MakePersistent() string {
 	return gbm.persistentBindMountsDir
 }
 
-func (gbm FSGuestBindMounts) MountPersistent(id string) string {
-	return filepath.Join(gbm.persistentBindMountsDir, id)
+func (gbm FSGuestBindMounts) MountPersistent(id apiv1.DiskCID) string {
+	return filepath.Join(gbm.persistentBindMountsDir, id.AsString())
 }

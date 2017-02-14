@@ -2,28 +2,29 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
-type DeleteVM struct {
+type DeleteVMMethod struct {
 	vmFinder bwcvm.Finder
 }
 
-func NewDeleteVM(vmFinder bwcvm.Finder) DeleteVM {
-	return DeleteVM{vmFinder: vmFinder}
+func NewDeleteVMMethod(vmFinder bwcvm.Finder) DeleteVMMethod {
+	return DeleteVMMethod{vmFinder: vmFinder}
 }
 
-func (a DeleteVM) Run(vmCID VMCID) (interface{}, error) {
-	vm, _, err := a.vmFinder.Find(string(vmCID))
+func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
+	vm, _, err := a.vmFinder.Find(cid)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Finding vm '%s'", vmCID)
+		return bosherr.WrapErrorf(err, "Finding vm '%s'", cid)
 	}
 
 	err = vm.Delete()
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Deleting vm '%s'", vmCID)
+		return bosherr.WrapErrorf(err, "Deleting vm '%s'", cid)
 	}
 
-	return nil, nil
+	return nil
 }

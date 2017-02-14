@@ -1,11 +1,15 @@
 package action
 
-type RebootVM struct{}
+import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+)
 
-func NewRebootVM() RebootVM {
-	return RebootVM{}
+type RebootVMMethod struct{}
+
+func NewRebootVMMethod() RebootVMMethod {
+	return RebootVMMethod{}
 }
 
-func (a RebootVM) Run(vmCID VMCID) (interface{}, error) {
-	return nil, nil
+func (a RebootVMMethod) RebootVM(_ apiv1.VMCID) error {
+	return nil
 }

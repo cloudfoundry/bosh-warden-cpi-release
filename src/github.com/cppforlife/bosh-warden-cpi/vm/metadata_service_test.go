@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
-
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
+	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("MetadataService", func() {
@@ -35,7 +35,8 @@ var _ = Describe("MetadataService", func() {
 
 		It("saves instance id to metadata", func() {
 			metadataService = NewMetadataService("registry", registryOptions, logger)
-			err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
+
+			err := metadataService.Save(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 			Expect(err).ToNot(HaveOccurred())
 
 			metadataContents := MetadataContentsType{
@@ -57,7 +58,7 @@ var _ = Describe("MetadataService", func() {
 			})
 
 			It("saves registry endpoint as URL to registry", func() {
-				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
+				err := metadataService.Save(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 				Expect(err).ToNot(HaveOccurred())
 
 				userDataContents := UserDataContentsType{
@@ -83,7 +84,7 @@ var _ = Describe("MetadataService", func() {
 			})
 
 			It("saves registry endpoint as file path", func() {
-				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
+				err := metadataService.Save(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 				Expect(err).ToNot(HaveOccurred())
 
 				userDataContents := UserDataContentsType{
@@ -107,7 +108,7 @@ var _ = Describe("MetadataService", func() {
 			})
 
 			It("returns an error", func() {
-				err := metadataService.Save(fakeWardenFileService, "fake-instance-id")
+				err := metadataService.Save(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
 			})

@@ -6,6 +6,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -21,7 +22,8 @@ var _ = Describe("FSImporter", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		stemcell = NewFSStemcell("fake-stemcell-id", "/fake-stemcell-dir", fs, logger)
+		stemcell = NewFSStemcell(
+			apiv1.NewStemcellCID("fake-stemcell-id"), "/fake-stemcell-dir", fs, logger)
 	})
 
 	Describe("Delete", func() {

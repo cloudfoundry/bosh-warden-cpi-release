@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type FSFactory struct {
@@ -69,11 +70,11 @@ func (f FSFactory) Create(size int) (Disk, error) {
 		return nil, bosherr.WrapErrorf(err, "Building disk filesystem '%s'", diskPath)
 	}
 
-	return NewFSDisk(id, diskPath, f.fs, f.logger), nil
+	return NewFSDisk(apiv1.NewDiskCID(id), diskPath, f.fs, f.logger), nil
 }
 
-func (f FSFactory) Find(id string) (Disk, error) {
-	return NewFSDisk(id, filepath.Join(f.dirPath, id), f.fs, f.logger), nil
+func (f FSFactory) Find(id apiv1.DiskCID) (Disk, error) {
+	return NewFSDisk(id, filepath.Join(f.dirPath, id.AsString()), f.fs, f.logger), nil
 }
 
 func (f FSFactory) cleanUpFile(path string) {

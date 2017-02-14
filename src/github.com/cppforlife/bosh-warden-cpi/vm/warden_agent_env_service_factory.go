@@ -2,6 +2,7 @@ package vm
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type WardenAgentEnvServiceFactory struct {
@@ -24,7 +25,7 @@ func NewWardenAgentEnvServiceFactory(
 
 func (f WardenAgentEnvServiceFactory) New(
 	wardenFileService WardenFileService,
-	instanceID string,
+	instanceID apiv1.VMCID,
 ) AgentEnvService {
 	if f.agentEnvService == "registry" {
 		return NewRegistryAgentEnvService(f.registryOptions, instanceID, f.logger)

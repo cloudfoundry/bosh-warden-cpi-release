@@ -6,6 +6,7 @@ import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -45,14 +46,16 @@ var _ = Describe("WardenFinder", func() {
 
 			wardenConn.ListReturns([]string{"non-matching-vm-id", "fake-vm-id"}, nil)
 
-			expectedVM := NewWardenVM("fake-vm-id", wardenClient, agentEnvService, ports, hostBindMounts, guestBindMounts, logger, true)
+			expectedVM := NewWardenVM(
+				apiv1.NewVMCID("fake-vm-id"), wardenClient, agentEnvService,
+				ports, hostBindMounts, guestBindMounts, logger, true)
 
-			vm, found, err := finder.Find("fake-vm-id")
+			vm, found, err := finder.Find(apiv1.NewVMCID("fake-vm-id"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 			Expect(vm).To(Equal(expectedVM))
 
-			Expect(agentEnvServiceFactory.NewInstanceID).To(Equal("fake-vm-id"))
+			Expect(agentEnvServiceFactory.NewInstanceID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
 
 			Expect(wardenConn.ListCallCount()).To(Equal(1))
 			Expect(wardenConn.ListArgsForCall(0)).To(BeNil())
@@ -61,9 +64,11 @@ var _ = Describe("WardenFinder", func() {
 		It("returns found as false if warden does not have container with VM ID as its handle", func() {
 			wardenConn.ListReturns([]string{"non-matching-vm-id"}, nil)
 
-			expectedVM := NewWardenVM("fake-vm-id", wardenClient, nil, ports, hostBindMounts, guestBindMounts, logger, false)
+			expectedVM := NewWardenVM(
+				apiv1.NewVMCID("fake-vm-id"), wardenClient, nil,
+				ports, hostBindMounts, guestBindMounts, logger, false)
 
-			vm, found, err := finder.Find("fake-vm-id")
+			vm, found, err := finder.Find(apiv1.NewVMCID("fake-vm-id"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
 			Expect(vm).To(Equal(expectedVM))
@@ -72,7 +77,7 @@ var _ = Describe("WardenFinder", func() {
 		It("returns error if warden container listing fails", func() {
 			wardenConn.ListReturns(nil, errors.New("fake-list-err"))
 
-			vm, found, err := finder.Find("fake-vm-id")
+			vm, found, err := finder.Find(apiv1.NewVMCID("fake-vm-id"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-list-err"))
 			Expect(found).To(BeFalse())

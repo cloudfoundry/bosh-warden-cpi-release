@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Warden WardenConfig
 
-	Actions bwcaction.ConcreteFactoryOptions
+	Actions bwcaction.FactoryOpts
 }
 
 type WardenConfig struct {

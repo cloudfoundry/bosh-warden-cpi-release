@@ -7,6 +7,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type IPTablesPorts struct {
@@ -17,7 +18,7 @@ func NewIPTablesPorts(cmdRunner boshsys.CmdRunner) IPTablesPorts {
 	return IPTablesPorts{cmdRunner}
 }
 
-func (p IPTablesPorts) Forward(id, containerIP string, mappings []PortMapping) error {
+func (p IPTablesPorts) Forward(id apiv1.VMCID, containerIP string, mappings []PortMapping) error {
 	for _, mapping := range mappings {
 		forwardArgs := []string{
 			"PREROUTING",
@@ -38,11 +39,11 @@ func (p IPTablesPorts) Forward(id, containerIP string, mappings []PortMapping) e
 	return nil
 }
 
-func (p IPTablesPorts) RemoveForwarded(id string) error {
+func (p IPTablesPorts) RemoveForwarded(id apiv1.VMCID) error {
 	return p.removeRulesWithID(id)
 }
 
-func (p IPTablesPorts) removeRulesWithID(id string) error {
+func (p IPTablesPorts) removeRulesWithID(id apiv1.VMCID) error {
 	stdout, _, _, err := p.cmdRunner.RunCommand("iptables-save", "-t", "nat")
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Listing nat table rules to remove rules")
@@ -69,7 +70,9 @@ func (p IPTablesPorts) removeRulesWithID(id string) error {
 	return lastErr
 }
 
-func (IPTablesPorts) comment(id string) string { return "bosh-warden-cpi-" + id }
+func (IPTablesPorts) comment(id apiv1.VMCID) string {
+	return "bosh-warden-cpi-" + id.AsString()
+}
 
 func (IPTablesPorts) fmtPortRange(portRange PortRange, delim string) string {
 	if portRange.Len() > 1 {

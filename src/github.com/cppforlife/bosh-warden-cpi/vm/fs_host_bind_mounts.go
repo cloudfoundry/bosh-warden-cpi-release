@@ -9,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
 )
@@ -46,8 +47,8 @@ func NewFSHostBindMounts(
 	}
 }
 
-func (hbm FSHostBindMounts) MakeEphemeral(id string) (string, error) {
-	path := filepath.Join(hbm.ephemeralBindMountsDir, id)
+func (hbm FSHostBindMounts) MakeEphemeral(id apiv1.VMCID) (string, error) {
+	path := filepath.Join(hbm.ephemeralBindMountsDir, id.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
 	if err != nil {
@@ -57,8 +58,8 @@ func (hbm FSHostBindMounts) MakeEphemeral(id string) (string, error) {
 	return path, nil
 }
 
-func (hbm FSHostBindMounts) DeleteEphemeral(id string) error {
-	path := filepath.Join(hbm.ephemeralBindMountsDir, id)
+func (hbm FSHostBindMounts) DeleteEphemeral(id apiv1.VMCID) error {
+	path := filepath.Join(hbm.ephemeralBindMountsDir, id.AsString())
 
 	err := hbm.deletePath(path)
 	if err != nil {
@@ -68,8 +69,8 @@ func (hbm FSHostBindMounts) DeleteEphemeral(id string) error {
 	return nil
 }
 
-func (hbm FSHostBindMounts) MakePersistent(id string) (string, error) {
-	path := filepath.Join(hbm.persistentBindMountsDir, id)
+func (hbm FSHostBindMounts) MakePersistent(id apiv1.VMCID) (string, error) {
+	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
 	if err != nil {
@@ -97,8 +98,8 @@ func (hbm FSHostBindMounts) MakePersistent(id string) (string, error) {
 	return path, nil
 }
 
-func (hbm FSHostBindMounts) DeletePersistent(id string) error {
-	path := filepath.Join(hbm.persistentBindMountsDir, id)
+func (hbm FSHostBindMounts) DeletePersistent(id apiv1.VMCID) error {
+	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString())
 
 	if hbm.fs.FileExists(path) {
 		mountedDiskPaths, err := hbm.fs.Glob(filepath.Join(path, "*"))
@@ -127,8 +128,8 @@ func (hbm FSHostBindMounts) DeletePersistent(id string) error {
 	return nil
 }
 
-func (hbm FSHostBindMounts) MountPersistent(id, diskID, diskPath string) error {
-	path := filepath.Join(hbm.persistentBindMountsDir, id, diskID)
+func (hbm FSHostBindMounts) MountPersistent(id apiv1.VMCID, diskID apiv1.DiskCID, diskPath string) error {
+	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString(), diskID.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
 	if err != nil {
@@ -143,8 +144,8 @@ func (hbm FSHostBindMounts) MountPersistent(id, diskID, diskPath string) error {
 	return nil
 }
 
-func (hbm FSHostBindMounts) UnmountPersistent(id, diskID string) error {
-	path := filepath.Join(hbm.persistentBindMountsDir, id, diskID)
+func (hbm FSHostBindMounts) UnmountPersistent(id apiv1.VMCID, diskID apiv1.DiskCID) error {
+	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString(), diskID.AsString())
 	return hbm.unmountPath(path)
 }
 

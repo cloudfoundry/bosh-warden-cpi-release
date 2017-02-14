@@ -2,39 +2,40 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
-type AttachDisk struct {
+type AttachDiskMethod struct {
 	vmFinder   bwcvm.Finder
 	diskFinder bwcdisk.Finder
 }
 
-func NewAttachDisk(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) AttachDisk {
-	return AttachDisk{vmFinder, diskFinder}
+func NewAttachDiskMethod(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) AttachDiskMethod {
+	return AttachDiskMethod{vmFinder, diskFinder}
 }
 
-func (a AttachDisk) Run(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
-	vm, found, err := a.vmFinder.Find(string(vmCID))
+func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
+	vm, found, err := a.vmFinder.Find(vmCID)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
+		return bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
 	}
 
 	if !found {
-		return nil, bosherr.Errorf("Expected to find VM '%s'", vmCID)
+		return bosherr.Errorf("Expected to find VM '%s'", vmCID)
 	}
 
-	disk, err := a.diskFinder.Find(string(diskCID))
+	disk, err := a.diskFinder.Find(diskCID)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
+		return bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
 	}
 
 	err = vm.AttachDisk(disk)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
+		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
-	return nil, nil
+	return nil
 }

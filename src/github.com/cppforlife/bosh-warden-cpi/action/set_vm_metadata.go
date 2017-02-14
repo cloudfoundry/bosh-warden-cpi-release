@@ -1,14 +1,16 @@
 package action
 
-type SetVMMetadata struct{}
+import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+)
 
-type VMMetadata struct{}
+type SetVMMetadataMethod struct{}
 
-func NewSetVMMetadata() SetVMMetadata {
-	return SetVMMetadata{}
+func NewSetVMMetadataMethod() SetVMMetadataMethod {
+	return SetVMMetadataMethod{}
 }
 
-func (a SetVMMetadata) Run(vmCID VMCID, metadata VMMetadata) (interface{}, error) {
+func (a SetVMMetadataMethod) SetVMMetadata(_ apiv1.VMCID, meta apiv1.VMMeta) error {
 	// todo can properties be set on the container
-	return nil, nil
+	return nil
 }

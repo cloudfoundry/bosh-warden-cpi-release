@@ -1,18 +1,18 @@
 package action_test
 
 import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cppforlife/bosh-warden-cpi/action"
-	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
-var _ = Describe("ConcreteFactoryOptions", func() {
+var _ = Describe("FactoryOpts", func() {
 	var (
-		options ConcreteFactoryOptions
+		opts FactoryOpts
 
-		validOptions = ConcreteFactoryOptions{
+		validOptions = FactoryOpts{
 			StemcellsDir: "/tmp/stemcells",
 			DisksDir:     "/tmp/disks",
 
@@ -22,11 +22,11 @@ var _ = Describe("ConcreteFactoryOptions", func() {
 			GuestEphemeralBindMountPath:  "/tmp/guest-ephemeral-bind-mount-path",
 			GuestPersistentBindMountsDir: "/tmp/guest-persistent-bind-mounts-dir",
 
-			Agent: bwcvm.AgentOptions{
+			Agent: apiv1.AgentOptions{
 				Mbus: "fake-mbus",
 				NTP:  []string{},
 
-				Blobstore: bwcvm.BlobstoreOptions{
+				Blobstore: apiv1.BlobstoreOptions{
 					Type: "fake-blobstore-type",
 				},
 			},
@@ -35,70 +35,70 @@ var _ = Describe("ConcreteFactoryOptions", func() {
 
 	Describe("Validate", func() {
 		BeforeEach(func() {
-			options = validOptions
+			opts = validOptions
 		})
 
 		It("does not return error if all fields are valid", func() {
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if StemcellsDir is empty", func() {
-			options.StemcellsDir = ""
+			opts.StemcellsDir = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Must provide non-empty StemcellsDir"))
 		})
 
 		It("returns error if DisksDir is empty", func() {
-			options.DisksDir = ""
+			opts.DisksDir = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Must provide non-empty DisksDir"))
 		})
 
 		It("returns error if HostEphemeralBindMountsDir is empty", func() {
-			options.HostEphemeralBindMountsDir = ""
+			opts.HostEphemeralBindMountsDir = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Must provide non-empty HostEphemeralBindMountsDir"))
 		})
 
 		It("returns error if HostPersistentBindMountsDir is empty", func() {
-			options.HostPersistentBindMountsDir = ""
+			opts.HostPersistentBindMountsDir = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Must provide non-empty HostPersistentBindMountsDir"))
 		})
 
 		It("returns error if GuestEphemeralBindMountPath is empty", func() {
-			options.GuestEphemeralBindMountPath = ""
+			opts.GuestEphemeralBindMountPath = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Must provide non-empty GuestEphemeralBindMountPath"))
 		})
 
 		It("returns error if GuestPersistentBindMountsDir is empty", func() {
-			options.GuestPersistentBindMountsDir = ""
+			opts.GuestPersistentBindMountsDir = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Must provide non-empty GuestPersistentBindMountsDir"))
 		})
 
 		It("returns error if agent section is not valid", func() {
-			options.Agent.Mbus = ""
+			opts.Agent.Mbus = ""
 
-			err := options.Validate()
+			err := opts.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Validating Agent configuration"))
 		})

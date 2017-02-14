@@ -5,6 +5,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -20,7 +21,7 @@ var _ = Describe("FSDisk", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		disk = NewFSDisk("fake-disk-id", "/fake-disk-path", fs, logger)
+		disk = NewFSDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-disk-path", fs, logger)
 	})
 
 	Describe("Delete", func() {

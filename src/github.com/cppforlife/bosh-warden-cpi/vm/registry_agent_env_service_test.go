@@ -8,21 +8,21 @@ import (
 	"net"
 	"net/http"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var _ = Describe("RegistryAgentEnvService", func() {
 	var (
-		logger               boshlog.Logger
-		agentEnvService      AgentEnvService
-		registryServer       *registryServer
-		expectedAgentEnv     AgentEnv
-		expectedAgentEnvJSON []byte
+		logger                boshlog.Logger
+		agentEnvService       AgentEnvService
+		registryServer        *registryServer
+		expectedAgentEnv      apiv1.AgentEnv
+		expectedAgentEnvBytes []byte
 	)
 
 	BeforeEach(func() {
@@ -56,12 +56,19 @@ var _ = Describe("RegistryAgentEnvService", func() {
 			}
 		}
 
-		instanceID := "fake-instance-id"
+		instanceID := apiv1.NewVMCID("fake-instance-id")
 		agentEnvService = NewRegistryAgentEnvService(registryOptions, instanceID, logger)
 
-		expectedAgentEnv = AgentEnv{AgentID: "fake-agent-id"}
 		var err error
-		expectedAgentEnvJSON, err = json.Marshal(expectedAgentEnv)
+
+		expectedAgentEnv = apiv1.AgentEnvFactory{}.ForVM(
+			apiv1.NewAgentID("fake-agent-id"),
+			apiv1.NewVMCID("fake-vm-id"),
+			apiv1.Networks{},
+			apiv1.VMEnv{},
+			apiv1.AgentOptions{},
+		)
+		expectedAgentEnvBytes, err = expectedAgentEnv.AsBytes()
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -73,7 +80,7 @@ var _ = Describe("RegistryAgentEnvService", func() {
 	Describe("Fetch", func() {
 		Context("when settings for the instance exist in the registry", func() {
 			BeforeEach(func() {
-				registryServer.InstanceSettings = expectedAgentEnvJSON
+				registryServer.InstanceSettings = expectedAgentEnvBytes
 			})
 
 			It("fetches settings from the registry", func() {
@@ -85,9 +92,9 @@ var _ = Describe("RegistryAgentEnvService", func() {
 
 		Context("when settings for instance do not exist", func() {
 			It("returns an error", func() {
-				agentEnv, err := agentEnvService.Fetch()
+				_, err := agentEnvService.Fetch()
 				Expect(err).To(HaveOccurred())
-				Expect(agentEnv).To(Equal(AgentEnv{}))
+				Expect(err.Error()).To(ContainSubstring("Received non-200 status code when contacting registry"))
 			})
 		})
 	})
@@ -95,9 +102,10 @@ var _ = Describe("RegistryAgentEnvService", func() {
 	Describe("Update", func() {
 		It("updates settings in the registry", func() {
 			Expect(registryServer.InstanceSettings).To(BeNil())
+
 			err := agentEnvService.Update(expectedAgentEnv)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(registryServer.InstanceSettings).To(Equal(expectedAgentEnvJSON))
+			Expect(registryServer.InstanceSettings).To(Equal(expectedAgentEnvBytes))
 		})
 	})
 })

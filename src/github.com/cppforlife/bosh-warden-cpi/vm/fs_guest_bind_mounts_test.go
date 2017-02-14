@@ -2,6 +2,7 @@ package vm_test
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -38,7 +39,7 @@ var _ = Describe("FSGuestBindMounts", func() {
 
 	Describe("MountPersistent", func() {
 		It("returns persistent dir + disk id", func() {
-			path := guestBindMounts.MountPersistent("fake-disk-id")
+			path := guestBindMounts.MountPersistent(apiv1.NewDiskCID("fake-disk-id"))
 			Expect(path).To(Equal("/fake-persistent-dir/fake-disk-id"))
 		})
 	})

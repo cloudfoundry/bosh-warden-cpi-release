@@ -5,6 +5,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
@@ -22,7 +23,7 @@ type WardenCreator struct {
 
 	systemResolvConfProvider func() (ResolvConf, error)
 
-	agentOptions AgentOptions
+	agentOptions apiv1.AgentOptions
 	logger       boshlog.Logger
 }
 
@@ -35,7 +36,7 @@ func NewWardenCreator(
 	hostBindMounts HostBindMounts,
 	guestBindMounts GuestBindMounts,
 	systemResolvConfProvider func() (ResolvConf, error),
-	agentOptions AgentOptions,
+	agentOptions apiv1.AgentOptions,
 	logger boshlog.Logger,
 ) WardenCreator {
 	return WardenCreator{
@@ -56,11 +57,16 @@ func NewWardenCreator(
 	}
 }
 
-func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props VMProps, networks Networks, env Environment) (VM, error) {
-	id, err := c.uuidGen.Generate()
+func (c WardenCreator) Create(
+	agentID apiv1.AgentID, stemcell bwcstem.Stemcell, props VMProps,
+	networks apiv1.Networks, env apiv1.VMEnv) (VM, error) {
+
+	idStr, err := c.uuidGen.Generate()
 	if err != nil {
 		return WardenVM{}, bosherr.WrapError(err, "Generating VM id")
 	}
+
+	id := apiv1.NewVMCID(idStr)
 
 	networkIPCIDR, err := c.resolveNetworkIPCIDR(networks)
 	if err != nil {
@@ -72,7 +78,11 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props V
 		return WardenVM{}, err
 	}
 
-	networks = networks.BackfillDefaultDNS(systemResolvConf.Nameservers)
+	networks.BackfillDefaultDNS(systemResolvConf.Nameservers)
+
+	for _, net := range networks {
+		net.SetPreconfigured()
+	}
 
 	hostEphemeralBindMountPath, hostPersistentBindMountsDir, err := c.makeHostBindMounts(id)
 	if err != nil {
@@ -80,7 +90,7 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props V
 	}
 
 	containerSpec := wrdn.ContainerSpec{
-		Handle:     id,
+		Handle:     id.AsString(),
 		RootFSPath: stemcell.DirPath(),
 		Network:    networkIPCIDR,
 		BindMounts: []wrdn.BindMount{
@@ -120,7 +130,8 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props V
 		return WardenVM{}, bosherr.WrapError(err, "Forwarding host ports")
 	}
 
-	agentEnv := NewAgentEnvForVM(agentID, id, networks, env, c.agentOptions)
+	agentEnv := apiv1.AgentEnvFactory{}.ForVM(agentID, id, networks, env, c.agentOptions)
+	agentEnv.AttachSystemDisk("")
 
 	wardenFileService := NewWardenFileService(container, c.logger)
 	agentEnvService := c.agentEnvServiceFactory.New(wardenFileService, id)
@@ -143,13 +154,15 @@ func (c WardenCreator) Create(agentID string, stemcell bwcstem.Stemcell, props V
 		return WardenVM{}, err
 	}
 
-	vm := NewWardenVM(id, c.wardenClient, agentEnvService, c.ports, c.hostBindMounts, c.guestBindMounts, c.logger, true)
+	vm := NewWardenVM(
+		id, c.wardenClient, agentEnvService,
+		c.ports, c.hostBindMounts, c.guestBindMounts, c.logger, true)
 
 	return vm, nil
 }
 
-func (c WardenCreator) resolveNetworkIPCIDR(networks Networks) (string, error) {
-	var network Network
+func (c WardenCreator) resolveNetworkIPCIDR(networks apiv1.Networks) (string, error) {
+	var network apiv1.Network
 
 	if len(networks) == 0 {
 		return "", bosherr.Error("Expected exactly one network; received zero")
@@ -164,7 +177,7 @@ func (c WardenCreator) resolveNetworkIPCIDR(networks Networks) (string, error) {
 	return network.IPWithSubnetMask(), nil
 }
 
-func (c WardenCreator) makeHostBindMounts(id string) (string, string, error) {
+func (c WardenCreator) makeHostBindMounts(id apiv1.VMCID) (string, string, error) {
 	ephemeralBindMountPath, err := c.hostBindMounts.MakeEphemeral(id)
 	if err != nil {
 		return "", "", bosherr.WrapError(err, "Making host ephemeral bind mount path")

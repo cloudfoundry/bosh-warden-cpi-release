@@ -1,22 +1,26 @@
 package fakes
 
+import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+)
+
 type FakeStemcell struct {
-	id      string
+	id      apiv1.StemcellCID
 	dirPath string
 
 	DeleteCalled bool
 	DeleteErr    error
 }
 
-func NewFakeStemcell(id string) *FakeStemcell {
+func NewFakeStemcell(id apiv1.StemcellCID) *FakeStemcell {
 	return &FakeStemcell{id: id}
 }
 
-func NewFakeStemcellWithPath(id, dirPath string) *FakeStemcell {
+func NewFakeStemcellWithPath(id apiv1.StemcellCID, dirPath string) *FakeStemcell {
 	return &FakeStemcell{id: id, dirPath: dirPath}
 }
 
-func (s FakeStemcell) ID() string { return s.id }
+func (s FakeStemcell) ID() apiv1.StemcellCID { return s.id }
 
 func (s FakeStemcell) DirPath() string { return s.dirPath }
 

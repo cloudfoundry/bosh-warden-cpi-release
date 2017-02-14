@@ -1,24 +1,24 @@
 package fakes
 
 import (
-	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type FakeAgentEnvService struct {
 	FetchCalled   bool
-	FetchAgentEnv bwcvm.AgentEnv
+	FetchAgentEnv apiv1.AgentEnv
 	FetchErr      error
 
-	UpdateAgentEnv bwcvm.AgentEnv
+	UpdateAgentEnv apiv1.AgentEnv
 	UpdateErr      error
 }
 
-func (s *FakeAgentEnvService) Fetch() (bwcvm.AgentEnv, error) {
+func (s *FakeAgentEnvService) Fetch() (apiv1.AgentEnv, error) {
 	s.FetchCalled = true
 	return s.FetchAgentEnv, s.FetchErr
 }
 
-func (s *FakeAgentEnvService) Update(agentEnv bwcvm.AgentEnv) error {
+func (s *FakeAgentEnvService) Update(agentEnv apiv1.AgentEnv) error {
 	s.UpdateAgentEnv = agentEnv
 	return s.UpdateErr
 }

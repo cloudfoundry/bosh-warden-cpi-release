@@ -1,20 +1,21 @@
 package vm
 
 import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
 type Creator interface {
-	Create(string, bwcstem.Stemcell, VMProps, Networks, Environment) (VM, error)
+	Create(apiv1.AgentID, bwcstem.Stemcell, VMProps, apiv1.Networks, apiv1.VMEnv) (VM, error)
 }
 
 type Finder interface {
-	Find(string) (VM, bool, error)
+	Find(apiv1.VMCID) (VM, bool, error)
 }
 
 type VM interface {
-	ID() string
+	ID() apiv1.VMCID
 
 	Delete() error
 
@@ -26,42 +27,40 @@ type VMProps struct {
 	PortMappings []PortMapping
 }
 
-type Environment map[string]interface{}
-
 type Ports interface {
-	Forward(string, string, []PortMapping) error
-	RemoveForwarded(string) error
+	Forward(apiv1.VMCID, string, []PortMapping) error
+	RemoveForwarded(apiv1.VMCID) error
 }
 
 type AgentEnvService interface {
 	// Fetch will return an error if Update was not called beforehand
-	Fetch() (AgentEnv, error)
-	Update(AgentEnv) error
+	Fetch() (apiv1.AgentEnv, error)
+	Update(apiv1.AgentEnv) error
 }
 
 type AgentEnvServiceFactory interface {
-	New(WardenFileService, string) AgentEnvService
+	New(WardenFileService, apiv1.VMCID) AgentEnvService
 }
 
 type GuestBindMounts interface {
 	MakeEphemeral() string
 	MakePersistent() string
-	MountPersistent(diskID string) string
+	MountPersistent(apiv1.DiskCID) string
 }
 
 type HostBindMounts interface {
-	MakeEphemeral(id string) (string, error)
-	DeleteEphemeral(id string) error
+	MakeEphemeral(apiv1.VMCID) (string, error)
+	DeleteEphemeral(apiv1.VMCID) error
 
-	MakePersistent(id string) (string, error)
-	DeletePersistent(id string) error
+	MakePersistent(apiv1.VMCID) (string, error)
+	DeletePersistent(apiv1.VMCID) error
 
-	MountPersistent(id, diskID, diskPath string) error
-	UnmountPersistent(id, diskID string) error
+	MountPersistent(apiv1.VMCID, apiv1.DiskCID, string) error
+	UnmountPersistent(apiv1.VMCID, apiv1.DiskCID) error
 }
 
 type MetadataService interface {
-	Save(WardenFileService, string) error
+	Save(WardenFileService, apiv1.VMCID) error
 }
 
 type WardenFileService interface {

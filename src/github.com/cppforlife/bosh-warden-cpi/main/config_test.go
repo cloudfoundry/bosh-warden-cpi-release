@@ -3,14 +3,13 @@ package main_test
 import (
 	"errors"
 
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
 	. "github.com/cppforlife/bosh-warden-cpi/main"
-	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
 var validConfig = Config{
@@ -23,7 +22,7 @@ var validWardenConfig = WardenConfig{
 	ConnectAddress: "fake-address",
 }
 
-var validActionsOptions = bwcaction.ConcreteFactoryOptions{
+var validActionsOptions = bwcaction.FactoryOpts{
 	StemcellsDir: "/tmp/stemcells",
 	DisksDir:     "/tmp/disks",
 
@@ -33,11 +32,11 @@ var validActionsOptions = bwcaction.ConcreteFactoryOptions{
 	GuestEphemeralBindMountPath:  "/tmp/guest-ephemeral-bind-mount-path",
 	GuestPersistentBindMountsDir: "/tmp/guest-persistent-bind-mounts-dir",
 
-	Agent: bwcvm.AgentOptions{
+	Agent: apiv1.AgentOptions{
 		Mbus: "fake-mbus",
 		NTP:  []string{},
 
-		Blobstore: bwcvm.BlobstoreOptions{
+		Blobstore: apiv1.BlobstoreOptions{
 			Type: "fake-blobstore-type",
 		},
 	},

@@ -4,10 +4,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type FSStemcell struct {
-	id      string
+	id      apiv1.StemcellCID
 	dirPath string
 
 	fs     boshsys.FileSystem
@@ -15,7 +16,7 @@ type FSStemcell struct {
 }
 
 func NewFSStemcell(
-	id string,
+	id apiv1.StemcellCID,
 	dirPath string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -23,7 +24,7 @@ func NewFSStemcell(
 	return FSStemcell{id: id, dirPath: dirPath, fs: fs, logger: logger}
 }
 
-func (s FSStemcell) ID() string { return s.id }
+func (s FSStemcell) ID() apiv1.StemcellCID { return s.id }
 
 func (s FSStemcell) DirPath() string { return s.dirPath }
 

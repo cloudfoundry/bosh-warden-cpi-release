@@ -6,6 +6,7 @@ import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -40,7 +41,9 @@ var _ = Describe("WardenVM", func() {
 		}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		vm = NewWardenVM("fake-vm-id", wardenClient, agentEnvService, ports, hostBindMounts, guestBindMounts, logger, true)
+		vm = NewWardenVM(
+			apiv1.NewVMCID("fake-vm-id"), wardenClient, agentEnvService,
+			ports, hostBindMounts, guestBindMounts, logger, true)
 	})
 
 	Describe("Delete", func() {
@@ -57,7 +60,7 @@ var _ = Describe("WardenVM", func() {
 				err := vm.Delete()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(hostBindMounts.DeleteEphemeralID).To(Equal("fake-vm-id"))
+				Expect(hostBindMounts.DeleteEphemeralID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
 			})
 
 			Context("when deleting ephemeral bind mount dir succeeds", func() {
@@ -65,7 +68,7 @@ var _ = Describe("WardenVM", func() {
 					err := vm.Delete()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(hostBindMounts.DeletePersistentID).To(Equal("fake-vm-id"))
+					Expect(hostBindMounts.DeletePersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
 				})
 
 				Context("when deleting persistent bind mounts dir fails", func() {
@@ -122,15 +125,17 @@ var _ = Describe("WardenVM", func() {
 
 		Context("when the container does not exist", func() {
 			BeforeEach(func() {
-				vm = NewWardenVM("fake-vm-id", wardenClient, nil, ports, hostBindMounts, guestBindMounts, logger, false)
+				vm = NewWardenVM(
+					apiv1.NewVMCID("fake-vm-id"), wardenClient, nil,
+					ports, hostBindMounts, guestBindMounts, logger, false)
 			})
 
 			It("deletes ephemeral and persistent bind mount dirs", func() {
 				err := vm.Delete()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(hostBindMounts.DeleteEphemeralID).To(Equal("fake-vm-id"))
-				Expect(hostBindMounts.DeletePersistentID).To(Equal("fake-vm-id"))
+				Expect(hostBindMounts.DeleteEphemeralID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
+				Expect(hostBindMounts.DeletePersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
 			})
 		})
 	})
@@ -141,7 +146,10 @@ var _ = Describe("WardenVM", func() {
 		)
 
 		BeforeEach(func() {
-			disk = fakedisk.NewFakeDiskWithPath("fake-disk-id", "/fake-disk-path")
+			agentEnv := &apiv1.AgentEnvImpl{}
+			agentEnvService.FetchAgentEnv = agentEnv
+
+			disk = fakedisk.NewFakeDiskWithPath(apiv1.NewDiskCID("fake-disk-id"), "/fake-disk-path")
 		})
 
 		It("tries to fetch agent env", func() {
@@ -152,12 +160,9 @@ var _ = Describe("WardenVM", func() {
 		})
 
 		Context("when fetching agent env succeeds", func() {
-			var (
-				agentEnv AgentEnv
-			)
-
 			BeforeEach(func() {
-				agentEnv = AgentEnv{}.AttachPersistentDisk("fake-disk-id2", "/fake-hint-path2")
+				agentEnv := &apiv1.AgentEnvImpl{}
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
 				agentEnvService.FetchAgentEnv = agentEnv
 			})
 
@@ -165,8 +170,8 @@ var _ = Describe("WardenVM", func() {
 				err := vm.AttachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(hostBindMounts.MountPersistentID).To(Equal("fake-vm-id"))
-				Expect(hostBindMounts.MountPersistentDiskID).To(Equal("fake-disk-id"))
+				Expect(hostBindMounts.MountPersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
+				Expect(hostBindMounts.MountPersistentDiskID).To(Equal(apiv1.NewDiskCID("fake-disk-id")))
 				Expect(hostBindMounts.MountPersistentDiskPath).To(Equal("/fake-disk-path"))
 			})
 
@@ -175,12 +180,10 @@ var _ = Describe("WardenVM", func() {
 					err := vm.AttachDisk(disk)
 					Expect(err).ToNot(HaveOccurred())
 
-					// Expected agent env will have additional persistent disk
-					expectedAgentEnv := agentEnv.AttachPersistentDisk(
-						"fake-disk-id",
-						"/fake-guest-persistent-bind-mounts-dir/fake-disk-id",
-					)
-					Expect(agentEnvService.UpdateAgentEnv).To(Equal(expectedAgentEnv))
+					afterAgentEnv := &apiv1.AgentEnvImpl{}
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-guest-persistent-bind-mounts-dir/fake-disk-id")
+					Expect(agentEnvService.UpdateAgentEnv).To(Equal(afterAgentEnv))
 				})
 
 				Context("when updating agent env succeeds", func() {
@@ -229,7 +232,10 @@ var _ = Describe("WardenVM", func() {
 		)
 
 		BeforeEach(func() {
-			disk = fakedisk.NewFakeDisk("fake-disk-id")
+			agentEnv := &apiv1.AgentEnvImpl{}
+			agentEnvService.FetchAgentEnv = agentEnv
+
+			disk = fakedisk.NewFakeDisk(apiv1.NewDiskCID("fake-disk-id"))
 		})
 
 		It("tries to fetch agent env", func() {
@@ -240,13 +246,10 @@ var _ = Describe("WardenVM", func() {
 		})
 
 		Context("when fetching agent env succeeds", func() {
-			var (
-				agentEnv AgentEnv
-			)
-
 			BeforeEach(func() {
-				agentEnv = AgentEnv{}.AttachPersistentDisk("fake-disk-id", "/fake-hint-path")
-				agentEnv = agentEnv.AttachPersistentDisk("fake-disk-id2", "/fake-hint-path2")
+				agentEnv := &apiv1.AgentEnvImpl{}
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-hint-path")
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
 				agentEnvService.FetchAgentEnv = agentEnv
 			})
 
@@ -254,8 +257,8 @@ var _ = Describe("WardenVM", func() {
 				err := vm.DetachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(hostBindMounts.UnmountPersistentID).To(Equal("fake-vm-id"))
-				Expect(hostBindMounts.UnmountPersistentDiskID).To(Equal("fake-disk-id"))
+				Expect(hostBindMounts.UnmountPersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
+				Expect(hostBindMounts.UnmountPersistentDiskID).To(Equal(apiv1.NewDiskCID("fake-disk-id")))
 			})
 
 			Context("when unmounting persistent bind mounts dir succeeds", func() {
@@ -263,9 +266,9 @@ var _ = Describe("WardenVM", func() {
 					err := vm.DetachDisk(disk)
 					Expect(err).ToNot(HaveOccurred())
 
-					// Expected agent env will not have first persistent disk
-					expectedAgentEnv := agentEnv.DetachPersistentDisk("fake-disk-id")
-					Expect(agentEnvService.UpdateAgentEnv).To(Equal(expectedAgentEnv))
+					afterAgentEnv := &apiv1.AgentEnvImpl{}
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
+					Expect(agentEnvService.UpdateAgentEnv).To(Equal(afterAgentEnv))
 				})
 
 				Context("when updating agent env succeeds", func() {

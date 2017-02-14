@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -38,7 +39,8 @@ var _ = Describe("FSImporter", func() {
 			stemcell, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedStemcell := NewFSStemcell("fake-uuid", "/fake-collection-dir/fake-uuid", fs, logger)
+			expectedStemcell := NewFSStemcell(
+				apiv1.NewStemcellCID("fake-uuid"), "/fake-collection-dir/fake-uuid", fs, logger)
 			Expect(stemcell).To(Equal(expectedStemcell))
 		})
 

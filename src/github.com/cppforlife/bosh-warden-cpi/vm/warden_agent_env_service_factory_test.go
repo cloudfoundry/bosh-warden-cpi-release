@@ -1,13 +1,13 @@
 package vm_test
 
 import (
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
-
 	. "github.com/cppforlife/bosh-warden-cpi/vm"
+	fakebwcvm "github.com/cppforlife/bosh-warden-cpi/vm/fakes"
 )
 
 var _ = Describe("WardenAgentEnvServiceFactory", func() {
@@ -30,9 +30,9 @@ var _ = Describe("WardenAgentEnvServiceFactory", func() {
 
 		Context("when agentEnvService is registry", func() {
 			It("returns a NewRegistryAgentEnvService", func() {
-				expectedAgentEnvService := NewRegistryAgentEnvService(registryOptions, "fake-instance-id", logger)
+				expectedAgentEnvService := NewRegistryAgentEnvService(registryOptions, apiv1.NewVMCID("fake-instance-id"), logger)
 				wardenAgentEnvServiceFactory := NewWardenAgentEnvServiceFactory("registry", registryOptions, logger)
-				agentEnvService := wardenAgentEnvServiceFactory.New(fakeWardenFileService, "fake-instance-id")
+				agentEnvService := wardenAgentEnvServiceFactory.New(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 				Expect(agentEnvService).To(Equal(expectedAgentEnvService))
 			})
 		})
@@ -41,7 +41,7 @@ var _ = Describe("WardenAgentEnvServiceFactory", func() {
 			It("returns a NewFSAgentEnvService", func() {
 				expectedAgentEnvService := NewFSAgentEnvService(fakeWardenFileService, logger)
 				wardenAgentEnvServiceFactory := NewWardenAgentEnvServiceFactory("file", registryOptions, logger)
-				agentEnvService := wardenAgentEnvServiceFactory.New(fakeWardenFileService, "fake-instance-id")
+				agentEnvService := wardenAgentEnvServiceFactory.New(fakeWardenFileService, apiv1.NewVMCID("fake-instance-id"))
 				Expect(agentEnvService).To(Equal(expectedAgentEnvService))
 			})
 		})

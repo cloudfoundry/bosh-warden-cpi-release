@@ -2,47 +2,54 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
-type CreateVM struct {
+type CreateVMMethod struct {
 	stemcellFinder bwcstem.Finder
 	vmCreator      bwcvm.Creator
 }
 
-type Environment map[string]interface{}
-
-func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator) CreateVM {
-	return CreateVM{
+func NewCreateVMMethod(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator) CreateVMMethod {
+	return CreateVMMethod{
 		stemcellFinder: stemcellFinder,
 		vmCreator:      vmCreator,
 	}
 }
 
-func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, cloudProps VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
-	stemcell, found, err := a.stemcellFinder.Find(string(stemcellCID))
+func (a CreateVMMethod) CreateVM(
+	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
+	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
+	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+
+	stemcell, found, err := a.stemcellFinder.Find(stemcellCID)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
 	}
 
 	if !found {
-		return "", bosherr.Errorf("Expected to find stemcell '%s'", stemcellCID)
+		return apiv1.VMCID{}, bosherr.Errorf("Expected to find stemcell '%s'", stemcellCID)
 	}
 
-	vmNetworks := networks.AsVMNetworks()
-	vmEnv := bwcvm.Environment(env)
+	var customCloudProps VMCloudProperties
 
-	vmProps, err := cloudProps.AsVMProps()
+	err = cloudProps.As(&customCloudProps)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Validating 'ports' configuration")
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Parsing VM cloud properties")
 	}
 
-	vm, err := a.vmCreator.Create(agentID, stemcell, vmProps, vmNetworks, vmEnv)
+	vmProps, err := customCloudProps.AsVMProps()
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Validating 'ports' configuration")
 	}
 
-	return VMCID(vm.ID()), nil
+	vm, err := a.vmCreator.Create(agentID, stemcell, vmProps, networks, env)
+	if err != nil {
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
+	}
+
+	return vm.ID(), nil
 }

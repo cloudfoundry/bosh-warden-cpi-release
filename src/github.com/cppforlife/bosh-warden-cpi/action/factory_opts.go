@@ -3,10 +3,11 @@ package action
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	bwcvm "github.com/cppforlife/bosh-warden-cpi/vm"
 )
 
-type ConcreteFactoryOptions struct {
+type FactoryOpts struct {
 	StemcellsDir string
 	DisksDir     string
 
@@ -16,13 +17,13 @@ type ConcreteFactoryOptions struct {
 	GuestEphemeralBindMountPath  string // e.g. /var/vcap/data
 	GuestPersistentBindMountsDir string // e.g. /warden-cpi-dev
 
-	Agent bwcvm.AgentOptions
+	Agent apiv1.AgentOptions
 
 	AgentEnvService string
 	Registry        bwcvm.RegistryOptions
 }
 
-func (o ConcreteFactoryOptions) Validate() error {
+func (o FactoryOpts) Validate() error {
 	if o.StemcellsDir == "" {
 		return bosherr.Error("Must provide non-empty StemcellsDir")
 	}

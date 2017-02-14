@@ -1,11 +1,13 @@
 package fakes
 
 import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+
 	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
 type FakeVM struct {
-	id string
+	id apiv1.VMCID
 
 	DeleteCalled bool
 	DeleteErr    error
@@ -17,11 +19,11 @@ type FakeVM struct {
 	DetachDiskErr  error
 }
 
-func NewFakeVM(id string) *FakeVM {
+func NewFakeVM(id apiv1.VMCID) *FakeVM {
 	return &FakeVM{id: id}
 }
 
-func (vm FakeVM) ID() string { return vm.id }
+func (vm FakeVM) ID() apiv1.VMCID { return vm.id }
 
 func (vm *FakeVM) Delete() error {
 	vm.DeleteCalled = true

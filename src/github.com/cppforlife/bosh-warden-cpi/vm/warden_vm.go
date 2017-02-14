@@ -4,12 +4,13 @@ import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcdisk "github.com/cppforlife/bosh-warden-cpi/disk"
 )
 
 type WardenVM struct {
-	id string
+	id apiv1.VMCID
 
 	wardenClient    wrdnclient.Client
 	agentEnvService AgentEnvService
@@ -24,7 +25,7 @@ type WardenVM struct {
 }
 
 func NewWardenVM(
-	id string,
+	id apiv1.VMCID,
 	wardenClient wrdnclient.Client,
 	agentEnvService AgentEnvService,
 	ports Ports,
@@ -48,11 +49,11 @@ func NewWardenVM(
 	}
 }
 
-func (vm WardenVM) ID() string { return vm.id }
+func (vm WardenVM) ID() apiv1.VMCID { return vm.id }
 
 func (vm WardenVM) Delete() error {
 	if vm.containerExists {
-		err := vm.wardenClient.Destroy(vm.id)
+		err := vm.wardenClient.Destroy(vm.id.AsString())
 		if err != nil {
 			return err
 		}
@@ -93,7 +94,7 @@ func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
 
 	diskHintPath := vm.guestBindMounts.MountPersistent(disk.ID())
 
-	agentEnv = agentEnv.AttachPersistentDisk(disk.ID(), diskHintPath)
+	agentEnv.AttachPersistentDisk(disk.ID(), diskHintPath)
 
 	err = vm.agentEnvService.Update(agentEnv)
 	if err != nil {
@@ -118,7 +119,7 @@ func (vm WardenVM) DetachDisk(disk bwcdisk.Disk) error {
 		return bosherr.WrapError(err, "Unmounting persistent bind mounts dir")
 	}
 
-	agentEnv = agentEnv.DetachPersistentDisk(disk.ID())
+	agentEnv.DetachPersistentDisk(disk.ID())
 
 	err = vm.agentEnvService.Update(agentEnv)
 	if err != nil {

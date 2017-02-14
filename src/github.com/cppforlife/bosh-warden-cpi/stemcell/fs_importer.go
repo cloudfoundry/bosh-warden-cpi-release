@@ -9,6 +9,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type FSImporter struct {
@@ -63,5 +64,5 @@ func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 
 	i.logger.Debug(i.logTag, "Imported stemcell from path '%s'", imagePath)
 
-	return NewFSStemcell(id, stemcellPath, i.fs, i.logger), nil
+	return NewFSStemcell(apiv1.NewStemcellCID(id), stemcellPath, i.fs, i.logger), nil
 }

@@ -1,7 +1,7 @@
 package vm
 
 import (
-	"bytes"
+	gobytes "bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +9,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type registryAgentEnvService struct {
@@ -23,7 +24,7 @@ type registryResp struct {
 
 func NewRegistryAgentEnvService(
 	registryOptions RegistryOptions,
-	instanceID string,
+	instanceID apiv1.VMCID,
 	logger boshlog.Logger,
 ) AgentEnvService {
 	endpoint := fmt.Sprintf(
@@ -32,7 +33,7 @@ func NewRegistryAgentEnvService(
 		registryOptions.Password,
 		registryOptions.Host,
 		registryOptions.Port,
-		instanceID,
+		instanceID.AsString(),
 	)
 	return registryAgentEnvService{
 		endpoint: endpoint,
@@ -41,63 +42,56 @@ func NewRegistryAgentEnvService(
 	}
 }
 
-func (s registryAgentEnvService) Fetch() (AgentEnv, error) {
+func (s registryAgentEnvService) Fetch() (apiv1.AgentEnv, error) {
 	s.logger.Debug(s.logTag, "Fetching agent env from registry endpoint %s", s.endpoint)
 
 	httpClient := http.Client{}
 	httpResponse, err := httpClient.Get(s.endpoint)
 	if err != nil {
-		return AgentEnv{}, bosherr.WrapError(err, "Fetching agent env from registry")
+		return nil, bosherr.WrapError(err, "Fetching agent env from registry")
 	}
 
 	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
-		return AgentEnv{}, bosherr.Errorf("Received non-200 status code when contacting registry: '%d'", httpResponse.StatusCode)
+		return nil, bosherr.Errorf("Received non-200 status code when contacting registry: '%d'", httpResponse.StatusCode)
 	}
 
 	httpBody, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
-		return AgentEnv{}, bosherr.WrapErrorf(err, "Reading response from registry endpoint '%s'", s.endpoint)
+		return nil, bosherr.WrapErrorf(err, "Reading response from registry endpoint '%s'", s.endpoint)
 	}
 
 	var resp registryResp
 
 	err = json.Unmarshal(httpBody, &resp)
 	if err != nil {
-		return AgentEnv{}, bosherr.WrapError(err, "Unmarshalling registry response")
+		return nil, bosherr.WrapError(err, "Unmarshalling registry response")
 	}
 
-	var agentEnv AgentEnv
-
-	err = json.Unmarshal([]byte(resp.Settings), &agentEnv)
+	agentEnv, err := apiv1.AgentEnvFactory{}.FromBytes([]byte(resp.Settings))
 	if err != nil {
-		return AgentEnv{}, bosherr.WrapError(err, "Unmarshalling agent env from registry")
+		return nil, bosherr.WrapError(err, "Unmarshalling agent env from registry")
 	}
-
-	s.logger.Debug(s.logTag, "Received agent env from registry endpoint '%s', contents: '%s'", s.endpoint, httpBody)
 
 	return agentEnv, nil
 }
 
-func (s registryAgentEnvService) Update(agentEnv AgentEnv) error {
-	settingsJSON, err := json.Marshal(agentEnv)
+func (s registryAgentEnvService) Update(agentEnv apiv1.AgentEnv) error {
+	bytes, err := agentEnv.AsBytes()
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling agent env")
 	}
 
-	s.logger.Debug(s.logTag, "Updating registry endpoint '%s' with agent env: '%s'", s.endpoint, settingsJSON)
-
-	putPayload := bytes.NewReader(settingsJSON)
-	request, err := http.NewRequest("PUT", s.endpoint, putPayload)
+	request, err := http.NewRequest("PUT", s.endpoint, gobytes.NewReader(bytes))
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Creating PUT request to update registry at '%s' with settings '%s'", s.endpoint, settingsJSON)
+		return bosherr.WrapErrorf(err, "Creating PUT request to update registry at '%s'", s.endpoint)
 	}
 
 	httpClient := http.Client{}
 	httpResponse, err := httpClient.Do(request)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Updating registry endpoint '%s' with settings: '%s'", s.endpoint, settingsJSON)
+		return bosherr.WrapErrorf(err, "Updating registry endpoint '%s'", s.endpoint)
 	}
 
 	defer httpResponse.Body.Close()

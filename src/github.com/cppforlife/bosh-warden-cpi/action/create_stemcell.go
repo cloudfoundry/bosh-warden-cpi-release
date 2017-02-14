@@ -2,25 +2,24 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
-type CreateStemcell struct {
+type CreateStemcellMethod struct {
 	stemcellImporter bwcstem.Importer
 }
 
-type CreateStemcellCloudProps struct{}
-
-func NewCreateStemcell(stemcellImporter bwcstem.Importer) CreateStemcell {
-	return CreateStemcell{stemcellImporter: stemcellImporter}
+func NewCreateStemcellMethod(stemcellImporter bwcstem.Importer) CreateStemcellMethod {
+	return CreateStemcellMethod{stemcellImporter: stemcellImporter}
 }
 
-func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (StemcellCID, error) {
+func (a CreateStemcellMethod) CreateStemcell(imagePath string, _ apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
 	stemcell, err := a.stemcellImporter.ImportFromPath(imagePath)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
-	return StemcellCID(stemcell.ID()), nil
+	return stemcell.ID(), nil
 }

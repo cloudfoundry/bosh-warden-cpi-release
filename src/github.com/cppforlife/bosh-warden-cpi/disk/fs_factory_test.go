@@ -6,6 +6,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -36,7 +37,7 @@ var _ = Describe("FSFactory", func() {
 			disk, err := factory.Create(40)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedDisk := NewFSDisk("fake-uuid", "/fake-disks-dir/fake-uuid", fs, logger)
+			expectedDisk := NewFSDisk(apiv1.NewDiskCID("fake-uuid"), "/fake-disks-dir/fake-uuid", fs, logger)
 			Expect(disk).To(Equal(expectedDisk))
 		})
 
@@ -168,9 +169,9 @@ var _ = Describe("FSFactory", func() {
 			err := fs.WriteFile("/fake-disks-dir/fake-disk-id", []byte{})
 			Expect(err).ToNot(HaveOccurred())
 
-			disk, err := factory.Find("fake-disk-id")
+			disk, err := factory.Find(apiv1.NewDiskCID("fake-disk-id"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(disk).To(Equal(NewFSDisk("fake-disk-id", "/fake-disks-dir/fake-disk-id", fs, logger)))
+			Expect(disk).To(Equal(NewFSDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-disks-dir/fake-disk-id", fs, logger)))
 		})
 	})
 })

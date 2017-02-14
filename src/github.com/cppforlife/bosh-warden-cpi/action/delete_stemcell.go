@@ -2,30 +2,31 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
-type DeleteStemcell struct {
+type DeleteStemcellMethod struct {
 	stemcellFinder bwcstem.Finder
 }
 
-func NewDeleteStemcell(stemcellFinder bwcstem.Finder) DeleteStemcell {
-	return DeleteStemcell{stemcellFinder: stemcellFinder}
+func NewDeleteStemcellMethod(stemcellFinder bwcstem.Finder) DeleteStemcellMethod {
+	return DeleteStemcellMethod{stemcellFinder: stemcellFinder}
 }
 
-func (a DeleteStemcell) Run(stemcellCID StemcellCID) (interface{}, error) {
-	stemcell, found, err := a.stemcellFinder.Find(string(stemcellCID))
+func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
+	stemcell, found, err := a.stemcellFinder.Find(cid)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
+		return bosherr.WrapErrorf(err, "Finding stemcell '%s'", cid)
 	}
 
 	if found {
 		err := stemcell.Delete()
 		if err != nil {
-			return nil, bosherr.WrapErrorf(err, "Deleting stemcell '%s'", stemcellCID)
+			return bosherr.WrapErrorf(err, "Deleting stemcell '%s'", cid)
 		}
 	}
 
-	return nil, nil
+	return nil
 }

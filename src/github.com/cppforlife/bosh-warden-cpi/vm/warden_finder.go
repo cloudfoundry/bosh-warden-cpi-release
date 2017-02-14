@@ -4,6 +4,7 @@ import (
 	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type WardenFinder struct {
@@ -39,7 +40,7 @@ func NewWardenFinder(
 	}
 }
 
-func (f WardenFinder) Find(id string) (VM, bool, error) {
+func (f WardenFinder) Find(id apiv1.VMCID) (VM, bool, error) {
 	f.logger.Debug(f.logTag, "Finding container with ID '%s'", id)
 
 	// Cannot just use Lookup(id) since we need to differentiate between error and not found
@@ -49,7 +50,7 @@ func (f WardenFinder) Find(id string) (VM, bool, error) {
 	}
 
 	for _, container := range containers {
-		if container.Handle() == id {
+		if container.Handle() == id.AsString() {
 			f.logger.Debug(f.logTag, "Found container with ID '%s'", id)
 
 			wardenFileService := NewWardenFileService(container, f.logger)

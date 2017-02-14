@@ -6,6 +6,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type metadataService struct {
@@ -46,7 +47,7 @@ type MetadataContentsType struct {
 	InstanceID string `json:"instance-id"`
 }
 
-func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID string) error {
+func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID apiv1.VMCID) error {
 	var endpoint string
 
 	if ms.agentEnvService == "registry" {
@@ -72,7 +73,7 @@ func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID 
 		return bosherr.WrapError(err, "Marshalling user data")
 	}
 
-	ms.logger.Debug(ms.logTag, "Saving user data %#v to %s", userDataContents, ms.userDataFilePath)
+	ms.logger.Debug(ms.logTag, "Saving user data to %s", ms.userDataFilePath)
 
 	err = wardenFileService.Upload(ms.userDataFilePath, jsonBytes)
 	if err != nil {
@@ -80,15 +81,13 @@ func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID 
 	}
 
 	metadataContents := MetadataContentsType{
-		InstanceID: instanceID,
+		InstanceID: instanceID.AsString(),
 	}
 
 	jsonBytes, err = json.Marshal(metadataContents)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling metadata")
 	}
-
-	ms.logger.Debug(ms.logTag, "Saving metadata %#v to %s", metadataContents, ms.metadataFilePath)
 
 	err = wardenFileService.Upload(ms.metadataFilePath, jsonBytes)
 	if err != nil {
