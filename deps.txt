@@ -1,4 +1,5 @@
 b8a3500 github.com/bmizerany/pat/.git
+f44a913 github.com/cppforlife/bosh-cpi-go/.git
 bcb196b github.com/cloudfoundry/bosh-utils/.git
 295b3b7 github.com/cloudfoundry-incubator/garden/.git
 39d2c24 github.com/onsi/ginkgo/.git
