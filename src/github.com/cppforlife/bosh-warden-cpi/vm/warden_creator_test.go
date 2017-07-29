@@ -3,9 +3,9 @@ package vm_test
 import (
 	"errors"
 
-	wrdn "github.com/cloudfoundry-incubator/garden"
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
-	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
+	wrdn "code.cloudfoundry.org/garden"
+	wrdnclient "code.cloudfoundry.org/garden/client"
+	fakewrdnconn "code.cloudfoundry.org/garden/client/connection/connectionfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"

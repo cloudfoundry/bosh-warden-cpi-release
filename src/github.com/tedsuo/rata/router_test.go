@@ -158,16 +158,27 @@ var _ = Describe("Router", func() {
 			{Path: "/something", Method: "POST", Name: "poster"},
 			{Path: "/something", Method: "PuT", Name: "putter"},
 			{Path: "/something", Method: "DELETE", Name: "deleter"},
+			{Path: "/something", Method: "OPTIONS", Name: "optioner"},
+			{Path: "/something", Method: "patch", Name: "patcher"},
+			{Path: "/something", Method: "HEAD", Name: "header"},
+			{Path: "/something", Method: "CONNEcT", Name: "connector"},
+			{Path: "/something", Method: "TRACE", Name: "tracer"},
 		}
 
 		Context("when all the handlers are present", func() {
 			var resp *httptest.ResponseRecorder
 			var handlers = rata.Handlers{
-				"getter":  ghttp.RespondWith(http.StatusOK, "get response"),
-				"poster":  ghttp.RespondWith(http.StatusOK, "post response"),
-				"putter":  ghttp.RespondWith(http.StatusOK, "put response"),
-				"deleter": ghttp.RespondWith(http.StatusOK, "delete response"),
+				"getter":    ghttp.RespondWith(http.StatusOK, "get response"),
+				"poster":    ghttp.RespondWith(http.StatusOK, "post response"),
+				"putter":    ghttp.RespondWith(http.StatusOK, "put response"),
+				"deleter":   ghttp.RespondWith(http.StatusOK, "delete response"),
+				"optioner":  ghttp.RespondWith(http.StatusOK, "options response"),
+				"patcher":   ghttp.RespondWith(http.StatusOK, "patch response"),
+				"header":    ghttp.RespondWith(http.StatusOK, "head response"),
+				"connector": ghttp.RespondWith(http.StatusOK, "connect response"),
+				"tracer":    ghttp.RespondWith(http.StatusOK, "trace response"),
 			}
+
 			BeforeEach(func() {
 				resp = httptest.NewRecorder()
 				r, err = rata.NewRouter(routes, handlers)
@@ -175,31 +186,75 @@ var _ = Describe("Router", func() {
 			})
 
 			It("makes GET handlers", func() {
-				req, _ := http.NewRequest("GET", "/something", nil)
+				req, err := http.NewRequest("GET", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
 
 				r.ServeHTTP(resp, req)
 				Ω(resp.Body.String()).Should(Equal("get response"))
 			})
 
 			It("makes POST handlers", func() {
-				req, _ := http.NewRequest("POST", "/something", nil)
+				req, err := http.NewRequest("POST", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
 
 				r.ServeHTTP(resp, req)
 				Ω(resp.Body.String()).Should(Equal("post response"))
 			})
 
 			It("makes PUT handlers", func() {
-				req, _ := http.NewRequest("PUT", "/something", nil)
+				req, err := http.NewRequest("PUT", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
 
 				r.ServeHTTP(resp, req)
 				Ω(resp.Body.String()).Should(Equal("put response"))
 			})
 
 			It("makes DELETE handlers", func() {
-				req, _ := http.NewRequest("DELETE", "/something", nil)
+				req, err := http.NewRequest("DELETE", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
 
 				r.ServeHTTP(resp, req)
 				Ω(resp.Body.String()).Should(Equal("delete response"))
+			})
+
+			It("makes OPTIONS handlers", func() {
+				req, err := http.NewRequest("OPTIONS", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				r.ServeHTTP(resp, req)
+				Ω(resp.Body.String()).Should(Equal("options response"))
+			})
+
+			It("makes PATCH handlers", func() {
+				req, err := http.NewRequest("PATCH", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				r.ServeHTTP(resp, req)
+				Ω(resp.Body.String()).Should(Equal("patch response"))
+			})
+
+			It("makes HEAD handlers", func() {
+				req, err := http.NewRequest("HEAD", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				r.ServeHTTP(resp, req)
+				Ω(resp.Body.String()).Should(Equal("head response"))
+			})
+
+			It("makes CONNECT handlers", func() {
+				req, err := http.NewRequest("CONNECT", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				r.ServeHTTP(resp, req)
+				Ω(resp.Body.String()).Should(Equal("connect response"))
+			})
+
+			It("makes TRACE handlers", func() {
+				req, err := http.NewRequest("TRACE", "/something", nil)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				r.ServeHTTP(resp, req)
+				Ω(resp.Body.String()).Should(Equal("trace response"))
 			})
 		})
 
@@ -275,7 +330,8 @@ var _ = Describe("Router", func() {
 				})
 
 				It("the path param takes precedence", func() {
-					req, _ := http.NewRequest("GET", "/something/the-param-value?:neato=the-query-value", nil)
+					req, err := http.NewRequest("GET", "/something/the-param-value?:neato=the-query-value", nil)
+					Ω(err).ShouldNot(HaveOccurred())
 
 					r.ServeHTTP(resp, req)
 					Ω(resp.Body.String()).Should(Equal("the-param-value"))

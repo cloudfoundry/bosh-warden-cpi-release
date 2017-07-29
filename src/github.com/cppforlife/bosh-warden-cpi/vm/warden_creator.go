@@ -1,7 +1,7 @@
 package vm
 
 import (
-	wrdn "github.com/cloudfoundry-incubator/garden"
+	wrdn "code.cloudfoundry.org/garden"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -210,6 +210,6 @@ func (c WardenCreator) cleanUpContainer(container wrdn.Container) {
 	// false is to kill immediately
 	err := container.Stop(false)
 	if err != nil {
-		c.logger.Error("WardenCreator", "Failed destroying container '%s': %s", container.Handle, err.Error())
+		c.logger.Error("WardenCreator", "Failed destroying container '%s': %s", container.Handle(), err.Error())
 	}
 }

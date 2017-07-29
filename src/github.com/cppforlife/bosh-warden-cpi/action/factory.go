@@ -1,7 +1,7 @@
 package action
 
 import (
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	wrdnclient "code.cloudfoundry.org/garden/client"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"

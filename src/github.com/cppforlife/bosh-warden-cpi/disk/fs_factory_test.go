@@ -79,7 +79,9 @@ var _ = Describe("FSFactory", func() {
 
 					Context("when deleting file fails", func() {
 						BeforeEach(func() {
-							fs.RemoveAllError = errors.New("fake-remove-all-err")
+							fs.RemoveAllStub = func(string) error {
+								return errors.New("fake-remove-all-err")
+							}
 						})
 
 						It("returns running error and not destroy error", func() {

@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-utils/internal/github.com/pivotal-golang/clock/fakeclock"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock/fakeclock"
 
 	. "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
@@ -47,11 +47,12 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 				})
 				// deadline between 2nd and 3rd attempts
 				delay := 10 * time.Second
-				timeoutRetryStrategy := NewTimeoutRetryStrategy(29*time.Second, delay, retryable, fakeTimeService, logger)
+				timeoutRetryStrategy := NewTimeoutRetryStrategy(25*time.Second, delay, retryable, fakeTimeService, logger)
 
 				doneChan := incrementSleepInBackground(fakeTimeService, delay)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
+				Expect(fakeTimeService.WatcherCount()).To(Equal(0))
 
 				Expect(err.Error()).To(ContainSubstring("third-error"))
 				Expect(retryable.Attempts).To(Equal(3))
@@ -79,6 +80,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 				doneChan := incrementSleepInBackground(fakeTimeService, delay)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
+				Expect(fakeTimeService.WatcherCount()).To(Equal(0))
 
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("second-error"))
@@ -103,6 +105,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 				doneChan := incrementSleepInBackground(fakeTimeService, time.Second)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
+				Expect(fakeTimeService.WatcherCount()).To(Equal(0))
 
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("second-error"))
@@ -122,6 +125,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 				doneChan := incrementSleepInBackground(fakeTimeService, time.Second)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
+				Expect(fakeTimeService.WatcherCount()).To(Equal(0))
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(retryable.Attempts).To(Equal(1))
@@ -140,7 +144,6 @@ func incrementSleepInBackground(fakeTimeService *fakeclock.FakeClock, delay time
 			default:
 				if fakeTimeService.WatcherCount() > 0 {
 					fakeTimeService.Increment(delay)
-					Eventually(fakeTimeService.WatcherCount).Should(Equal(0))
 				}
 			}
 		}

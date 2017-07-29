@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
-	wrdnconn "github.com/cloudfoundry-incubator/garden/client/connection"
+	wrdnclient "code.cloudfoundry.org/garden/client"
+	wrdnconn "code.cloudfoundry.org/garden/client/connection"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
