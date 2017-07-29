@@ -2,6 +2,7 @@ package vm_test
 
 import (
 	"errors"
+	"strings"
 
 	wrdn "code.cloudfoundry.org/garden"
 	wrdnclient "code.cloudfoundry.org/garden/client"
@@ -312,8 +313,19 @@ var _ = Describe("WardenCreator", func() {
 						Expect(count).To(Equal(1))
 
 						expectedProcessSpec := wrdn.ProcessSpec{
-							Path: "/usr/sbin/runsvdir-start",
+							Path: "/bin/bash",
 							User: "root",
+							Args: []string{
+								"-c",
+								strings.Join([]string{
+									"umount /etc/resolv.conf",
+									"umount /etc/hosts",
+									"umount /etc/hostname",
+									"rm -rf /var/vcap/data/sys",
+									"mkdir -p /var/vcap/data/sys",
+									"exec env -i /usr/sbin/runsvdir-start",
+								}, "\n"),
+							},
 						}
 
 						handle, processSpec, processIO := wardenConn.RunArgsForCall(0)

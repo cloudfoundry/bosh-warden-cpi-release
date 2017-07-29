@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"strings"
+
 	wrdn "code.cloudfoundry.org/garden"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -193,8 +195,19 @@ func (c WardenCreator) makeHostBindMounts(id apiv1.VMCID) (string, string, error
 
 func (c WardenCreator) startAgentInContainer(container wrdn.Container) error {
 	processSpec := wrdn.ProcessSpec{
-		Path: "/usr/sbin/runsvdir-start",
+		Path: "/bin/bash",
 		User: "root",
+		Args: []string{
+			"-c",
+			strings.Join([]string{
+				"umount /etc/resolv.conf",
+				"umount /etc/hosts",
+				"umount /etc/hostname",
+				"rm -rf /var/vcap/data/sys",
+				"mkdir -p /var/vcap/data/sys",
+				"exec env -i /usr/sbin/runsvdir-start",
+			}, "\n"),
+		},
 	}
 
 	// Do not Wait() for the process to finish
