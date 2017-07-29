@@ -13,6 +13,7 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/rpc"
 
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
+	"github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 var (
@@ -35,9 +36,10 @@ func main() {
 	wardenClient := wrdnclient.New(wardenConn)
 
 	compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
+	decompressor := util.NewTarDecompressor(fs, compressor)
 
 	cpiFactory := bwcaction.NewFactory(
-		wardenClient, fs, cmdRunner, uuidGen, compressor, config.Actions, logger)
+		wardenClient, fs, cmdRunner, uuidGen, decompressor, config.Actions, logger)
 
 	cli := rpc.NewFactory(logger).NewCLI(cpiFactory)
 

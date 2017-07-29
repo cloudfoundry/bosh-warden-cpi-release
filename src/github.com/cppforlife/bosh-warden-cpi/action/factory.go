@@ -2,7 +2,6 @@ package action
 
 import (
 	wrdnclient "code.cloudfoundry.org/garden/client"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -50,12 +49,12 @@ func NewFactory(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
 	uuidGen boshuuid.Generator,
-	compressor boshcmd.Compressor,
+	decompressor bwcutil.Decompressor,
 	opts FactoryOpts,
 	logger boshlog.Logger,
 ) Factory {
 	stemcellImporter := bwcstem.NewFSImporter(
-		opts.StemcellsDir, fs, uuidGen, compressor, logger)
+		opts.StemcellsDir, fs, uuidGen, decompressor, logger)
 
 	stemcellFinder := bwcstem.NewFSFinder(opts.StemcellsDir, fs, logger)
 

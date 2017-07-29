@@ -3,8 +3,6 @@ package stemcell_test
 import (
 	"errors"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
@@ -13,23 +11,24 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cppforlife/bosh-warden-cpi/stemcell"
+	"github.com/cppforlife/bosh-warden-cpi/stemcell/fakes"
 )
 
 var _ = Describe("FSImporter", func() {
 	var (
-		fs         *fakesys.FakeFileSystem
-		uuidGen    *fakeuuid.FakeGenerator
-		compressor *fakecmd.FakeCompressor
-		logger     boshlog.Logger
-		importer   FSImporter
+		fs           *fakesys.FakeFileSystem
+		uuidGen      *fakeuuid.FakeGenerator
+		decompressor *fakes.FakeDecompressor
+		logger       boshlog.Logger
+		importer     FSImporter
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		uuidGen = &fakeuuid.FakeGenerator{}
-		compressor = fakecmd.NewFakeCompressor()
+		decompressor = &fakes.FakeDecompressor{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		importer = NewFSImporter("/fake-collection-dir", fs, uuidGen, compressor, logger)
+		importer = NewFSImporter("/fake-collection-dir", fs, uuidGen, decompressor, logger)
 	})
 
 	Describe("ImportFromPath", func() {
@@ -53,39 +52,18 @@ var _ = Describe("FSImporter", func() {
 			Expect(stemcell).To(BeNil())
 		})
 
-		It("creates directory in collection directory that will contain unpacked stemcell", func() {
-			uuidGen.GeneratedUUID = "fake-uuid"
-
-			_, err := importer.ImportFromPath("/fake-image-path")
-			Expect(err).ToNot(HaveOccurred())
-
-			unpackDirStat := fs.GetFileTestStat("/fake-collection-dir/fake-uuid")
-			Expect(unpackDirStat.FileType).To(Equal(fakesys.FakeFileTypeDir))
-			Expect(int(unpackDirStat.FileMode)).To(Equal(0755)) // todo
-		})
-
-		It("returns error if creating directory that will contain unpacked stemcell fails", func() {
-			fs.MkdirAllError = errors.New("fake-mkdir-all-err")
-
-			stemcell, err := importer.ImportFromPath("/fake-image-path")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-mkdir-all-err"))
-			Expect(stemcell).To(BeNil())
-		})
-
 		It("unpacks stemcell into directory that will contain this unpacked stemcell", func() {
 			uuidGen.GeneratedUUID = "fake-uuid"
 
 			_, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(compressor.DecompressFileToDirTarballPaths[0]).To(Equal("/fake-image-path"))
-			Expect(compressor.DecompressFileToDirDirs[0]).To(Equal("/fake-collection-dir/fake-uuid"))
-			Expect(compressor.DecompressFileToDirOptions[0]).To(Equal(boshcmd.CompressorOptions{SameOwner: true}))
+			Expect(decompressor.DecompressSrcForCall[0]).To(Equal("/fake-image-path"))
+			Expect(decompressor.DecompressDstForCall[0]).To(Equal("/fake-collection-dir/fake-uuid"))
 		})
 
 		It("returns error if unpacking stemcell fails", func() {
-			compressor.DecompressFileToDirErr = errors.New("fake-decompress-error")
+			decompressor.DecompressError = errors.New("fake-decompress-error")
 
 			stemcell, err := importer.ImportFromPath("/fake-image-path")
 			Expect(err).To(HaveOccurred())
