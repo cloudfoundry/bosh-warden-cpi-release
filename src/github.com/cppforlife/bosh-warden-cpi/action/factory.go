@@ -2,6 +2,7 @@ package action
 
 import (
 	wrdnclient "code.cloudfoundry.org/garden/client"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -49,10 +50,17 @@ func NewFactory(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
 	uuidGen boshuuid.Generator,
-	decompressor bwcutil.Decompressor,
 	opts FactoryOpts,
 	logger boshlog.Logger,
 ) Factory {
+	var decompressor bwcutil.Decompressor
+	if opts.ExpandStemcellTarball {
+		compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
+		decompressor = bwcutil.NewTarDecompressor(fs, compressor)
+	} else {
+		decompressor = bwcutil.NewGzipDecompressor(fs, cmdRunner)
+	}
+
 	stemcellImporter := bwcstem.NewFSImporter(
 		opts.StemcellsDir, fs, uuidGen, decompressor, logger)
 

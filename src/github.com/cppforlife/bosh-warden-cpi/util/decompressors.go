@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"os"
 
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -30,4 +31,33 @@ func (d TarDecompressor) Decompress(src, dest string) error {
 	}
 
 	return d.compressor.DecompressFileToDir(src, dest, boshcmd.CompressorOptions{SameOwner: true})
+}
+
+type GzipDecompressor struct {
+	fs        boshsys.FileSystem
+	cmdRunner boshsys.CmdRunner
+}
+
+func NewGzipDecompressor(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner) GzipDecompressor {
+	return GzipDecompressor{
+		fs:        fs,
+		cmdRunner: cmdRunner,
+	}
+}
+
+func (d GzipDecompressor) Decompress(src, dest string) error {
+	err := d.fs.CopyFile(src, dest+".gz")
+	if err != nil {
+		return err
+	}
+
+	stdout, stderr, exitStatus, err := d.cmdRunner.RunCommand("gunzip", dest+".gz")
+	if err != nil {
+		return err
+	}
+	if exitStatus != 0 {
+		return fmt.Errorf("gunzip exited non-zero: exit status %d stdout: %s, stderr: %s", exitStatus, stdout, stderr)
+	}
+
+	return nil
 }

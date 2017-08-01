@@ -61,3 +61,68 @@ var _ = Describe("TarDecompressor", func() {
 		})
 	})
 })
+
+var _ = Describe("GzipDecompressor", func() {
+	var (
+		fs           *fakesys.FakeFileSystem
+		cmdRunner    *fakesys.FakeCmdRunner
+		decompressor util.GzipDecompressor
+	)
+
+	BeforeEach(func() {
+		fs = fakesys.NewFakeFileSystem()
+		cmdRunner = fakesys.NewFakeCmdRunner()
+		decompressor = util.NewGzipDecompressor(fs, cmdRunner)
+
+		fs.WriteFileString("src", "content")
+	})
+
+	Describe("Decompress", func() {
+		It("copies the file over to be gunzipped", func() {
+			cmdRunner.AddCmdResult("gunzip dst.gz", fakesys.FakeCmdResult{})
+			err := decompressor.Decompress("src", "dst")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.CopyFileCallCount).To(Equal(1))
+			Expect(fs.FileExists("dst.gz")).To(BeTrue())
+
+			contents, err := fs.ReadFileString("dst.gz")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(contents).To(Equal("content"))
+		})
+
+		It("unpacks the destination", func() {
+			cmdRunner.AddCmdResult("gunzip dst.gz", fakesys.FakeCmdResult{})
+			err := decompressor.Decompress("src", "dst")
+			Expect(err).ToNot(HaveOccurred())
+
+			cmd := cmdRunner.RunCommands[0]
+			Expect(cmd[0]).To(Equal("gunzip"))
+			Expect(cmd[1]).To(Equal("dst.gz"))
+		})
+
+		It("returns an error when copying fails", func() {
+			fs.CopyFileError = errors.New("no copying")
+
+			err := decompressor.Decompress("src", "dst")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("no copying"))
+		})
+
+		It("returns an error when gunzipping fails", func() {
+			cmdRunner.AddCmdResult("gunzip dst.gz", fakesys.FakeCmdResult{Error: errors.New("no gunzipping")})
+
+			err := decompressor.Decompress("src", "dst")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("no gunzipping"))
+		})
+
+		It("returns an error when gunzipping exits non-zero", func() {
+			cmdRunner.AddCmdResult("gunzip dst.gz", fakesys.FakeCmdResult{Stdout: "out", Stderr: "err", ExitStatus: 123})
+
+			err := decompressor.Decompress("src", "dst")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("gunzip exited non-zero: exit status 123 stdout: out, stderr: err"))
+		})
+	})
+})

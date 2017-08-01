@@ -6,14 +6,12 @@ import (
 
 	wrdnclient "code.cloudfoundry.org/garden/client"
 	wrdnconn "code.cloudfoundry.org/garden/client/connection"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/bosh-cpi-go/rpc"
 
 	bwcaction "github.com/cppforlife/bosh-warden-cpi/action"
-	"github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 var (
@@ -35,11 +33,8 @@ func main() {
 	wardenConn := wrdnconn.New(config.Warden.ConnectNetwork, config.Warden.ConnectAddress)
 	wardenClient := wrdnclient.New(wardenConn)
 
-	compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
-	decompressor := util.NewTarDecompressor(fs, compressor)
-
 	cpiFactory := bwcaction.NewFactory(
-		wardenClient, fs, cmdRunner, uuidGen, decompressor, config.Actions, logger)
+		wardenClient, fs, cmdRunner, uuidGen, config.Actions, logger)
 
 	cli := rpc.NewFactory(logger).NewCLI(cpiFactory)
 

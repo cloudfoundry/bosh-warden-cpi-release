@@ -51,6 +51,10 @@ properties:
     description: "Directory where stemcells are stored"
     default: "/var/vcap/store/warden_cpi/stemcells"
 
+  warden_cpi.actions.expand_stemcell_tarball:
+    description: "Wether or not to untar stemcells, setting this to false simply gunzips it, enabling the CPI to be used with GrootFS"
+    default: true
+
   warden_cpi.actions.disks_dir:
     description: "Directory where disks are stored"
     default: "/var/vcap/store/warden_cpi/disks"
