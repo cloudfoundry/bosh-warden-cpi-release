@@ -2,6 +2,7 @@ package stemcell_test
 
 import (
 	"errors"
+	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -32,6 +33,19 @@ var _ = Describe("FSImporter", func() {
 	})
 
 	Describe("ImportFromPath", func() {
+		It("makes the directory in which to unpack the stemcell", func() {
+			uuidGen.GeneratedUUID = "fake-uuid"
+
+			_, err := importer.ImportFromPath("/fake-image-path")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.FileExists("/fake-collection-dir")).To(BeTrue())
+
+			stat, err := fs.Stat("/fake-collection-dir")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stat.Mode()).To(Equal(os.FileMode(0755)))
+		})
+
 		It("returns unique stemcell id", func() {
 			uuidGen.GeneratedUUID = "fake-uuid"
 
@@ -60,6 +74,15 @@ var _ = Describe("FSImporter", func() {
 
 			Expect(decompressor.DecompressSrcForCall[0]).To(Equal("/fake-image-path"))
 			Expect(decompressor.DecompressDstForCall[0]).To(Equal("/fake-collection-dir/fake-uuid"))
+		})
+
+		It("returns error if creating directory fails", func() {
+			fs.MkdirAllError = errors.New("fake-mkdir-all-error")
+
+			stemcell, err := importer.ImportFromPath("/fake-image-path")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-mkdir-all-error"))
+			Expect(stemcell).To(BeNil())
 		})
 
 		It("returns error if unpacking stemcell fails", func() {

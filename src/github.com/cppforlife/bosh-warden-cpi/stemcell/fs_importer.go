@@ -1,6 +1,7 @@
 package stemcell
 
 import (
+	"os"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -47,6 +48,11 @@ func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 	id, err := i.uuidGen.Generate()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Generating stemcell id")
+	}
+
+	err = i.fs.MkdirAll(i.dirPath, os.FileMode(0755))
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Creating directory '%s'", i.dirPath)
 	}
 
 	stemcellPath := filepath.Join(i.dirPath, id)
