@@ -1,7 +1,7 @@
 package vm
 
 import (
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
+	wrdnclient "code.cloudfoundry.org/garden/client"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"

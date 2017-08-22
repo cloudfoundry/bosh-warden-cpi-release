@@ -5,19 +5,19 @@ import (
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 type FSImporter struct {
 	dirPath string
 
-	fs         boshsys.FileSystem
-	uuidGen    boshuuid.Generator
-	compressor boshcmd.Compressor
+	fs           boshsys.FileSystem
+	uuidGen      boshuuid.Generator
+	decompressor util.Decompressor
 
 	logTag string
 	logger boshlog.Logger
@@ -27,15 +27,15 @@ func NewFSImporter(
 	dirPath string,
 	fs boshsys.FileSystem,
 	uuidGen boshuuid.Generator,
-	compressor boshcmd.Compressor,
+	decompressor util.Decompressor,
 	logger boshlog.Logger,
 ) FSImporter {
 	return FSImporter{
 		dirPath: dirPath,
 
-		fs:         fs,
-		uuidGen:    uuidGen,
-		compressor: compressor,
+		fs:           fs,
+		uuidGen:      uuidGen,
+		decompressor: decompressor,
 
 		logTag: "FSImporter",
 		logger: logger,
@@ -50,14 +50,14 @@ func (i FSImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 		return nil, bosherr.WrapError(err, "Generating stemcell id")
 	}
 
-	stemcellPath := filepath.Join(i.dirPath, id)
-
-	err = i.fs.MkdirAll(stemcellPath, os.FileMode(0755))
+	err = i.fs.MkdirAll(i.dirPath, os.FileMode(0755))
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Creating stemcell directory '%s'", stemcellPath)
+		return nil, bosherr.WrapErrorf(err, "Creating directory '%s'", i.dirPath)
 	}
 
-	err = i.compressor.DecompressFileToDir(imagePath, stemcellPath, boshcmd.CompressorOptions{SameOwner: true})
+	stemcellPath := filepath.Join(i.dirPath, id)
+
+	err = i.decompressor.Decompress(imagePath, stemcellPath)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Unpacking stemcell '%s' to '%s'", imagePath, stemcellPath)
 	}

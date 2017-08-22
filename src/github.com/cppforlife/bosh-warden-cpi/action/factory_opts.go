@@ -8,8 +8,9 @@ import (
 )
 
 type FactoryOpts struct {
-	StemcellsDir string
-	DisksDir     string
+	StemcellsDir          string
+	ExpandStemcellTarball bool
+	DisksDir              string
 
 	HostEphemeralBindMountsDir  string // e.g. /var/vcap/store/ephemeral_disks
 	HostPersistentBindMountsDir string // e.g. /var/vcap/store/persistent_disks

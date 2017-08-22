@@ -10,10 +10,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	wrdn "github.com/cloudfoundry-incubator/garden"
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
-	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
-	fakewrdn "github.com/cloudfoundry-incubator/garden/fakes"
+	wrdn "code.cloudfoundry.org/garden"
+	wrdnclient "code.cloudfoundry.org/garden/client"
+	fakewrdnconn "code.cloudfoundry.org/garden/client/connection/connectionfakes"
+	fakewrdn "code.cloudfoundry.org/garden/gardenfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cppforlife/bosh-warden-cpi/vm"

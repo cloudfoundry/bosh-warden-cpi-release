@@ -71,7 +71,9 @@ var _ = Describe("FSHostBindMounts", func() {
 		})
 
 		It("returns error if deleting directory fails", func() {
-			fs.RemoveAllError = errors.New("fake-remove-all-err")
+			fs.RemoveAllStub = func(string) error {
+				return errors.New("fake-remove-all-err")
+			}
 
 			err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
 			Expect(err).To(HaveOccurred())
@@ -231,7 +233,9 @@ var _ = Describe("FSHostBindMounts", func() {
 				})
 
 				It("returns error if deleting directory fails", func() {
-					fs.RemoveAllError = errors.New("fake-remove-all-err")
+					fs.RemoveAllStub = func(string) error {
+						return errors.New("fake-remove-all-err")
+					}
 
 					err := hostBindMounts.DeletePersistent(apiv1.NewVMCID("fake-id"))
 					Expect(err).To(HaveOccurred())

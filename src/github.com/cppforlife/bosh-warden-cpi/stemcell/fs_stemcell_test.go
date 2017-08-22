@@ -38,7 +38,9 @@ var _ = Describe("FSImporter", func() {
 		})
 
 		It("returns error if deleting stemcell directory fails", func() {
-			fs.RemoveAllError = errors.New("fake-remove-all-err")
+			fs.RemoveAllStub = func(string) error {
+				return errors.New("fake-remove-all-err")
+			}
 
 			err := stemcell.Delete()
 			Expect(err).To(HaveOccurred())

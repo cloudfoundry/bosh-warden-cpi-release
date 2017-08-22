@@ -2,10 +2,11 @@ package vm_test
 
 import (
 	"errors"
+	"strings"
 
-	wrdn "github.com/cloudfoundry-incubator/garden"
-	wrdnclient "github.com/cloudfoundry-incubator/garden/client"
-	fakewrdnconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
+	wrdn "code.cloudfoundry.org/garden"
+	wrdnclient "code.cloudfoundry.org/garden/client"
+	fakewrdnconn "code.cloudfoundry.org/garden/client/connection/connectionfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
@@ -312,8 +313,19 @@ var _ = Describe("WardenCreator", func() {
 						Expect(count).To(Equal(1))
 
 						expectedProcessSpec := wrdn.ProcessSpec{
-							Path: "/usr/sbin/runsvdir-start",
+							Path: "/bin/bash",
 							User: "root",
+							Args: []string{
+								"-c",
+								strings.Join([]string{
+									"umount /etc/resolv.conf",
+									"umount /etc/hosts",
+									"umount /etc/hostname",
+									"rm -rf /var/vcap/data/sys",
+									"mkdir -p /var/vcap/data/sys",
+									"exec env -i /usr/sbin/runsvdir-start",
+								}, "\n"),
+							},
 						}
 
 						handle, processSpec, processIO := wardenConn.RunArgsForCall(0)

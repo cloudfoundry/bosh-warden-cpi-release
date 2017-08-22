@@ -36,7 +36,9 @@ var _ = Describe("FSDisk", func() {
 		})
 
 		It("returns error if deleting path fails", func() {
-			fs.RemoveAllError = errors.New("fake-remove-all-err")
+			fs.RemoveAllStub = func(string) error {
+				return errors.New("fake-remove-all-err")
+			}
 
 			err := disk.Delete()
 			Expect(err).To(HaveOccurred())
