@@ -1,14 +1,12 @@
 set -e -x
 
 if [ -z "$BOSH_PACKAGES_DIR" ]; then
-	pkg_dir=$(readlink -nf /var/vcap/packages/golang_1.7)
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1.8-linux)
 else
-	pkg_dir=$BOSH_PACKAGES_DIR/golang_1.7
+	pkg_dir=$BOSH_PACKAGES_DIR/golang-1.8-linux
 fi
 
-export GOROOT=$pkg_dir
-export GOPATH=$PWD
-export PATH=$GOROOT/bin:$PATH
+source ${pkg_dir}/bosh/compile.env
 
 mkdir ../src && cp -a * ../src/ && mv ../src ./src
 
