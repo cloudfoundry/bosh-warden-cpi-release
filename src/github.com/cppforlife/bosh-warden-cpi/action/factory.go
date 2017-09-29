@@ -66,8 +66,9 @@ func NewFactory(
 
 	stemcellFinder := bwcstem.NewFSFinder(opts.StemcellsDir, fs, logger)
 
-	ports := bwcvm.NewIPTablesPorts(cmdRunner)
 	sleeper := bwcutil.RealSleeper{}
+
+	ports := bwcvm.NewIPTablesPorts(sleeper, cmdRunner)
 
 	hostBindMounts := bwcvm.NewFSHostBindMounts(
 		opts.HostEphemeralBindMountsDir, opts.HostPersistentBindMountsDir,

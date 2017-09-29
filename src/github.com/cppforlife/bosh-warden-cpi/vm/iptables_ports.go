@@ -4,18 +4,22 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
+
+	bwcutil "github.com/cppforlife/bosh-warden-cpi/util"
 )
 
 type IPTablesPorts struct {
+	sleeper   bwcutil.Sleeper
 	cmdRunner boshsys.CmdRunner
 }
 
-func NewIPTablesPorts(cmdRunner boshsys.CmdRunner) IPTablesPorts {
-	return IPTablesPorts{cmdRunner}
+func NewIPTablesPorts(sleeper bwcutil.Sleeper, cmdRunner boshsys.CmdRunner) IPTablesPorts {
+	return IPTablesPorts{sleeper, cmdRunner}
 }
 
 func (p IPTablesPorts) Forward(id apiv1.VMCID, containerIP string, mappings []PortMapping) error {
@@ -84,5 +88,18 @@ func (IPTablesPorts) fmtPortRange(portRange PortRange, delim string) string {
 func (p IPTablesPorts) runCmd(action string, args []string) (string, string, int, error) {
 	globalArgs := []string{"-w", "-t", "nat", action}
 	globalArgs = append(globalArgs, args...)
-	return p.cmdRunner.RunCommand("iptables", globalArgs...)
+
+	for i := 0; i < 60; i++ {
+		stdout, stderr, code, err := p.cmdRunner.RunCommand("iptables", globalArgs...)
+		if err != nil {
+			if strings.Contains(stderr, "Resource temporarily unavailable") {
+				p.sleeper.Sleep(500 * time.Millisecond)
+				continue
+			}
+		}
+
+		return stdout, stderr, code, err
+	}
+
+	return "", "", 0, bosherr.Errorf("Failed to add iptables rule")
 }
