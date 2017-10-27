@@ -55,13 +55,34 @@ func (hbm FSHostBindMounts) MakeEphemeral(id apiv1.VMCID) (string, error) {
 		return "", bosherr.WrapError(err, "Making ephemeral bind mount")
 	}
 
+	mountArgss := [][]string{
+		[]string{"--bind", path, path},
+		[]string{"--make-private", path},
+	}
+
+	for _, mountArgs := range mountArgss {
+		_, _, _, err = hbm.cmdRunner.RunCommand("mount", mountArgs...)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	return path, nil
 }
 
 func (hbm FSHostBindMounts) DeleteEphemeral(id apiv1.VMCID) error {
 	path := filepath.Join(hbm.ephemeralBindMountsDir, id.AsString())
 
-	err := hbm.deletePath(path)
+	if !hbm.fs.FileExists(path) {
+		return nil
+	}
+
+	_, _, _, err := hbm.cmdRunner.RunCommand("umount", path)
+	if err != nil && !strings.Contains(err.Error(), "not mounted") {
+		return err
+	}
+
+	err = hbm.deletePath(path)
 	if err != nil {
 		return bosherr.WrapError(err, "Removing ephemeral bind mount")
 	}

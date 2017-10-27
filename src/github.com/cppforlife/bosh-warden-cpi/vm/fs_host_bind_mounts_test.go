@@ -57,27 +57,134 @@ var _ = Describe("FSHostBindMounts", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-mkdir-all-err"))
 			Expect(path).To(Equal(""))
 		})
+
+		Context("when creating directory succeeds", func() {
+			It("makes the bind mount point private", func() {
+				_, err := hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(cmdRunner.RunCommands).To(Equal([][]string{
+					[]string{
+						"mount", "--bind",
+						"/fake-ephemeral-dir/fake-id",
+						"/fake-ephemeral-dir/fake-id",
+					},
+					[]string{
+						"mount", "--make-private",
+						"/fake-ephemeral-dir/fake-id",
+					},
+				}))
+			})
+
+			Context("when making bind point private fails", func() {
+				It("returns error if --bind fails", func() {
+					cmdRunner.AddCmdResult(
+						"mount --bind /fake-ephemeral-dir/fake-id /fake-ephemeral-dir/fake-id",
+						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
+					)
+
+					_, err := hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-run-err"))
+				})
+
+				It("returns error if --make-private fails", func() {
+					cmdRunner.AddCmdResult(
+						"mount --make-private /fake-ephemeral-dir/fake-id",
+						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
+					)
+
+					_, err := hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-run-err"))
+				})
+			})
+		})
 	})
 
 	Describe("DeleteEphemeral", func() {
-		It("deletes directory for requested id", func() {
-			path, err := hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
-			Expect(err).ToNot(HaveOccurred())
+		Context("when directory for requested id exists", func() {
+			var (
+				path string
+			)
 
-			err = hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
-			Expect(err).ToNot(HaveOccurred())
+			BeforeEach(func() {
+				var err error
 
-			Expect(fs.FileExists(path)).To(BeFalse())
+				path, err = hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			Context("when unmounting directory succeeds", func() {
+				It("deletes directory for requested id", func() {
+					err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fs.FileExists(path)).To(BeFalse())
+				})
+
+				It("returns error if deleting directory fails", func() {
+					fs.RemoveAllStub = func(string) error {
+						return errors.New("fake-remove-all-err")
+					}
+
+					err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-remove-all-err"))
+				})
+			})
+
+			Context("when unmounting fails because it is not mounted", func() {
+				BeforeEach(func() {
+					cmdRunner.AddCmdResult(
+						"umount /fake-ephemeral-dir/fake-id",
+						fakesys.FakeCmdResult{Error: errors.New("not mounted")},
+					)
+				})
+
+				It("deletes directory for requested id", func() {
+					err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fs.FileExists(path)).To(BeFalse())
+				})
+			})
+
+			Context("when unmounting directory fails", func() {
+				BeforeEach(func() {
+					cmdRunner.AddCmdResult(
+						"umount /fake-ephemeral-dir/fake-id",
+						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
+					)
+				})
+
+				It("returns error", func() {
+					err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-run-err"))
+				})
+
+				It("does not delete directory because unmounting failed", func() {
+					err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+					Expect(err).To(HaveOccurred())
+
+					Expect(fs.FileExists(path)).To(BeTrue())
+				})
+			})
 		})
 
-		It("returns error if deleting directory fails", func() {
-			fs.RemoveAllStub = func(string) error {
-				return errors.New("fake-remove-all-err")
-			}
+		Context("when directory for requested id does not exist", func() {
+			It("does not return error", func() {
+				err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+				Expect(err).ToNot(HaveOccurred())
+			})
 
-			err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-remove-all-err"))
+			It("does not unmount directory", func() {
+				err := hostBindMounts.DeleteEphemeral(apiv1.NewVMCID("fake-id"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(cmdRunner.RunCommands).To(BeEmpty())
+			})
 		})
 	})
 
