@@ -12,6 +12,7 @@ type Disks interface {
 
 type DiskCloudProps interface {
 	As(interface{}) error
+	_final() // interface unimplementable from outside
 }
 
 type DiskCID struct {

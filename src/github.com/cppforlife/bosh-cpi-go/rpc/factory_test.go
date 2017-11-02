@@ -257,6 +257,29 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("calculate_vm_cloud_properties", func() {
+		It("works", func() {
+			cpi.CalculateVMCloudPropertiesReturns(nil, nil)
+
+			resp, _ := act(`{"method":"calculate_vm_cloud_properties", "arguments":[{"ram": 123, "cpu": 1, "ephemeral_disk_size": 1000}]}`)
+			Expect(resp).To(Equal(Response{Result: nil}))
+
+			vmRes := cpi.CalculateVMCloudPropertiesArgsForCall(0)
+			Expect(vmRes).To(Equal(apiv1.VMResources{
+				RAM:               123,
+				CPU:               1,
+				EphemeralDiskSize: 1000,
+			}))
+		})
+
+		It("errs", func() {
+			cpi.CalculateVMCloudPropertiesReturns(nil, errors.New("err"))
+
+			resp, _ := act(`{"method":"calculate_vm_cloud_properties", "arguments":[{}]}`)
+			Expect(resp).To(Equal(Response{Error: &ResponseError{Type: "Bosh::Clouds::CloudError", Message: "err"}}))
+		})
+	})
+
 	Describe("set_vm_metadata", func() {
 		It("works", func() {
 			cpi.SetVMMetadataReturns(nil)

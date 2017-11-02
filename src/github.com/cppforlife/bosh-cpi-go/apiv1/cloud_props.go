@@ -18,3 +18,5 @@ func (p CloudPropsImpl) As(val interface{}) error {
 func (c CloudPropsImpl) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("Expected to not marshal CloudPropsImpl as JSON")
 }
+
+func (c CloudPropsImpl) _final() {}

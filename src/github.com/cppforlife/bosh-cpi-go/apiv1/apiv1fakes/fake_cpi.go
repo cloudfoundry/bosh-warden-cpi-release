@@ -33,6 +33,15 @@ type FakeCPI struct {
 	deleteStemcellReturns struct {
 		result1 error
 	}
+	CalculateVMCloudPropertiesStub        func(apiv1.VMResources) (apiv1.VMCloudProps, error)
+	calculateVMCloudPropertiesMutex       sync.RWMutex
+	calculateVMCloudPropertiesArgsForCall []struct {
+		arg1 apiv1.VMResources
+	}
+	calculateVMCloudPropertiesReturns struct {
+		result1 apiv1.VMCloudProps
+		result2 error
+	}
 	CreateVMStub        func(apiv1.AgentID, apiv1.StemcellCID, apiv1.VMCloudProps, apiv1.Networks, []apiv1.DiskCID, apiv1.VMEnv) (apiv1.VMCID, error)
 	createVMMutex       sync.RWMutex
 	createVMArgsForCall []struct {
@@ -304,6 +313,39 @@ func (fake *FakeCPI) DeleteVMReturns(result1 error) {
 	fake.deleteVMReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeCPI) CalculateVMCloudProperties(arg1 apiv1.VMResources) (apiv1.VMCloudProps, error) {
+	fake.calculateVMCloudPropertiesMutex.Lock()
+	fake.calculateVMCloudPropertiesArgsForCall = append(fake.calculateVMCloudPropertiesArgsForCall, struct {
+		arg1 apiv1.VMResources
+	}{arg1})
+	fake.recordInvocation("CalculateVMCloudProperties", []interface{}{arg1})
+	fake.calculateVMCloudPropertiesMutex.Unlock()
+	if fake.CalculateVMCloudPropertiesStub != nil {
+		return fake.CalculateVMCloudPropertiesStub(arg1)
+	}
+	return fake.calculateVMCloudPropertiesReturns.result1, fake.calculateVMCloudPropertiesReturns.result2
+}
+
+func (fake *FakeCPI) CalculateVMCloudPropertiesCallCount() int {
+	fake.calculateVMCloudPropertiesMutex.RLock()
+	defer fake.calculateVMCloudPropertiesMutex.RUnlock()
+	return len(fake.calculateVMCloudPropertiesArgsForCall)
+}
+
+func (fake *FakeCPI) CalculateVMCloudPropertiesArgsForCall(i int) apiv1.VMResources {
+	fake.calculateVMCloudPropertiesMutex.RLock()
+	defer fake.calculateVMCloudPropertiesMutex.RUnlock()
+	return fake.calculateVMCloudPropertiesArgsForCall[i].arg1
+}
+
+func (fake *FakeCPI) CalculateVMCloudPropertiesReturns(result1 apiv1.VMCloudProps, result2 error) {
+	fake.CalculateVMCloudPropertiesStub = nil
+	fake.calculateVMCloudPropertiesReturns = struct {
+		result1 apiv1.VMCloudProps
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeCPI) SetVMMetadata(arg1 apiv1.VMCID, arg2 apiv1.VMMeta) error {

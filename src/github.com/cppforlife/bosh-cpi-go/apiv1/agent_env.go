@@ -12,6 +12,7 @@ type AgentEnv interface {
 	AttachPersistentDisk(DiskCID, interface{})
 	DetachPersistentDisk(DiskCID)
 	AsBytes() ([]byte, error)
+	_final() // interface unimplementable from outside
 }
 
 type AgentEnvImpl struct {
@@ -119,3 +120,5 @@ func (ae AgentEnvImpl) AsBytes() ([]byte, error) {
 
 	return bytes, nil
 }
+
+func (ae AgentEnvImpl) _final() {}

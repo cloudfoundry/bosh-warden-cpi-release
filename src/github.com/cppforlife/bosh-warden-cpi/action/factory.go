@@ -33,6 +33,7 @@ type CPI struct {
 
 	CreateVMMethod
 	DeleteVMMethod
+	CalculateVMCloudPropertiesMethod
 	HasVMMethod
 	RebootVMMethod
 	SetVMMetadataMethod
@@ -115,6 +116,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 
 		NewCreateVMMethod(f.stemcellFinder, f.vmCreator),
 		NewDeleteVMMethod(f.vmFinder),
+		NewCalculateVMCloudPropertiesMethod(),
 		NewHasVMMethod(f.vmFinder),
 		NewRebootVMMethod(),
 		NewSetVMMetadataMethod(),

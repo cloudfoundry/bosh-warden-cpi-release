@@ -4,6 +4,8 @@ type VMs interface {
 	CreateVM(AgentID, StemcellCID, VMCloudProps, Networks, []DiskCID, VMEnv) (VMCID, error)
 	DeleteVM(VMCID) error
 
+	CalculateVMCloudProperties(VMResources) (VMCloudProps, error)
+
 	SetVMMetadata(VMCID, VMMeta) error
 	HasVM(VMCID) (bool, error)
 
@@ -13,6 +15,13 @@ type VMs interface {
 
 type VMCloudProps interface {
 	As(interface{}) error
+	_final() // interface unimplementable from outside
+}
+
+type VMResources struct {
+	RAM               int `json:"ram"`
+	CPU               int `json:"cpu"`
+	EphemeralDiskSize int `json:"ephemeral_disk_size"`
 }
 
 type VMCID struct {

@@ -49,6 +49,9 @@ func (f ActionFactory) Create(method string, context CallContext) (interface{}, 
 			return nil, cpi.DeleteVM(cid)
 		}, nil
 
+	case "calculate_vm_cloud_properties":
+		return cpi.CalculateVMCloudProperties, nil
+
 	case "set_vm_metadata":
 		return func(cid VMCID, metadata VMMeta) (interface{}, error) {
 			return nil, cpi.SetVMMetadata(cid, metadata)
