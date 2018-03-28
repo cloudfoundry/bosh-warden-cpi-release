@@ -2,7 +2,7 @@
 name: warden_cpi
 
 dependencies:
-- golang-1.8-linux
+- golang-1.10-linux
 
 files:
 - "**/*.go"
