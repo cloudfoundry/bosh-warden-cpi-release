@@ -33,16 +33,7 @@ type FakeCPI struct {
 	deleteStemcellReturns struct {
 		result1 error
 	}
-	CalculateVMCloudPropertiesStub        func(apiv1.VMResources) (apiv1.VMCloudProps, error)
-	calculateVMCloudPropertiesMutex       sync.RWMutex
-	calculateVMCloudPropertiesArgsForCall []struct {
-		arg1 apiv1.VMResources
-	}
-	calculateVMCloudPropertiesReturns struct {
-		result1 apiv1.VMCloudProps
-		result2 error
-	}
-	CreateVMStub        func(apiv1.AgentID, apiv1.StemcellCID, apiv1.VMCloudProps, apiv1.Networks, []apiv1.DiskCID, apiv1.VMEnv) (apiv1.VMCID, error)
+	CreateVMStub        func(apiv1.AgentID, apiv1.StemcellCID, apiv1.VMCloudProps, apiv1.Networks, []apiv1.DiskCID, apiv1.VMEnv) (interface{}, error)
 	createVMMutex       sync.RWMutex
 	createVMArgsForCall []struct {
 		arg1 apiv1.AgentID
@@ -53,7 +44,7 @@ type FakeCPI struct {
 		arg6 apiv1.VMEnv
 	}
 	createVMReturns struct {
-		result1 apiv1.VMCID
+		result1 interface{}
 		result2 error
 	}
 	DeleteVMStub        func(apiv1.VMCID) error
@@ -63,6 +54,15 @@ type FakeCPI struct {
 	}
 	deleteVMReturns struct {
 		result1 error
+	}
+	CalculateVMCloudPropertiesStub        func(apiv1.VMResources) (apiv1.VMCloudProps, error)
+	calculateVMCloudPropertiesMutex       sync.RWMutex
+	calculateVMCloudPropertiesArgsForCall []struct {
+		arg1 apiv1.VMResources
+	}
+	calculateVMCloudPropertiesReturns struct {
+		result1 apiv1.VMCloudProps
+		result2 error
 	}
 	SetVMMetadataStub        func(apiv1.VMCID, apiv1.VMMeta) error
 	setVMMetadataMutex       sync.RWMutex
@@ -118,14 +118,15 @@ type FakeCPI struct {
 	deleteDiskReturns struct {
 		result1 error
 	}
-	AttachDiskStub        func(apiv1.VMCID, apiv1.DiskCID) error
+	AttachDiskStub        func(apiv1.VMCID, apiv1.DiskCID) (interface{}, error)
 	attachDiskMutex       sync.RWMutex
 	attachDiskArgsForCall []struct {
 		arg1 apiv1.VMCID
 		arg2 apiv1.DiskCID
 	}
 	attachDiskReturns struct {
-		result1 error
+		result1 interface{}
+		result2 error
 	}
 	DetachDiskStub        func(apiv1.VMCID, apiv1.DiskCID) error
 	detachDiskMutex       sync.RWMutex
@@ -156,8 +157,9 @@ func (fake *FakeCPI) Info() (apiv1.Info, error) {
 	fake.infoMutex.Unlock()
 	if fake.InfoStub != nil {
 		return fake.InfoStub()
+	} else {
+		return fake.infoReturns.result1, fake.infoReturns.result2
 	}
-	return fake.infoReturns.result1, fake.infoReturns.result2
 }
 
 func (fake *FakeCPI) InfoCallCount() int {
@@ -184,8 +186,9 @@ func (fake *FakeCPI) CreateStemcell(arg1 string, arg2 apiv1.StemcellCloudProps) 
 	fake.createStemcellMutex.Unlock()
 	if fake.CreateStemcellStub != nil {
 		return fake.CreateStemcellStub(arg1, arg2)
+	} else {
+		return fake.createStemcellReturns.result1, fake.createStemcellReturns.result2
 	}
-	return fake.createStemcellReturns.result1, fake.createStemcellReturns.result2
 }
 
 func (fake *FakeCPI) CreateStemcellCallCount() int {
@@ -217,8 +220,9 @@ func (fake *FakeCPI) DeleteStemcell(arg1 apiv1.StemcellCID) error {
 	fake.deleteStemcellMutex.Unlock()
 	if fake.DeleteStemcellStub != nil {
 		return fake.DeleteStemcellStub(arg1)
+	} else {
+		return fake.deleteStemcellReturns.result1
 	}
-	return fake.deleteStemcellReturns.result1
 }
 
 func (fake *FakeCPI) DeleteStemcellCallCount() int {
@@ -240,7 +244,7 @@ func (fake *FakeCPI) DeleteStemcellReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCPI) CreateVM(arg1 apiv1.AgentID, arg2 apiv1.StemcellCID, arg3 apiv1.VMCloudProps, arg4 apiv1.Networks, arg5 []apiv1.DiskCID, arg6 apiv1.VMEnv) (apiv1.VMCID, error) {
+func (fake *FakeCPI) CreateVM(arg1 apiv1.AgentID, arg2 apiv1.StemcellCID, arg3 apiv1.VMCloudProps, arg4 apiv1.Networks, arg5 []apiv1.DiskCID, arg6 apiv1.VMEnv) (interface{}, error) {
 	var arg5Copy []apiv1.DiskCID
 	if arg5 != nil {
 		arg5Copy = make([]apiv1.DiskCID, len(arg5))
@@ -259,8 +263,9 @@ func (fake *FakeCPI) CreateVM(arg1 apiv1.AgentID, arg2 apiv1.StemcellCID, arg3 a
 	fake.createVMMutex.Unlock()
 	if fake.CreateVMStub != nil {
 		return fake.CreateVMStub(arg1, arg2, arg3, arg4, arg5, arg6)
+	} else {
+		return fake.createVMReturns.result1, fake.createVMReturns.result2
 	}
-	return fake.createVMReturns.result1, fake.createVMReturns.result2
 }
 
 func (fake *FakeCPI) CreateVMCallCount() int {
@@ -275,10 +280,10 @@ func (fake *FakeCPI) CreateVMArgsForCall(i int) (apiv1.AgentID, apiv1.StemcellCI
 	return fake.createVMArgsForCall[i].arg1, fake.createVMArgsForCall[i].arg2, fake.createVMArgsForCall[i].arg3, fake.createVMArgsForCall[i].arg4, fake.createVMArgsForCall[i].arg5, fake.createVMArgsForCall[i].arg6
 }
 
-func (fake *FakeCPI) CreateVMReturns(result1 apiv1.VMCID, result2 error) {
+func (fake *FakeCPI) CreateVMReturns(result1 interface{}, result2 error) {
 	fake.CreateVMStub = nil
 	fake.createVMReturns = struct {
-		result1 apiv1.VMCID
+		result1 interface{}
 		result2 error
 	}{result1, result2}
 }
@@ -292,8 +297,9 @@ func (fake *FakeCPI) DeleteVM(arg1 apiv1.VMCID) error {
 	fake.deleteVMMutex.Unlock()
 	if fake.DeleteVMStub != nil {
 		return fake.DeleteVMStub(arg1)
+	} else {
+		return fake.deleteVMReturns.result1
 	}
-	return fake.deleteVMReturns.result1
 }
 
 func (fake *FakeCPI) DeleteVMCallCount() int {
@@ -324,8 +330,9 @@ func (fake *FakeCPI) CalculateVMCloudProperties(arg1 apiv1.VMResources) (apiv1.V
 	fake.calculateVMCloudPropertiesMutex.Unlock()
 	if fake.CalculateVMCloudPropertiesStub != nil {
 		return fake.CalculateVMCloudPropertiesStub(arg1)
+	} else {
+		return fake.calculateVMCloudPropertiesReturns.result1, fake.calculateVMCloudPropertiesReturns.result2
 	}
-	return fake.calculateVMCloudPropertiesReturns.result1, fake.calculateVMCloudPropertiesReturns.result2
 }
 
 func (fake *FakeCPI) CalculateVMCloudPropertiesCallCount() int {
@@ -358,8 +365,9 @@ func (fake *FakeCPI) SetVMMetadata(arg1 apiv1.VMCID, arg2 apiv1.VMMeta) error {
 	fake.setVMMetadataMutex.Unlock()
 	if fake.SetVMMetadataStub != nil {
 		return fake.SetVMMetadataStub(arg1, arg2)
+	} else {
+		return fake.setVMMetadataReturns.result1
 	}
-	return fake.setVMMetadataReturns.result1
 }
 
 func (fake *FakeCPI) SetVMMetadataCallCount() int {
@@ -390,8 +398,9 @@ func (fake *FakeCPI) HasVM(arg1 apiv1.VMCID) (bool, error) {
 	fake.hasVMMutex.Unlock()
 	if fake.HasVMStub != nil {
 		return fake.HasVMStub(arg1)
+	} else {
+		return fake.hasVMReturns.result1, fake.hasVMReturns.result2
 	}
-	return fake.hasVMReturns.result1, fake.hasVMReturns.result2
 }
 
 func (fake *FakeCPI) HasVMCallCount() int {
@@ -423,8 +432,9 @@ func (fake *FakeCPI) RebootVM(arg1 apiv1.VMCID) error {
 	fake.rebootVMMutex.Unlock()
 	if fake.RebootVMStub != nil {
 		return fake.RebootVMStub(arg1)
+	} else {
+		return fake.rebootVMReturns.result1
 	}
-	return fake.rebootVMReturns.result1
 }
 
 func (fake *FakeCPI) RebootVMCallCount() int {
@@ -455,8 +465,9 @@ func (fake *FakeCPI) GetDisks(arg1 apiv1.VMCID) ([]apiv1.DiskCID, error) {
 	fake.getDisksMutex.Unlock()
 	if fake.GetDisksStub != nil {
 		return fake.GetDisksStub(arg1)
+	} else {
+		return fake.getDisksReturns.result1, fake.getDisksReturns.result2
 	}
-	return fake.getDisksReturns.result1, fake.getDisksReturns.result2
 }
 
 func (fake *FakeCPI) GetDisksCallCount() int {
@@ -490,8 +501,9 @@ func (fake *FakeCPI) CreateDisk(arg1 int, arg2 apiv1.DiskCloudProps, arg3 *apiv1
 	fake.createDiskMutex.Unlock()
 	if fake.CreateDiskStub != nil {
 		return fake.CreateDiskStub(arg1, arg2, arg3)
+	} else {
+		return fake.createDiskReturns.result1, fake.createDiskReturns.result2
 	}
-	return fake.createDiskReturns.result1, fake.createDiskReturns.result2
 }
 
 func (fake *FakeCPI) CreateDiskCallCount() int {
@@ -523,8 +535,9 @@ func (fake *FakeCPI) DeleteDisk(arg1 apiv1.DiskCID) error {
 	fake.deleteDiskMutex.Unlock()
 	if fake.DeleteDiskStub != nil {
 		return fake.DeleteDiskStub(arg1)
+	} else {
+		return fake.deleteDiskReturns.result1
 	}
-	return fake.deleteDiskReturns.result1
 }
 
 func (fake *FakeCPI) DeleteDiskCallCount() int {
@@ -546,7 +559,7 @@ func (fake *FakeCPI) DeleteDiskReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCPI) AttachDisk(arg1 apiv1.VMCID, arg2 apiv1.DiskCID) error {
+func (fake *FakeCPI) AttachDisk(arg1 apiv1.VMCID, arg2 apiv1.DiskCID) (interface{}, error) {
 	fake.attachDiskMutex.Lock()
 	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
 		arg1 apiv1.VMCID
@@ -556,8 +569,9 @@ func (fake *FakeCPI) AttachDisk(arg1 apiv1.VMCID, arg2 apiv1.DiskCID) error {
 	fake.attachDiskMutex.Unlock()
 	if fake.AttachDiskStub != nil {
 		return fake.AttachDiskStub(arg1, arg2)
+	} else {
+		return fake.attachDiskReturns.result1, fake.attachDiskReturns.result2
 	}
-	return fake.attachDiskReturns.result1
 }
 
 func (fake *FakeCPI) AttachDiskCallCount() int {
@@ -572,11 +586,12 @@ func (fake *FakeCPI) AttachDiskArgsForCall(i int) (apiv1.VMCID, apiv1.DiskCID) {
 	return fake.attachDiskArgsForCall[i].arg1, fake.attachDiskArgsForCall[i].arg2
 }
 
-func (fake *FakeCPI) AttachDiskReturns(result1 error) {
+func (fake *FakeCPI) AttachDiskReturns(result1 interface{}, result2 error) {
 	fake.AttachDiskStub = nil
 	fake.attachDiskReturns = struct {
-		result1 error
-	}{result1}
+		result1 interface{}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeCPI) DetachDisk(arg1 apiv1.VMCID, arg2 apiv1.DiskCID) error {
@@ -589,8 +604,9 @@ func (fake *FakeCPI) DetachDisk(arg1 apiv1.VMCID, arg2 apiv1.DiskCID) error {
 	fake.detachDiskMutex.Unlock()
 	if fake.DetachDiskStub != nil {
 		return fake.DetachDiskStub(arg1, arg2)
+	} else {
+		return fake.detachDiskReturns.result1
 	}
-	return fake.detachDiskReturns.result1
 }
 
 func (fake *FakeCPI) DetachDiskCallCount() int {
@@ -621,8 +637,9 @@ func (fake *FakeCPI) HasDisk(arg1 apiv1.DiskCID) (bool, error) {
 	fake.hasDiskMutex.Unlock()
 	if fake.HasDiskStub != nil {
 		return fake.HasDiskStub(arg1)
+	} else {
+		return fake.hasDiskReturns.result1, fake.hasDiskReturns.result2
 	}
-	return fake.hasDiskReturns.result1, fake.hasDiskReturns.result2
 }
 
 func (fake *FakeCPI) HasDiskCallCount() int {
@@ -658,6 +675,8 @@ func (fake *FakeCPI) Invocations() map[string][][]interface{} {
 	defer fake.createVMMutex.RUnlock()
 	fake.deleteVMMutex.RLock()
 	defer fake.deleteVMMutex.RUnlock()
+	fake.calculateVMCloudPropertiesMutex.RLock()
+	defer fake.calculateVMCloudPropertiesMutex.RUnlock()
 	fake.setVMMetadataMutex.RLock()
 	defer fake.setVMMetadataMutex.RUnlock()
 	fake.hasVMMutex.RLock()

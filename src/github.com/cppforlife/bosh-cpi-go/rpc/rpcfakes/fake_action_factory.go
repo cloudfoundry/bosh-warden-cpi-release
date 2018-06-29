@@ -9,11 +9,12 @@ import (
 )
 
 type FakeActionFactory struct {
-	CreateStub        func(string, apiv1.CallContext) (interface{}, error)
+	CreateStub        func(string, apiv1.CallContext, apiv1.ApiVersions) (interface{}, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 string
 		arg2 apiv1.CallContext
+		arg3 apiv1.ApiVersions
 	}
 	createReturns struct {
 		result1 interface{}
@@ -23,18 +24,20 @@ type FakeActionFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeActionFactory) Create(arg1 string, arg2 apiv1.CallContext) (interface{}, error) {
+func (fake *FakeActionFactory) Create(arg1 string, arg2 apiv1.CallContext, arg3 apiv1.ApiVersions) (interface{}, error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 string
 		arg2 apiv1.CallContext
-	}{arg1, arg2})
-	fake.recordInvocation("Create", []interface{}{arg1, arg2})
+		arg3 apiv1.ApiVersions
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1, arg2)
+		return fake.CreateStub(arg1, arg2, arg3)
+	} else {
+		return fake.createReturns.result1, fake.createReturns.result2
 	}
-	return fake.createReturns.result1, fake.createReturns.result2
 }
 
 func (fake *FakeActionFactory) CreateCallCount() int {
@@ -43,10 +46,10 @@ func (fake *FakeActionFactory) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeActionFactory) CreateArgsForCall(i int) (string, apiv1.CallContext) {
+func (fake *FakeActionFactory) CreateArgsForCall(i int) (string, apiv1.CallContext, apiv1.ApiVersions) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2
+	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2, fake.createArgsForCall[i].arg3
 }
 
 func (fake *FakeActionFactory) CreateReturns(result1 interface{}, result2 error) {

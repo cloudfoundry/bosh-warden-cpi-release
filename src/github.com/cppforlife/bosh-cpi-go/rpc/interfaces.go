@@ -4,8 +4,10 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
+//go:generate counterfeiter -o rpcfakes/fake_action_factory.go . ActionFactory
+
 type ActionFactory interface {
-	Create(string, apiv1.CallContext) (interface{}, error)
+	Create(string, apiv1.CallContext, apiv1.ApiVersions) (interface{}, error)
 }
 
 type Dispatcher interface {

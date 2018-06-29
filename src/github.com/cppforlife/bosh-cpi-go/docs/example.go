@@ -29,7 +29,7 @@ func main() {
 
 // Empty CPI implementation
 
-func (f CPIFactory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
+func (f CPIFactory) New(_ apiv1.CallContext, _ apiv1.ApiVersions) (apiv1.CPI, error) {
 	return CPI{}, nil
 }
 
@@ -48,8 +48,12 @@ func (c CPI) DeleteStemcell(cid apiv1.StemcellCID) error {
 func (c CPI) CreateVM(
 	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
 	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
-	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv,
+	apiVersions apiv1.ApiVersions) (interface{}, error) {
 
+	if apiVersions.Contract == 2 {
+		return []interface{}{apiv1.NewVMCID("vm-cid")}, nil
+	}
 	return apiv1.NewVMCID("vm-cid"), nil
 }
 
@@ -57,7 +61,7 @@ func (c CPI) DeleteVM(cid apiv1.VMCID) error {
 	return nil
 }
 
-func (c CPI) CalculateVMCloudProperties(res VMResources) (apiv1.VMCloudProps, error) {
+func (c CPI) CalculateVMCloudProperties(res apiv1.VMResources) (apiv1.VMCloudProps, error) {
 	return apiv1.NewVMCloudPropsFromMap(map[string]interface{}{}), nil
 }
 
@@ -87,8 +91,8 @@ func (c CPI) DeleteDisk(cid apiv1.DiskCID) error {
 	return nil
 }
 
-func (c CPI) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
-	return nil
+func (c CPI) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (interface{}, error) {
+	return "diskhint", nil
 }
 
 func (c CPI) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {

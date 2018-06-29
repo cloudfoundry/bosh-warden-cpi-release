@@ -5,13 +5,15 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
+	"fmt"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type Request struct {
-	Method    string               `json:"method"`
-	Arguments []interface{}        `json:"arguments"`
-	Context   apiv1.CloudPropsImpl `json:"context"`
+	Method     string               `json:"method"`
+	Arguments  []interface{}        `json:"arguments"`
+	Context    apiv1.CloudPropsImpl `json:"context"`
+	ApiVersion int                  `json:"api_version"`
 }
 
 type Response struct {
@@ -64,7 +66,26 @@ func (c JSONDispatcher) Dispatch(reqBytes []byte) []byte {
 		return c.cpiError("Must provide 'arguments' key")
 	}
 
-	action, err := c.actionFactory.Create(req.Method, req.Context)
+	context := DefaultContext{}
+	context.Vm.Stemcell.ApiVersion = 1
+	if len(req.Context.RawMessage) > 0 {
+		if err := req.Context.As(&context); err != nil {
+			return c.cpiError("Unable to parse stemcell version")
+		}
+	}
+
+	apiVersions := apiv1.ApiVersions{
+		Contract: req.ApiVersion,
+		Stemcell: context.Vm.Stemcell.ApiVersion,
+	}
+
+	if 0 == req.ApiVersion {
+		apiVersions.Contract = 1
+	} else if req.ApiVersion > apiv1.MaxSupportedApiVersion {
+		return c.cpiError(fmt.Sprintf("Api version specified is %d, max supported is %d", req.ApiVersion, apiv1.MaxSupportedApiVersion))
+	}
+
+	action, err := c.actionFactory.Create(req.Method, req.Context, apiVersions)
 	if err != nil {
 		return c.notImplementedError()
 	}

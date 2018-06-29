@@ -4,7 +4,7 @@ type Disks interface {
 	CreateDisk(int, DiskCloudProps, *VMCID) (DiskCID, error)
 	DeleteDisk(DiskCID) error
 
-	AttachDisk(VMCID, DiskCID) error
+	AttachDisk(VMCID, DiskCID) (interface{}, error)
 	DetachDisk(VMCID, DiskCID) error
 
 	HasDisk(DiskCID) (bool, error)
