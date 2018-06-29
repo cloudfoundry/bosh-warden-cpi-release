@@ -107,14 +107,14 @@ func NewFactory(
 	}
 }
 
-func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
+func (f Factory) New(_ apiv1.CallContext, versions apiv1.ApiVersions) (apiv1.CPI, error) {
 	return CPI{
 		NewInfoMethod(),
 
 		NewCreateStemcellMethod(f.stemcellImporter),
 		NewDeleteStemcellMethod(f.stemcellFinder),
 
-		NewCreateVMMethod(f.stemcellFinder, f.vmCreator),
+		NewCreateVMMethod(f.stemcellFinder, f.vmCreator, versions),
 		NewDeleteVMMethod(f.vmFinder),
 		NewCalculateVMCloudPropertiesMethod(),
 		NewHasVMMethod(f.vmFinder),

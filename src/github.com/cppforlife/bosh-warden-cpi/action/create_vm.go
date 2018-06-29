@@ -11,10 +11,12 @@ import (
 type CreateVMMethod struct {
 	stemcellFinder bwcstem.Finder
 	vmCreator      bwcvm.Creator
+	versions       apiv1.ApiVersions
 }
 
-func NewCreateVMMethod(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator) CreateVMMethod {
+func NewCreateVMMethod(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator, versions apiv1.ApiVersions) CreateVMMethod {
 	return CreateVMMethod{
+		versions:       versions,
 		stemcellFinder: stemcellFinder,
 		vmCreator:      vmCreator,
 	}
@@ -50,6 +52,9 @@ func (a CreateVMMethod) CreateVM(
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
 	}
-
-	return vm.ID(), nil
+	if a.versions.Contract == 2 {
+		return []interface{}{vm.ID(), networks}, nil
+	} else {
+		return vm.ID(), nil
+	}
 }
