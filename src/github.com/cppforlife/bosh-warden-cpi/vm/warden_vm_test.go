@@ -153,10 +153,15 @@ var _ = Describe("WardenVM", func() {
 		})
 
 		It("tries to fetch agent env", func() {
-			err := vm.AttachDisk(disk)
+			_, err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(agentEnvService.FetchCalled).To(BeTrue())
+		})
+
+		It("returns the disk hint after attaching", func() {
+			diskHint, _ := vm.AttachDisk(disk)
+			Expect(diskHint).To(Equal("/fake-guest-persistent-bind-mounts-dir/fake-disk-id"))
 		})
 
 		Context("when fetching agent env succeeds", func() {
@@ -167,7 +172,7 @@ var _ = Describe("WardenVM", func() {
 			})
 
 			It("mounts persistent bind mounts dir", func() {
-				err := vm.AttachDisk(disk)
+				_, err := vm.AttachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(hostBindMounts.MountPersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
@@ -177,7 +182,7 @@ var _ = Describe("WardenVM", func() {
 
 			Context("when mounting persistent bind mounts dir succeeds", func() {
 				It("updates agent env attaching persistent disk", func() {
-					err := vm.AttachDisk(disk)
+					_, err := vm.AttachDisk(disk)
 					Expect(err).ToNot(HaveOccurred())
 
 					afterAgentEnv := &apiv1.AgentEnvImpl{}
@@ -188,7 +193,7 @@ var _ = Describe("WardenVM", func() {
 
 				Context("when updating agent env succeeds", func() {
 					It("returns without an error", func() {
-						err := vm.AttachDisk(disk)
+						_, err := vm.AttachDisk(disk)
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -197,7 +202,7 @@ var _ = Describe("WardenVM", func() {
 					It("returns error", func() {
 						agentEnvService.UpdateErr = errors.New("fake-update-err")
 
-						err := vm.AttachDisk(disk)
+						_, err := vm.AttachDisk(disk)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-update-err"))
 					})
@@ -208,7 +213,7 @@ var _ = Describe("WardenVM", func() {
 				It("returns error", func() {
 					hostBindMounts.MountPersistentErr = errors.New("fake-mount-err")
 
-					err := vm.AttachDisk(disk)
+					_, err := vm.AttachDisk(disk)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-mount-err"))
 				})
@@ -219,7 +224,7 @@ var _ = Describe("WardenVM", func() {
 			It("returns error", func() {
 				agentEnvService.FetchErr = errors.New("fake-fetch-err")
 
-				err := vm.AttachDisk(disk)
+				_, err := vm.AttachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-fetch-err"))
 			})

@@ -77,19 +77,19 @@ func (vm WardenVM) Delete() error {
 	return nil
 }
 
-func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
+func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) (string, error) {
 	if !vm.containerExists {
-		return bosherr.Error("VM does not exist")
+		return "", bosherr.Error("VM does not exist")
 	}
 
 	agentEnv, err := vm.agentEnvService.Fetch()
 	if err != nil {
-		return bosherr.WrapError(err, "Fetching agent env")
+		return "", bosherr.WrapError(err, "Fetching agent env")
 	}
 
 	err = vm.hostBindMounts.MountPersistent(vm.id, disk.ID(), disk.Path())
 	if err != nil {
-		return bosherr.WrapError(err, "Mounting persistent bind mounts dir")
+		return "", bosherr.WrapError(err, "Mounting persistent bind mounts dir")
 	}
 
 	diskHintPath := vm.guestBindMounts.MountPersistent(disk.ID())
@@ -98,10 +98,10 @@ func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
 
 	err = vm.agentEnvService.Update(agentEnv)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating agent env")
+		return "", bosherr.WrapError(err, "Updating agent env")
 	}
 
-	return nil
+	return diskHintPath, nil
 }
 
 func (vm WardenVM) DetachDisk(disk bwcdisk.Disk) error {

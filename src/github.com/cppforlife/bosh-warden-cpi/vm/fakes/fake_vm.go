@@ -22,13 +22,14 @@ type FakeVM struct {
 	deleteReturns     struct {
 		result1 error
 	}
-	AttachDiskStub        func(disk.Disk) error
+	AttachDiskStub        func(disk.Disk) (string, error)
 	attachDiskMutex       sync.RWMutex
 	attachDiskArgsForCall []struct {
 		arg1 disk.Disk
 	}
 	attachDiskReturns struct {
-		result1 error
+		result1 string
+		result2 error
 	}
 	DetachDiskStub        func(disk.Disk) error
 	detachDiskMutex       sync.RWMutex
@@ -92,7 +93,7 @@ func (fake *FakeVM) DeleteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeVM) AttachDisk(arg1 disk.Disk) error {
+func (fake *FakeVM) AttachDisk(arg1 disk.Disk) (string, error) {
 	fake.attachDiskMutex.Lock()
 	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
 		arg1 disk.Disk
@@ -102,7 +103,7 @@ func (fake *FakeVM) AttachDisk(arg1 disk.Disk) error {
 	if fake.AttachDiskStub != nil {
 		return fake.AttachDiskStub(arg1)
 	} else {
-		return fake.attachDiskReturns.result1
+		return fake.attachDiskReturns.result1, fake.attachDiskReturns.result2
 	}
 }
 
@@ -118,11 +119,12 @@ func (fake *FakeVM) AttachDiskArgsForCall(i int) disk.Disk {
 	return fake.attachDiskArgsForCall[i].arg1
 }
 
-func (fake *FakeVM) AttachDiskReturns(result1 error) {
+func (fake *FakeVM) AttachDiskReturns(result1 string, result2 error) {
 	fake.AttachDiskStub = nil
 	fake.attachDiskReturns = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeVM) DetachDisk(arg1 disk.Disk) error {

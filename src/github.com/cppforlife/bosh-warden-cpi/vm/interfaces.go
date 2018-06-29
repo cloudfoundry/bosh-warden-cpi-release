@@ -22,7 +22,7 @@ type VM interface {
 
 	Delete() error
 
-	AttachDisk(bwcdisk.Disk) error
+	AttachDisk(bwcdisk.Disk) (string, error)
 	DetachDisk(bwcdisk.Disk) error
 }
 

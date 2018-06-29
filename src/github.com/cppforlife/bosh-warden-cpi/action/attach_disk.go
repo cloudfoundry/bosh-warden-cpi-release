@@ -32,10 +32,10 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (
 		return nil, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
 	}
 
-	err = vm.AttachDisk(disk)
+	diskHint, err := vm.AttachDisk(disk)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
-	return nil, nil
+	return diskHint, nil
 }
