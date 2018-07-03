@@ -76,8 +76,11 @@ var _ = Describe("WardenFileService", func() {
 
 			contentBytes := make([]byte, header.Size)
 
-			_, err = tarStream.Read(contentBytes)
-			Expect(err).ToNot(HaveOccurred())
+			tarStream.Read(contentBytes)
+			// FIXME archive/tar:Read behaviour across minors
+			// go 1.9.3 Read returns 13,nil
+			// go 1.10.3 Read returns 0,io.EOF
+			//Expect(eof).To(Equal(io.EOF))
 
 			Expect(contentBytes).To(Equal([]byte("fake-contents")))
 

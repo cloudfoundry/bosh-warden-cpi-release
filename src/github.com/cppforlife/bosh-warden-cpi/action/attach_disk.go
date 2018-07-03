@@ -11,10 +11,11 @@ import (
 type AttachDiskMethod struct {
 	vmFinder   bwcvm.Finder
 	diskFinder bwcdisk.Finder
+	versions   apiv1.ApiVersions
 }
 
-func NewAttachDiskMethod(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) AttachDiskMethod {
-	return AttachDiskMethod{vmFinder, diskFinder}
+func NewAttachDiskMethod(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder, versions apiv1.ApiVersions) AttachDiskMethod {
+	return AttachDiskMethod{vmFinder, diskFinder, versions}
 }
 
 func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (interface{}, error) {
@@ -37,5 +38,9 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (
 		return nil, bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
-	return diskHint, nil
+	if a.versions.Contract == 2 {
+		return diskHint, nil
+	} else {
+		return nil, nil
+	}
 }

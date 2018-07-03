@@ -124,7 +124,7 @@ func (f Factory) New(_ apiv1.CallContext, versions apiv1.ApiVersions) (apiv1.CPI
 
 		NewCreateDiskMethod(f.diskCreator),
 		NewDeleteDiskMethod(f.diskFinder),
-		NewAttachDiskMethod(f.vmFinder, f.diskFinder),
+		NewAttachDiskMethod(f.vmFinder, f.diskFinder, versions),
 		NewDetachDiskMethod(f.vmFinder, f.diskFinder),
 		NewHasDiskMethod(f.diskFinder),
 	}, nil
