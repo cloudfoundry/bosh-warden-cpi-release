@@ -14,8 +14,8 @@ func NewActionFactory(cpiFactory CPIFactory) ActionFactory {
 	return ActionFactory{cpiFactory}
 }
 
-func (f ActionFactory) Create(method string, context CallContext) (interface{}, error) {
-	cpi, err := f.cpiFactory.New(context)
+func (f ActionFactory) Create(method string, context CallContext, apiVersions ApiVersions) (interface{}, error) {
+	cpi, err := f.cpiFactory.New(context, apiVersions)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (f ActionFactory) Create(method string, context CallContext) (interface{}, 
 	case "create_vm":
 		return func(
 			agentID AgentID, stemcellCID StemcellCID, props CloudPropsImpl,
-			networks Networks, diskCIDs []DiskCID, env VMEnv) (VMCID, error) {
+			networks Networks, diskCIDs []DiskCID, env VMEnv) (interface{}, error) {
 
 			return cpi.CreateVM(agentID, stemcellCID, props, networks, diskCIDs, env)
 		}, nil
@@ -86,7 +86,7 @@ func (f ActionFactory) Create(method string, context CallContext) (interface{}, 
 
 	case "attach_disk":
 		return func(vmCID VMCID, diskCID DiskCID) (interface{}, error) {
-			return nil, cpi.AttachDisk(vmCID, diskCID)
+			return cpi.AttachDisk(vmCID, diskCID)
 		}, nil
 
 	case "detach_disk":

@@ -1,7 +1,7 @@
 package apiv1
 
 type VMs interface {
-	CreateVM(AgentID, StemcellCID, VMCloudProps, Networks, []DiskCID, VMEnv) (VMCID, error)
+	CreateVM(AgentID, StemcellCID, VMCloudProps, Networks, []DiskCID, VMEnv) (interface{}, error)
 	DeleteVM(VMCID) error
 
 	CalculateVMCloudProperties(VMResources) (VMCloudProps, error)

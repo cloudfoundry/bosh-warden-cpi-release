@@ -1,7 +1,12 @@
 package apiv1
 
+//go:generate counterfeiter -o apiv1fakes/fake_cpi.go . CPI
+//go:generate counterfeiter -o apiv1fakes/fake_cpifactory.go . CPIFactory
+
+const MaxSupportedApiVersion = 2
+
 type CPIFactory interface {
-	New(CallContext) (CPI, error)
+	New(CallContext, ApiVersions) (CPI, error)
 }
 
 type CallContext interface {
@@ -18,4 +23,10 @@ type CPI interface {
 
 type Info struct {
 	StemcellFormats []string `json:"stemcell_formats"`
+	ApiVersion      int      `json:"api_version,omitempty"`
+}
+
+type ApiVersions struct {
+	Stemcell int
+	Contract int
 }

@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/cppforlife/bosh-cpi-go/rpc"
 	"github.com/cppforlife/bosh-cpi-go/rpc/rpcfakes"
@@ -22,9 +23,13 @@ var _ = Describe("JSONDispatcher", func() {
 	BeforeEach(func() {
 		actionFactory = &rpcfakes.FakeActionFactory{}
 
-		actionFactory.CreateStub = func(method string, ctx apiv1.CallContext) (interface{}, error) {
+		actionFactory.CreateStub = func(method string, ctx apiv1.CallContext, versions apiv1.ApiVersions) (interface{}, error) {
 			Expect(method).To(Equal("fake-action"))
 			Expect(ctx).ToNot(BeNil())
+
+			Expect(versions.Contract).To(BeNumerically(">", 0))
+			Expect(versions.Stemcell).To(BeNumerically(">", 0))
+			Expect(versions.Contract).To(BeNumerically("<=", apiv1.MaxSupportedApiVersion))
 			return nil, nil
 		}
 
@@ -38,7 +43,7 @@ var _ = Describe("JSONDispatcher", func() {
 			It("runs action with provided simple arguments", func() {
 				dispatcher.Dispatch([]byte(`{"method":"fake-action","arguments":["fake-arg"]}`))
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
+				method, ctx, _ := actionFactory.CreateArgsForCall(0)
 				Expect(method).To(Equal("fake-action"))
 				Expect(ctx).To(Equal(apiv1.CloudPropsImpl{}))
 
@@ -57,7 +62,7 @@ var _ = Describe("JSONDispatcher", func() {
           ]
         }`))
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
+				method, ctx, _ := actionFactory.CreateArgsForCall(0)
 				Expect(method).To(Equal("fake-action"))
 				Expect(ctx).To(Equal(apiv1.CloudPropsImpl{}))
 
@@ -70,27 +75,66 @@ var _ = Describe("JSONDispatcher", func() {
 				}))
 			})
 
-			It("runs action with provided context", func() {
-				dispatcher.Dispatch([]byte(`{
-          "method":"fake-action",
-          "arguments":[],
-          "context":{"ctx1": "ctx1-val"}
-        }`))
+			Context("when the context is specified", func() {
+				It("runs action with provided context (without stemcell version)", func() {
+					dispatcher.Dispatch([]byte(`{
+			  "method":"fake-action",
+			  "arguments":[],
+			  "context":{"ctx1": "ctx1-val"}
+			}`))
 
-				type TestCtx struct {
-					Ctx1 string
+					type TestCtx struct {
+						Ctx1 string
+					}
+
+					method, ctx, _ := actionFactory.CreateArgsForCall(0)
+					Expect(method).To(Equal("fake-action"))
+
+					var parsedCtx TestCtx
+					err := ctx.As(&parsedCtx)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(parsedCtx).To(Equal(TestCtx{Ctx1: "ctx1-val"}))
+
+					_, args := caller.CallArgsForCall(0)
+					Expect(args).To(Equal([]interface{}{}))
+				})
+
+				It("runs action with provided context (with stemcell version)", func() {
+					dispatcher.Dispatch([]byte(`{
+			  "method":"fake-action",
+			  "arguments":[],
+			  "context":{"ctx1": "ctx1-val", "vm": {"stemcell": {"api_version": 95}}}
+			}`))
+
+					_, _, apiVersion := actionFactory.CreateArgsForCall(0)
+
+					Expect(apiVersion.Stemcell).To(Equal(95))
+
+					_, args := caller.CallArgsForCall(0)
+					Expect(args).To(Equal([]interface{}{}))
+				})
+			})
+
+			Context("when the contract api version is between [1,MaxSupportedApiVersion]", func() {
+				testWithApiVersion := func(apiVersion int) {
+					It(fmt.Sprintf("runs the action and returns contract version %d", apiVersion), func() {
+						dispatcher.Dispatch([]byte(fmt.Sprintf(`{
+			  "method":"fake-action",
+			  "arguments":[],
+			  "api_version": %d
+			}`, apiVersion)))
+
+						_, _, apiVersions := actionFactory.CreateArgsForCall(0)
+						Expect(apiVersions.Contract).To(Equal(apiVersion))
+
+						_, args := caller.CallArgsForCall(0)
+						Expect(args).To(Equal([]interface{}{}))
+					})
 				}
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
-				Expect(method).To(Equal("fake-action"))
-
-				var parsedCtx TestCtx
-				err := ctx.As(&parsedCtx)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(parsedCtx).To(Equal(TestCtx{Ctx1: "ctx1-val"}))
-
-				_, args := caller.CallArgsForCall(0)
-				Expect(args).To(Equal([]interface{}{}))
+				for apiVersion := 1; apiVersion <= apiv1.MaxSupportedApiVersion; apiVersion++ {
+					testWithApiVersion(apiVersion)
+				}
 			})
 
 			Context("when running action succeeds", func() {
@@ -252,6 +296,76 @@ var _ = Describe("JSONDispatcher", func() {
           },
           "log": ""
         }`))
+			})
+		})
+
+		Context("when the stemcell version is not deserializable", func() {
+			It("responds with Bosh::Clouds::CpiError error", func() {
+				resp := dispatcher.Dispatch([]byte(`
+{
+	"method":"fake-action",
+	"arguments":[],
+	"context":{
+		"ctx1": "ctx1-val",
+		"vm": {
+			"stemcell": {
+				"api_version": "FooBar"
+			}
+		}
+	}
+}`))
+				Expect(resp).To(MatchJSON(`{
+          "result": null,
+          "error": {
+            "type":"Bosh::Clouds::CpiError",
+            "message":"Unable to parse stemcell version",
+            "ok_to_retry": false
+          },
+          "log": ""
+        }`))
+			})
+		})
+
+		Context("when the cpi api version is not deserializable", func() {
+			It("responds with Bosh::Clouds::CpiError error", func() {
+				resp := dispatcher.Dispatch([]byte(`
+					{
+						"method":"fake-action",
+						"arguments":[],
+						"api_version": "hello"
+					}`))
+				Expect(resp).To(MatchJSON(`
+					{
+						"result": null,
+						"error": {
+							"type":"Bosh::Clouds::CpiError",
+							"message":"Must provide valid JSON payload",
+							"ok_to_retry": false
+						},
+						"log": ""
+					}`))
+			})
+		})
+
+		Context("when the cpi api version is not higher than the max supported version", func() {
+			It("responds with Bosh::Clouds::CpiError error", func() {
+				requestedApiVersion := apiv1.MaxSupportedApiVersion + 1
+				resp := dispatcher.Dispatch([]byte(fmt.Sprintf(`
+					{
+						"method":"fake-action",
+						"arguments":[],
+						"api_version": %d
+					}`, requestedApiVersion)))
+				Expect(resp).To(MatchJSON(fmt.Sprintf(`
+					{
+						"result": null,
+						"error": {
+							"type":"Bosh::Clouds::CpiError",
+							"message":"Api version specified is %d, max supported is %d",
+							"ok_to_retry": false
+						},
+						"log": ""
+					}`, requestedApiVersion, apiv1.MaxSupportedApiVersion)))
 			})
 		})
 	})

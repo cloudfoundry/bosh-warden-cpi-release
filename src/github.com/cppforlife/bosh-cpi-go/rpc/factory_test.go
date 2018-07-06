@@ -28,7 +28,7 @@ var _ = Describe("Factory", func() {
 	BeforeEach(func() {
 		cpi = &apiv1fakes.FakeCPI{}
 		cpiFactory = &apiv1fakes.FakeCPIFactory{
-			NewStub: func(_ apiv1.CallContext) (apiv1.CPI, error) { return cpi, nil },
+			NewStub: func(_ apiv1.CallContext, _ apiv1.ApiVersions) (apiv1.CPI, error) { return cpi, nil },
 		}
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -52,11 +52,11 @@ var _ = Describe("Factory", func() {
 		return resp, string(outBytes)
 	}
 
-	Describe("cpi context", func() {
+	Describe("cpi new", func() {
 		It("works", func() {
 			act(`{"method":"info", "arguments":[], "context": {"cp1": "cp1-val"}}`)
 
-			ctx := cpiFactory.NewArgsForCall(0)
+			ctx, _ := cpiFactory.NewArgsForCall(0)
 
 			var cp FakeCPs
 			Expect(ctx.As(&cp)).ToNot(HaveOccurred())
@@ -430,10 +430,10 @@ var _ = Describe("Factory", func() {
 
 	Describe("attach_disk", func() {
 		It("works", func() {
-			cpi.AttachDiskReturns(nil)
+			cpi.AttachDiskReturns("/dev/sdf", nil)
 
 			resp, _ := act(`{"method":"attach_disk", "arguments":["vm-cid", "disk-cid"]}`)
-			Expect(resp).To(Equal(Response{Result: nil}))
+			Expect(resp).To(Equal(Response{Result: "/dev/sdf"}))
 
 			vmCID, diskCID := cpi.AttachDiskArgsForCall(0)
 			Expect(vmCID).To(Equal(apiv1.NewVMCID("vm-cid")))
@@ -441,7 +441,7 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("errs", func() {
-			cpi.AttachDiskReturns(errors.New("err"))
+			cpi.AttachDiskReturns("/dev/sdf", errors.New("err"))
 
 			resp, _ := act(`{"method":"attach_disk", "arguments":["vm-cid", "disk-cid"]}`)
 			Expect(resp).To(Equal(Response{Error: &ResponseError{Type: "Bosh::Clouds::CloudError", Message: "err"}}))

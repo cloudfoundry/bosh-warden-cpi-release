@@ -6,20 +6,23 @@ import (
 	bwcstem "github.com/cppforlife/bosh-warden-cpi/stemcell"
 )
 
+//go:generate counterfeiter -o fakes/fake_creator.go . Creator
 type Creator interface {
 	Create(apiv1.AgentID, bwcstem.Stemcell, VMProps, apiv1.Networks, apiv1.VMEnv) (VM, error)
 }
 
+//go:generate counterfeiter -o fakes/fake_finder.go . Finder
 type Finder interface {
 	Find(apiv1.VMCID) (VM, bool, error)
 }
 
+//go:generate counterfeiter -o fakes/fake_vm.go . VM
 type VM interface {
 	ID() apiv1.VMCID
 
 	Delete() error
 
-	AttachDisk(bwcdisk.Disk) error
+	AttachDisk(bwcdisk.Disk) (string, error)
 	DetachDisk(bwcdisk.Disk) error
 }
 

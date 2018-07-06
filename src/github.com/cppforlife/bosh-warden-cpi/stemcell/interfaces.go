@@ -8,6 +8,7 @@ type Importer interface {
 	ImportFromPath(imagePath string) (Stemcell, error)
 }
 
+//go:generate counterfeiter -o fakes/fake_finder.go . Finder
 type Finder interface {
 	Find(apiv1.StemcellCID) (Stemcell, bool, error)
 }

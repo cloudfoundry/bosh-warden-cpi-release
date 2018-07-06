@@ -107,14 +107,14 @@ func NewFactory(
 	}
 }
 
-func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
+func (f Factory) New(_ apiv1.CallContext, versions apiv1.ApiVersions) (apiv1.CPI, error) {
 	return CPI{
 		NewInfoMethod(),
 
 		NewCreateStemcellMethod(f.stemcellImporter),
 		NewDeleteStemcellMethod(f.stemcellFinder),
 
-		NewCreateVMMethod(f.stemcellFinder, f.vmCreator),
+		NewCreateVMMethod(f.stemcellFinder, f.vmCreator, versions),
 		NewDeleteVMMethod(f.vmFinder),
 		NewCalculateVMCloudPropertiesMethod(),
 		NewHasVMMethod(f.vmFinder),
@@ -124,7 +124,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 
 		NewCreateDiskMethod(f.diskCreator),
 		NewDeleteDiskMethod(f.diskFinder),
-		NewAttachDiskMethod(f.vmFinder, f.diskFinder),
+		NewAttachDiskMethod(f.vmFinder, f.diskFinder, versions),
 		NewDetachDiskMethod(f.vmFinder, f.diskFinder),
 		NewHasDiskMethod(f.diskFinder),
 	}, nil

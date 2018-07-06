@@ -11,31 +11,36 @@ import (
 type AttachDiskMethod struct {
 	vmFinder   bwcvm.Finder
 	diskFinder bwcdisk.Finder
+	versions   apiv1.ApiVersions
 }
 
-func NewAttachDiskMethod(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder) AttachDiskMethod {
-	return AttachDiskMethod{vmFinder, diskFinder}
+func NewAttachDiskMethod(vmFinder bwcvm.Finder, diskFinder bwcdisk.Finder, versions apiv1.ApiVersions) AttachDiskMethod {
+	return AttachDiskMethod{vmFinder, diskFinder, versions}
 }
 
-func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
+func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (interface{}, error) {
 	vm, found, err := a.vmFinder.Find(vmCID)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
+		return nil, bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
 	}
 
 	if !found {
-		return bosherr.Errorf("Expected to find VM '%s'", vmCID)
+		return nil, bosherr.Errorf("Expected to find VM '%s'", vmCID)
 	}
 
 	disk, err := a.diskFinder.Find(diskCID)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
+		return nil, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
 	}
 
-	err = vm.AttachDisk(disk)
+	diskHint, err := vm.AttachDisk(disk)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
+		return nil, bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
-	return nil
+	if a.versions.Contract == 2 {
+		return diskHint, nil
+	} else {
+		return nil, nil
+	}
 }

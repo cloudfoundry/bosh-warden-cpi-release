@@ -8,10 +8,11 @@ import (
 )
 
 type FakeCPIFactory struct {
-	NewStub        func(apiv1.CallContext) (apiv1.CPI, error)
+	NewStub        func(apiv1.CallContext, apiv1.ApiVersions) (apiv1.CPI, error)
 	newMutex       sync.RWMutex
 	newArgsForCall []struct {
 		arg1 apiv1.CallContext
+		arg2 apiv1.ApiVersions
 	}
 	newReturns struct {
 		result1 apiv1.CPI
@@ -21,17 +22,19 @@ type FakeCPIFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeCPIFactory) New(arg1 apiv1.CallContext) (apiv1.CPI, error) {
+func (fake *FakeCPIFactory) New(arg1 apiv1.CallContext, arg2 apiv1.ApiVersions) (apiv1.CPI, error) {
 	fake.newMutex.Lock()
 	fake.newArgsForCall = append(fake.newArgsForCall, struct {
 		arg1 apiv1.CallContext
-	}{arg1})
-	fake.recordInvocation("New", []interface{}{arg1})
+		arg2 apiv1.ApiVersions
+	}{arg1, arg2})
+	fake.recordInvocation("New", []interface{}{arg1, arg2})
 	fake.newMutex.Unlock()
 	if fake.NewStub != nil {
-		return fake.NewStub(arg1)
+		return fake.NewStub(arg1, arg2)
+	} else {
+		return fake.newReturns.result1, fake.newReturns.result2
 	}
-	return fake.newReturns.result1, fake.newReturns.result2
 }
 
 func (fake *FakeCPIFactory) NewCallCount() int {
@@ -40,10 +43,10 @@ func (fake *FakeCPIFactory) NewCallCount() int {
 	return len(fake.newArgsForCall)
 }
 
-func (fake *FakeCPIFactory) NewArgsForCall(i int) apiv1.CallContext {
+func (fake *FakeCPIFactory) NewArgsForCall(i int) (apiv1.CallContext, apiv1.ApiVersions) {
 	fake.newMutex.RLock()
 	defer fake.newMutex.RUnlock()
-	return fake.newArgsForCall[i].arg1
+	return fake.newArgsForCall[i].arg1, fake.newArgsForCall[i].arg2
 }
 
 func (fake *FakeCPIFactory) NewReturns(result1 apiv1.CPI, result2 error) {
