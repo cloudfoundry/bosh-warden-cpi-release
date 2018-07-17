@@ -22,7 +22,7 @@ var _ = Describe("JSONDispatcher", func() {
 	BeforeEach(func() {
 		actionFactory = &rpcfakes.FakeActionFactory{}
 
-		actionFactory.CreateStub = func(method string, ctx apiv1.CallContext) (interface{}, error) {
+		actionFactory.CreateStub = func(method string, apiVersion int, ctx apiv1.CallContext) (interface{}, error) {
 			Expect(method).To(Equal("fake-action"))
 			Expect(ctx).ToNot(BeNil())
 			return nil, nil
@@ -38,8 +38,9 @@ var _ = Describe("JSONDispatcher", func() {
 			It("runs action with provided simple arguments", func() {
 				dispatcher.Dispatch([]byte(`{"method":"fake-action","arguments":["fake-arg"]}`))
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
+				method, apiVersion, ctx := actionFactory.CreateArgsForCall(0)
 				Expect(method).To(Equal("fake-action"))
+				Expect(apiVersion).To(Equal(0))
 				Expect(ctx).To(Equal(apiv1.CloudPropsImpl{}))
 
 				_, args := caller.CallArgsForCall(0)
@@ -57,8 +58,9 @@ var _ = Describe("JSONDispatcher", func() {
           ]
         }`))
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
+				method, apiVersion, ctx := actionFactory.CreateArgsForCall(0)
 				Expect(method).To(Equal("fake-action"))
+				Expect(apiVersion).To(Equal(0))
 				Expect(ctx).To(Equal(apiv1.CloudPropsImpl{}))
 
 				_, args := caller.CallArgsForCall(0)
@@ -68,6 +70,22 @@ var _ = Describe("JSONDispatcher", func() {
 					[]interface{}{float64(123), "fake-arg"},
 					map[string]interface{}{"fake-arg2-key": "fake-arg2-value"},
 				}))
+			})
+
+			It("runs action with provided api version", func() {
+				dispatcher.Dispatch([]byte(`{
+          "method":"fake-action",
+          "arguments":[],
+          "api_version":2
+        }`))
+
+				method, apiVersion, ctx := actionFactory.CreateArgsForCall(0)
+				Expect(method).To(Equal("fake-action"))
+				Expect(apiVersion).To(Equal(2))
+				Expect(ctx).To(Equal(apiv1.CloudPropsImpl{}))
+
+				_, args := caller.CallArgsForCall(0)
+				Expect(args).To(Equal([]interface{}{}))
 			})
 
 			It("runs action with provided context", func() {
@@ -81,8 +99,9 @@ var _ = Describe("JSONDispatcher", func() {
 					Ctx1 string
 				}
 
-				method, ctx := actionFactory.CreateArgsForCall(0)
+				method, apiVersion, ctx := actionFactory.CreateArgsForCall(0)
 				Expect(method).To(Equal("fake-action"))
+				Expect(apiVersion).To(Equal(0))
 
 				var parsedCtx TestCtx
 				err := ctx.As(&parsedCtx)
@@ -202,7 +221,7 @@ var _ = Describe("JSONDispatcher", func() {
           "result": null,
           "error": {
             "type":"Bosh::Clouds::NotImplemented",
-            "message":"Must call implemented method",
+            "message":"Must call implemented method: fake-err",
             "ok_to_retry": false
           },
           "log": ""

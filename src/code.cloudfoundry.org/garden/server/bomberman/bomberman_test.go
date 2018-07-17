@@ -53,7 +53,7 @@ var _ = Describe("Bomberman", func() {
 			select {
 			case <-detonated:
 				Fail("detonated!")
-			case <-time.After(backend.GraceTime(container) + 50*time.Millisecond):
+			case <-time.After(backend.GraceTime(container) * 2):
 			}
 		})
 	})
@@ -78,7 +78,7 @@ var _ = Describe("Bomberman", func() {
 			select {
 			case <-detonated:
 				Fail("detonated!")
-			case <-time.After(backend.GraceTime(container) + 50*time.Millisecond):
+			case <-time.After(backend.GraceTime(container) * 2):
 			}
 		})
 
@@ -114,8 +114,8 @@ var _ = Describe("Bomberman", func() {
 
 				select {
 				case <-detonated:
-					Ω(time.Since(before)).Should(BeNumerically(">=", 100*time.Millisecond))
-				case <-time.After(backend.GraceTime(container) + 50*time.Millisecond):
+					Expect(time.Since(before)).To(BeNumerically(">=", 100*time.Millisecond))
+				case <-time.After(backend.GraceTime(container) * 2):
 					Fail("did not detonate!")
 				}
 			})
@@ -152,7 +152,7 @@ var _ = Describe("Bomberman", func() {
 			select {
 			case <-detonated:
 				Fail("detonated!")
-			case <-time.After(backend.GraceTime(container) + 50*time.Millisecond):
+			case <-time.After(backend.GraceTime(container) * 2):
 			}
 		})
 
@@ -164,6 +164,39 @@ var _ = Describe("Bomberman", func() {
 
 				bomberman.Defuse("BOOM?!")
 			})
+		})
+	})
+
+	Describe("resetting a container's grace time", func() {
+		It("bomb detonates at the new countdown", func() {
+			detonated := make(chan garden.Container)
+
+			backend := new(fakes.FakeBackend)
+
+			count := 0
+			backend.GraceTimeStub = func(garden.Container) time.Duration {
+				if count == 0 {
+					count++
+					return time.Second * 10
+				}
+				return time.Millisecond * 10
+			}
+
+			bomberman := bomberman.New(backend, func(container garden.Container) {
+				detonated <- container
+			})
+
+			container := new(fakes.FakeContainer)
+			container.HandleReturns("doomed")
+
+			bomberman.Strap(container)
+			bomberman.Reset(container)
+
+			select {
+			case <-time.After(backend.GraceTime(container) * 2):
+				Fail("bomb did not detonate at the new countdown")
+			case <-detonated:
+			}
 		})
 	})
 })

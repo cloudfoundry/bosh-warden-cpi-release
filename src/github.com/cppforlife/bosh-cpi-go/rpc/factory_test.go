@@ -64,6 +64,16 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("max api version", func() {
+		It("returns an error if requested version is higher than maximum supported", func() {
+			resp, _ := act(`{"method":"info", "arguments":[], "api_version": 666}`)
+			Expect(resp).To(Equal(Response{Error: &ResponseError{
+				Type:    "Bosh::Clouds::NotImplemented", // todo shouldnt use NotImplemented
+				Message: "Must call implemented method: CPI API version requested is '666', max supported is '2'",
+			}}))
+		})
+	})
+
 	Describe("info", func() {
 		It("works", func() {
 			cpi.InfoReturns(apiv1.Info{
@@ -73,6 +83,7 @@ var _ = Describe("Factory", func() {
 			resp, _ := act(`{"method":"info", "arguments":[]}`)
 			Expect(resp).To(Equal(Response{
 				Result: map[string]interface{}{
+					"api_version":      float64(2),
 					"stemcell_formats": []interface{}{"stemcell-fmt"},
 				},
 			}))
@@ -487,13 +498,73 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("set_disk_metadata", func() {
+		It("works", func() {
+			cpi.SetDiskMetadataReturns(nil)
+
+			resp, _ := act(`{"method":"set_disk_metadata", "arguments":["disk-cid", {"meta1": "meta1-val"}]}`)
+			Expect(resp).To(Equal(Response{Result: nil}))
+
+			cid, meta := cpi.SetDiskMetadataArgsForCall(0)
+			Expect(cid).To(Equal(apiv1.NewDiskCID("disk-cid")))
+			Expect(meta).To(Equal(apiv1.NewDiskMeta(map[string]interface{}{"meta1": "meta1-val"})))
+		})
+
+		It("errs", func() {
+			cpi.SetDiskMetadataReturns(errors.New("err"))
+
+			resp, _ := act(`{"method":"set_disk_metadata", "arguments":["disk-cid", {}]}`)
+			Expect(resp).To(Equal(Response{Error: &ResponseError{Type: "Bosh::Clouds::CloudError", Message: "err"}}))
+		})
+	})
+
+	Describe("resize_disk", func() {
+		It("works", func() {
+			cpi.ResizeDiskReturns(nil)
+
+			resp, _ := act(`{"method":"resize_disk", "arguments":["disk-cid", 1000]}`)
+			Expect(resp).To(Equal(Response{Result: nil}))
+
+			diskCID, size := cpi.ResizeDiskArgsForCall(0)
+			Expect(diskCID).To(Equal(apiv1.NewDiskCID("disk-cid")))
+			Expect(size).To(Equal(1000))
+		})
+
+		It("errs", func() {
+			cpi.ResizeDiskReturns(errors.New("err"))
+
+			resp, _ := act(`{"method":"resize_disk", "arguments":["disk-cid", 1000]}`)
+			Expect(resp).To(Equal(Response{Error: &ResponseError{Type: "Bosh::Clouds::CloudError", Message: "err"}}))
+		})
+	})
+
+	Describe("snapshot_disk", func() {
+		It("works", func() {
+			cpi.SnapshotDiskReturns(apiv1.NewSnapshotCID("snap-cid"), nil)
+
+			resp, _ := act(`{"method":"snapshot_disk", "arguments":["disk-cid", {"meta1": "meta1-val"}]}`)
+			Expect(resp).To(Equal(Response{Result: "snap-cid"}))
+
+			cid, meta := cpi.SnapshotDiskArgsForCall(0)
+			Expect(cid).To(Equal(apiv1.NewDiskCID("disk-cid")))
+			Expect(meta).To(Equal(apiv1.NewDiskMeta(map[string]interface{}{"meta1": "meta1-val"})))
+		})
+
+		It("errs", func() {
+			cpi.SnapshotDiskReturns(apiv1.SnapshotCID{}, errors.New("err"))
+
+			resp, _ := act(`{"method":"snapshot_disk", "arguments":["disk-cid", {}]}`)
+			Expect(resp).To(Equal(Response{Error: &ResponseError{Type: "Bosh::Clouds::CloudError", Message: "err"}}))
+		})
+	})
+
 	Describe("unknown methods", func() {
 		It("errs", func() {
 			resp, _ := act(`{"method":"unknown", "arguments":[]}`)
 			Expect(resp).To(Equal(Response{
 				Error: &ResponseError{
 					Type:    "Bosh::Clouds::NotImplemented",
-					Message: "Must call implemented method",
+					Message: "Must call implemented method: Unknown method 'unknown'",
 				},
 			}))
 		})

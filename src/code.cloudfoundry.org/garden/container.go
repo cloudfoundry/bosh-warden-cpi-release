@@ -62,7 +62,7 @@ type Container interface {
 	// pool.
 	//
 	// If a container port is not given, the port will be the same as the
-	// container port.
+	// host port.
 	//
 	// The resulting host and container ports are returned in that order.
 	//
@@ -150,13 +150,25 @@ type ProcessSpec struct {
 	Dir string `json:"dir,omitempty"`
 
 	// The name of a user in the container to run the process as.
+	// This must either be a username, or uid:gid.
 	User string `json:"user,omitempty"`
 
 	// Resource limits
 	Limits ResourceLimits `json:"rlimits,omitempty"`
 
+	// Limits to be applied to the newly created process
+	OverrideContainerLimits *ProcessLimits `json:"limits,omitempty"`
+
 	// Execute with a TTY for stdio.
 	TTY *TTYSpec `json:"tty,omitempty"`
+
+	// Execute process in own root filesystem, different from the other processes
+	// in the container.
+	Image ImageRef `json:"image,omitempty"`
+
+	// Bind mounts to be applied to the process's filesystem
+	// An error is returned if ProcessSpec.Image is not also set.
+	BindMounts []BindMount `json:"bind_mounts,omitempty"`
 }
 
 type TTYSpec struct {
@@ -229,6 +241,7 @@ type Metrics struct {
 	CPUStat     ContainerCPUStat
 	DiskStat    ContainerDiskStat
 	NetworkStat ContainerNetworkStat
+	PidStat     ContainerPidStat
 }
 
 type ContainerMetricsEntry struct {
@@ -276,6 +289,11 @@ type ContainerCPUStat struct {
 	System uint64
 }
 
+type ContainerPidStat struct {
+	Current uint64
+	Max     uint64
+}
+
 type ContainerDiskStat struct {
 	TotalBytesUsed      uint64
 	TotalInodesUsed     uint64
@@ -298,6 +316,11 @@ type ContainerNetworkStat struct {
 type BandwidthLimits struct {
 	RateInBytesPerSecond      uint64 `json:"rate,omitempty"`
 	BurstRateInBytesPerSecond uint64 `json:"burst,omitempty"`
+}
+
+type ProcessLimits struct {
+	CPU    CPULimits    `json:"cpu_limits,omitempty"`
+	Memory MemoryLimits `json:"memory_limits,omitempty"`
 }
 
 type DiskLimits struct {

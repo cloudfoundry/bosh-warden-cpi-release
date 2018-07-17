@@ -43,10 +43,10 @@ var _ = Describe("AgentEnvFactory", func() {
 			agentEnv1 := AgentEnvFactory{}.ForVM(
 				NewAgentID("fake-agent-id"), NewVMCID("fake-vm-id"), networks, env, agentOptions)
 
-			agentEnv1.AttachSystemDisk("fake-system-path")
-			agentEnv1.AttachEphemeralDisk("fake-ephemeral-path")
-			agentEnv1.AttachPersistentDisk(NewDiskCID("fake-persistent-id1"), "fake-persistent-path1")
-			agentEnv1.AttachPersistentDisk(NewDiskCID("fake-persistent-id2"), "fake-persistent-path2")
+			agentEnv1.AttachSystemDisk(NewDiskHintFromString("fake-system-path"))
+			agentEnv1.AttachEphemeralDisk(NewDiskHintFromString("fake-ephemeral-path"))
+			agentEnv1.AttachPersistentDisk(NewDiskCID("fake-persistent-id1"), NewDiskHintFromString("fake-persistent-path1"))
+			agentEnv1.AttachPersistentDisk(NewDiskCID("fake-persistent-id2"), NewDiskHintFromString("fake-persistent-path2"))
 
 			agentEnvJSON := `{
         "agent_id": "fake-agent-id",

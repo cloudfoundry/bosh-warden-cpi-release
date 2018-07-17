@@ -33,9 +33,14 @@ var _ = Describe("CloudPropsImpl", func() {
 		Expect(err.Error()).To(Equal("json: cannot unmarshal object into Go value of type string"))
 	})
 
-	It("does not marshal into json", func() {
-		_, err := json.Marshal(CloudPropsImpl{})
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("Expected to not marshal CloudPropsImpl as JSON"))
+	It("allows marshaling", func() {
+		var cloudProps CloudPropsImpl
+
+		err := json.Unmarshal([]byte(`{"cp1": "cp1-val"}`), &cloudProps)
+		Expect(err).ToNot(HaveOccurred())
+
+		bytes, err := json.Marshal(cloudProps)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(bytes).To(Equal([]byte(`{"cp1":"cp1-val"}`)))
 	})
 })

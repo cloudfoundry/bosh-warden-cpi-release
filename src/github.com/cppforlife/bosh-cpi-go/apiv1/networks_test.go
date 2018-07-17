@@ -1,11 +1,57 @@
 package apiv1_test
 
 import (
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cppforlife/bosh-cpi-go/apiv1"
 )
+
+var _ = Describe("Networks", func() {
+	var (
+		networks Networks
+	)
+
+	BeforeEach(func() {
+		networks = map[string]Network{}
+	})
+
+	Describe("MarshalJSON", func() {
+		It("marshals successfully", func() {
+			bytes := []byte(`{
+	      "fake-net-name1": {
+	        "type":    "fake-type",
+	        "ip":      "fake-ip",
+	        "netmask": "fake-netmask",
+	        "gateway": "fake-gateway",
+
+	        "dns":     ["fake-dns"],
+	        "default": ["fake-default"],
+
+	        "cloud_properties": {"fake-cp-key": "fake-cp-value"}
+	      },
+	      "fake-net-name2-no-ips": {
+	        "type":    "fake-type2",
+
+	        "dns":     ["fake-dns2"],
+	        "default": ["fake-default2"],
+
+	        "cloud_properties": {"fake-cp-key2": "fake-cp-value2"}
+	      }
+	    }`)
+
+			err := json.Unmarshal(bytes, &networks)
+			Expect(err).ToNot(HaveOccurred())
+
+			resultBytes, err := json.Marshal(networks)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resultBytes).To(MatchJSON(bytes))
+		})
+	})
+})
 
 var _ = Describe("Network", func() {
 	var (

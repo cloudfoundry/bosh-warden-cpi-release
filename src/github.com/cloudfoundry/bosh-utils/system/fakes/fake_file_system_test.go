@@ -3,7 +3,7 @@ package fakes_test
 import (
 	"errors"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -129,7 +129,7 @@ var _ = Describe("FakeFileSystem", func() {
 
 		BeforeEach(func() {
 			for fixtureFile, contents := range fixtureFiles {
-				fs.WriteFileString(path.Join(fixtureDirPath, fixtureFile), contents)
+				fs.WriteFileString(filepath.Join(fixtureDirPath, fixtureFile), contents)
 			}
 		})
 
@@ -143,10 +143,10 @@ var _ = Describe("FakeFileSystem", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			for fixtureFile := range fixtureFiles {
-				srcContents, err := fs.ReadFile(path.Join(srcPath, fixtureFile))
+				srcContents, err := fs.ReadFile(filepath.Join(srcPath, fixtureFile))
 				Expect(err).ToNot(HaveOccurred())
 
-				dstContents, err := fs.ReadFile(path.Join(dstPath, fixtureFile))
+				dstContents, err := fs.ReadFile(filepath.Join(dstPath, fixtureFile))
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(srcContents).To(Equal(dstContents), "Copied file does not match source file: '%s", fixtureFile)
@@ -176,6 +176,33 @@ var _ = Describe("FakeFileSystem", func() {
 		})
 	})
 
+	Describe("Rename", func() {
+		It("renames", func() {
+			file, err := fs.OpenFile("foobarbaz", 1, 0600)
+			Expect(err).ToNot(HaveOccurred())
+			_, err = file.Write([]byte("asdf"))
+			Expect(err).ToNot(HaveOccurred())
+			err = file.Close()
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Chown("foobarbaz", "root:vcap")
+			Expect(err).ToNot(HaveOccurred())
+
+			oldStat := fs.GetFileTestStat("foobarbaz")
+
+			err = fs.Rename("foobarbaz", "foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+			newStat := fs.GetFileTestStat("foobar")
+			Expect(newStat.Content).To(Equal(oldStat.Content))
+			Expect(newStat.FileMode).To(Equal(oldStat.FileMode))
+			Expect(newStat.FileType).To(Equal(oldStat.FileType))
+			Expect(newStat.Username).To(Equal(oldStat.Username))
+			Expect(newStat.Groupname).To(Equal(oldStat.Groupname))
+			Expect(newStat.Flags).To(Equal(oldStat.Flags))
+		})
+	})
+
 	Describe("Symlink", func() {
 		It("creates", func() {
 			err := fs.Symlink("foobarbaz", "foobar")
@@ -202,14 +229,33 @@ var _ = Describe("FakeFileSystem", func() {
 			})
 		})
 
+		Context("when the target is located in a parent directory", func() {
+			It("returns the target", func() {
+				sysRoot := os.Getenv("SYSTEMROOT")
+				err := fs.WriteFileString(filepath.Join(sysRoot, "foobarbaz"), "asdfghjk")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.Symlink(filepath.Join(sysRoot, "a", "b", "..", "..", "foobarbaz"), "foobar")
+				Expect(err).ToNot(HaveOccurred())
+
+				targetPath, err := fs.ReadAndFollowLink("foobar")
+				Expect(err).ToNot(HaveOccurred())
+				absTarget, err := filepath.Abs(targetPath)
+				Expect(err).ToNot(HaveOccurred())
+				absExpected, err := filepath.Abs(filepath.Join(sysRoot, "foobarbaz"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(absTarget).To(Equal(absExpected))
+			})
+		})
+
 		Context("when the target file does not exist", func() {
 			It("returns an error", func() {
 				err := fs.Symlink("non-existant-target", "foobar")
 				Expect(err).ToNot(HaveOccurred())
 
-				targetPath, err := fs.ReadAndFollowLink("foobar")
+				_, err = fs.ReadAndFollowLink("foobar")
 				Expect(err).To(HaveOccurred())
-				Expect(targetPath).To(Equal("non-existant-target"))
 			})
 		})
 
@@ -273,6 +319,22 @@ var _ = Describe("FakeFileSystem", func() {
 				Expect(targetPath).To(Equal("foobarTarget"))
 			})
 		})
+
+		Context("when there is an error", func() {
+			It("return the error", func() {
+				fs.WriteFileString("foobarTarget", "asdfasdf")
+				Expect(fs.FileExists("foobarTarget")).To(Equal(true))
+
+				err := fs.Symlink("foobarTarget", "foobarSymlink")
+				Expect(err).ToNot(HaveOccurred())
+
+				fs.ReadlinkError = errors.New("can't read link")
+
+				_, err = fs.Readlink("foobarSymlink")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("can't read link"))
+			})
+		})
 	})
 
 	Describe("RegisterReadFileError", func() {
@@ -306,6 +368,24 @@ var _ = Describe("FakeFileSystem", func() {
 				_, err := fs.ReadFile("/some/path")
 				Expect(err).ToNot(HaveOccurred())
 			})
+		})
+	})
+
+	Describe("ReadFileWithOpts", func() {
+		It("reads the file", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileWithOpts("foo", boshsys.ReadOpts{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(writtenContent)).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+			fs.ReadFileWithOpts("foo", boshsys.ReadOpts{})
+			fs.ReadFileWithOpts("foo", boshsys.ReadOpts{Quiet: true})
+
+			Expect(fs.ReadFileWithOptsCallCount).To(Equal(2))
 		})
 	})
 
@@ -375,6 +455,29 @@ var _ = Describe("FakeFileSystem", func() {
 			fileStat, err := fs.Stat("foobar")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileStat.ModTime()).To(Equal(setModTime))
+		})
+
+		It("records the invocation", func() {
+			err := fs.WriteFileString("somepath", "some file contents")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Stat("somepath")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.StatCallCount).To(Equal(1))
+		})
+	})
+
+	Describe("StatWithOpts", func() {
+		It("records the invocation", func() {
+			err := fs.WriteFileString("somepath", "some file contents")
+			Expect(err).ToNot(HaveOccurred())
+			statOpts := boshsys.StatOpts{Quiet: true}
+
+			_, err = fs.StatWithOpts("somepath", statOpts)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.StatWithOptsCallCount).To(Equal(1))
 		})
 	})
 

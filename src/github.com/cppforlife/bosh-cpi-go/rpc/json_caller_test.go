@@ -45,6 +45,22 @@ var _ = Describe("JSONCaller", func() {
 			Expect(action.SliceArgs).To(Equal([]string{"a", "b", "c"}))
 		})
 
+		It("handles multiple return values and an error", func() {
+			action := &actionMultipleReturnValues{}
+
+			value, err := caller.Call(action, []interface{}{})
+			Expect(err).To(Equal(errors.New("fake-err")))
+			Expect(value).To(Equal([]interface{}{123, "arg2"}))
+		})
+
+		It("handles one return values that is an error", func() {
+			action := &actionWithOneRunReturnValue{}
+
+			value, err := caller.Call(action, []interface{}{})
+			Expect(err).To(Equal(errors.New("fake-err")))
+			Expect(value).To(BeNil())
+		})
+
 		It("returns the same error as the action", func() {
 			expectedValue := valueType{}
 			expectedErr := errors.New("fake-err")
@@ -125,12 +141,12 @@ var _ = Describe("JSONCaller", func() {
 		})
 
 		It("returns error if actions run does not return two values", func() {
-			_, err := caller.Call(&actionWithOneRunReturnValue{}, []interface{}{})
+			_, err := caller.Call(&actionWithOneRunReturnValueNonError{}, []interface{}{})
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("returns error if actions run second return type is not error", func() {
-			_, err := caller.Call(&actionWithSecondReturnValueNotError{}, []interface{}{})
+			_, err := caller.Call(&actionWithLastReturnValueNotError{}, []interface{}{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -184,11 +200,23 @@ type actionWithoutRunMethod struct{}
 type actionWithOneRunReturnValue struct{}
 
 func (a *actionWithOneRunReturnValue) Run() error {
-	return nil
+	return errors.New("fake-err")
 }
 
-type actionWithSecondReturnValueNotError struct{}
+type actionWithOneRunReturnValueNonError struct{}
 
-func (a *actionWithSecondReturnValueNotError) Run() (interface{}, string) {
+func (a *actionWithOneRunReturnValueNonError) Run() string {
+	return ""
+}
+
+type actionMultipleReturnValues struct{}
+
+func (a *actionMultipleReturnValues) Run() (interface{}, string, error) {
+	return 123, "arg2", errors.New("fake-err")
+}
+
+type actionWithLastReturnValueNotError struct{}
+
+func (a *actionWithLastReturnValueNotError) Run() (interface{}, string) {
 	return nil, ""
 }

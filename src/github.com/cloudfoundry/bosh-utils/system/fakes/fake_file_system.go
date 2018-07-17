@@ -46,8 +46,9 @@ type FakeFileSystem struct {
 	openFileRegistry *FakeFileRegistry
 	OpenFileErr      error
 
-	ReadFileError       error
-	readFileErrorByPath map[string]error
+	ReadFileError             error
+	ReadFileWithOptsCallCount int
+	readFileErrorByPath       map[string]error
 
 	WriteFileError            error
 	WriteFileErrors           map[string]error
@@ -58,11 +59,14 @@ type FakeFileSystem struct {
 
 	MkdirAllError       error
 	mkdirAllErrorByPath map[string]error
+	MkdirAllCallCount   int
 
 	ChangeTempRootErr error
 
-	ChownErr error
-	ChmodErr error
+	ChownErr       error
+	ChownCallCount int
+	ChmodErr       error
+	ChmodCallCount int
 
 	CopyFileError     error
 	CopyFileCallCount int
@@ -76,6 +80,10 @@ type FakeFileSystem struct {
 	RemoveAllStub removeAllFn
 
 	ReadAndFollowLinkError error
+	ReadlinkError          error
+
+	StatWithOptsCallCount int
+	StatCallCount         int
 
 	TempFileError           error
 	TempFileErrorsByPrefix  map[string]error
@@ -266,6 +274,7 @@ func (fs *FakeFileSystem) RegisterMkdirAllError(path string, err error) {
 }
 
 func (fs *FakeFileSystem) MkdirAll(path string, perm os.FileMode) error {
+	fs.MkdirAllCallCount++
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -324,6 +333,16 @@ func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (bos
 }
 
 func (fs *FakeFileSystem) Stat(path string) (os.FileInfo, error) {
+	fs.StatCallCount++
+	return fs.StatHelper(path)
+}
+
+func (fs *FakeFileSystem) StatWithOpts(path string, opts boshsys.StatOpts) (os.FileInfo, error) {
+	fs.StatWithOptsCallCount++
+	return fs.StatHelper(path)
+}
+
+func (fs *FakeFileSystem) StatHelper(path string) (os.FileInfo, error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -350,6 +369,10 @@ func (fs *FakeFileSystem) Stat(path string) (os.FileInfo, error) {
 }
 
 func (fs *FakeFileSystem) Readlink(path string) (string, error) {
+	if fs.ReadlinkError != nil {
+		return "", fs.ReadlinkError
+	}
+
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -383,6 +406,7 @@ func (fs *FakeFileSystem) Lstat(path string) (os.FileInfo, error) {
 }
 
 func (fs *FakeFileSystem) Chown(path, username string) error {
+	fs.ChownCallCount++
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -406,6 +430,7 @@ func (fs *FakeFileSystem) Chown(path, username string) error {
 }
 
 func (fs *FakeFileSystem) Chmod(path string, perm os.FileMode) error {
+	fs.ChmodCallCount++
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -528,6 +553,11 @@ func (fs *FakeFileSystem) UnregisterReadFileError(path string) {
 	delete(fs.readFileErrorByPath, path)
 }
 
+func (fs *FakeFileSystem) ReadFileWithOpts(path string, opts boshsys.ReadOpts) ([]byte, error) {
+	fs.ReadFileWithOptsCallCount++
+	return fs.ReadFile(path)
+}
+
 func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {
 	stats := fs.GetFileTestStat(path)
 	if stats != nil {
@@ -584,6 +614,8 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	newStats.Content = stats.Content
 	newStats.FileMode = stats.FileMode
 	newStats.FileType = stats.FileType
+	newStats.Username = stats.Username
+	newStats.Groupname = stats.Groupname
 	newStats.Flags = stats.Flags
 
 	// Ignore error from RemoveAll
@@ -613,22 +645,42 @@ func (fs *FakeFileSystem) ReadAndFollowLink(symlinkPath string) (string, error) 
 		return "", fs.ReadAndFollowLinkError
 	}
 
-	symlinkPath = gopath.Join(symlinkPath)
-
-	stat := fs.GetFileTestStat(symlinkPath)
-	if stat != nil {
-		targetStat := fs.GetFileTestStat(stat.SymlinkTarget)
-
-		if targetStat == nil {
-			return stat.SymlinkTarget, os.ErrNotExist
-		} else if FakeFileTypeSymlink == targetStat.FileType {
-			return fs.ReadAndFollowLink(stat.SymlinkTarget)
-		}
-
-		return stat.SymlinkTarget, nil
+	if symlinkPath == "" ||
+		symlinkPath == "/" ||
+		symlinkPath == filepath.VolumeName(symlinkPath)+"\\" {
+		return symlinkPath, nil
 	}
 
-	return "", os.ErrNotExist
+	if symlinkPath == "." {
+		return fs.fileRegistry.UnifiedPath("."), nil
+	}
+
+	symlinkPath = filepath.Join(symlinkPath)
+
+	stat := fs.GetFileTestStat(symlinkPath)
+	if stat == nil {
+		return "", os.ErrNotExist
+	}
+
+	if stat.FileType != FakeFileTypeSymlink {
+		dirPath, err := fs.ReadAndFollowLink(filepath.Dir(symlinkPath))
+		if err != nil {
+			return "", err
+		}
+
+		return filepath.Join(dirPath, filepath.Base(symlinkPath)), nil
+	}
+
+	if gopath.IsAbs(stat.SymlinkTarget) {
+		return fs.ReadAndFollowLink(stat.SymlinkTarget)
+	}
+
+	dirPath, err := fs.ReadAndFollowLink(filepath.Dir(symlinkPath))
+	if err != nil {
+		return "", err
+	}
+
+	return fs.ReadAndFollowLink(filepath.Join(dirPath, stat.SymlinkTarget))
 }
 
 func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {
@@ -802,9 +854,11 @@ func (fs *FakeFileSystem) removeAll(path string) error {
 
 func (fs *FakeFileSystem) Glob(pattern string) (matches []string, err error) {
 	if fs.GlobStub != nil {
-		_, err = fs.GlobStub(pattern)
+		matches, err = fs.GlobStub(pattern)
 		if err != nil {
 			return nil, err
+		} else {
+			return matches, nil
 		}
 	}
 
