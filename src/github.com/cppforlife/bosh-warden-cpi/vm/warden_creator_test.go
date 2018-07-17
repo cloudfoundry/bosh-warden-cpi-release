@@ -261,7 +261,7 @@ var _ = Describe("WardenCreator", func() {
 
 					expectedAgentEnv := apiv1.AgentEnvFactory{}.ForVM(
 						apiv1.NewAgentID("fake-agent-id"), apiv1.NewVMCID("fake-vm-id"), networks, env, agentOptions)
-					expectedAgentEnv.AttachSystemDisk("")
+					expectedAgentEnv.AttachSystemDisk(apiv1.NewDiskHintFromString(""))
 
 					Expect(agentEnvServiceFactory.NewWardenFileService).ToNot(BeNil()) // todo
 					Expect(agentEnvServiceFactory.NewInstanceID).To(Equal(apiv1.NewVMCID("fake-vm-id")))

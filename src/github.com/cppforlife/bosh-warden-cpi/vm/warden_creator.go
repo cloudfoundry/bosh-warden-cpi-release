@@ -133,7 +133,7 @@ func (c WardenCreator) Create(
 	}
 
 	agentEnv := apiv1.AgentEnvFactory{}.ForVM(agentID, id, networks, env, c.agentOptions)
-	agentEnv.AttachSystemDisk("")
+	agentEnv.AttachSystemDisk(apiv1.NewDiskHintFromString(""))
 
 	wardenFileService := NewWardenFileService(container, c.logger)
 	agentEnvService := c.agentEnvServiceFactory.New(wardenFileService, id)

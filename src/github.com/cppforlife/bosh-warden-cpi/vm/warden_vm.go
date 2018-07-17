@@ -55,53 +55,53 @@ func (vm WardenVM) Delete() error {
 	if vm.containerExists {
 		err := vm.wardenClient.Destroy(vm.id.AsString())
 		if err != nil {
-			return err
+			return bosherr.WrapError(err, "Deleting container")
 		}
 	}
 
 	err := vm.ports.RemoveForwarded(vm.id)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Removing forwarded ports")
 	}
 
 	err = vm.hostBindMounts.DeleteEphemeral(vm.id)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Deleting ephemeral bind mounts")
 	}
 
 	err = vm.hostBindMounts.DeletePersistent(vm.id)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Deleting persistent bind mounts")
 	}
 
 	return nil
 }
 
-func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) error {
+func (vm WardenVM) AttachDisk(disk bwcdisk.Disk) (apiv1.DiskHint, error) {
 	if !vm.containerExists {
-		return bosherr.Error("VM does not exist")
+		return apiv1.DiskHint{}, bosherr.Error("VM does not exist")
 	}
 
 	agentEnv, err := vm.agentEnvService.Fetch()
 	if err != nil {
-		return bosherr.WrapError(err, "Fetching agent env")
+		return apiv1.DiskHint{}, bosherr.WrapError(err, "Fetching agent env")
 	}
 
 	err = vm.hostBindMounts.MountPersistent(vm.id, disk.ID(), disk.Path())
 	if err != nil {
-		return bosherr.WrapError(err, "Mounting persistent bind mounts dir")
+		return apiv1.DiskHint{}, bosherr.WrapError(err, "Mounting persistent bind mounts dir")
 	}
 
-	diskHintPath := vm.guestBindMounts.MountPersistent(disk.ID())
+	diskHint := apiv1.NewDiskHintFromString(vm.guestBindMounts.MountPersistent(disk.ID()))
 
-	agentEnv.AttachPersistentDisk(disk.ID(), diskHintPath)
+	agentEnv.AttachPersistentDisk(disk.ID(), diskHint)
 
 	err = vm.agentEnvService.Update(agentEnv)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating agent env")
+		return apiv1.DiskHint{}, bosherr.WrapError(err, "Updating agent env")
 	}
 
-	return nil
+	return diskHint, nil
 }
 
 func (vm WardenVM) DetachDisk(disk bwcdisk.Disk) error {

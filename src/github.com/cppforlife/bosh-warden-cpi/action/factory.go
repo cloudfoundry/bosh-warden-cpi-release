@@ -44,6 +44,9 @@ type CPI struct {
 	AttachDiskMethod
 	DetachDiskMethod
 	HasDiskMethod
+
+	Disks
+	Snapshots
 }
 
 func NewFactory(
@@ -127,5 +130,8 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewAttachDiskMethod(f.vmFinder, f.diskFinder),
 		NewDetachDiskMethod(f.vmFinder, f.diskFinder),
 		NewHasDiskMethod(f.diskFinder),
+
+		NewDisks(),
+		NewSnapshots(),
 	}, nil
 }

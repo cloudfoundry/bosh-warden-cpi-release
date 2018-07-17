@@ -153,7 +153,7 @@ var _ = Describe("WardenVM", func() {
 		})
 
 		It("tries to fetch agent env", func() {
-			err := vm.AttachDisk(disk)
+			_, err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(agentEnvService.FetchCalled).To(BeTrue())
@@ -162,12 +162,12 @@ var _ = Describe("WardenVM", func() {
 		Context("when fetching agent env succeeds", func() {
 			BeforeEach(func() {
 				agentEnv := &apiv1.AgentEnvImpl{}
-				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), apiv1.NewDiskHintFromString("/fake-hint-path2"))
 				agentEnvService.FetchAgentEnv = agentEnv
 			})
 
 			It("mounts persistent bind mounts dir", func() {
-				err := vm.AttachDisk(disk)
+				_, err := vm.AttachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(hostBindMounts.MountPersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
@@ -177,19 +177,20 @@ var _ = Describe("WardenVM", func() {
 
 			Context("when mounting persistent bind mounts dir succeeds", func() {
 				It("updates agent env attaching persistent disk", func() {
-					err := vm.AttachDisk(disk)
+					_, err := vm.AttachDisk(disk)
 					Expect(err).ToNot(HaveOccurred())
 
 					afterAgentEnv := &apiv1.AgentEnvImpl{}
-					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
-					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-guest-persistent-bind-mounts-dir/fake-disk-id")
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), apiv1.NewDiskHintFromString("/fake-hint-path2"))
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), apiv1.NewDiskHintFromString("/fake-guest-persistent-bind-mounts-dir/fake-disk-id"))
 					Expect(agentEnvService.UpdateAgentEnv).To(Equal(afterAgentEnv))
 				})
 
 				Context("when updating agent env succeeds", func() {
 					It("returns without an error", func() {
-						err := vm.AttachDisk(disk)
+						hint, err := vm.AttachDisk(disk)
 						Expect(err).ToNot(HaveOccurred())
+						Expect(hint).To(Equal(apiv1.NewDiskHintFromString("/fake-guest-persistent-bind-mounts-dir/fake-disk-id")))
 					})
 				})
 
@@ -197,7 +198,7 @@ var _ = Describe("WardenVM", func() {
 					It("returns error", func() {
 						agentEnvService.UpdateErr = errors.New("fake-update-err")
 
-						err := vm.AttachDisk(disk)
+						_, err := vm.AttachDisk(disk)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-update-err"))
 					})
@@ -208,7 +209,7 @@ var _ = Describe("WardenVM", func() {
 				It("returns error", func() {
 					hostBindMounts.MountPersistentErr = errors.New("fake-mount-err")
 
-					err := vm.AttachDisk(disk)
+					_, err := vm.AttachDisk(disk)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-mount-err"))
 				})
@@ -219,7 +220,7 @@ var _ = Describe("WardenVM", func() {
 			It("returns error", func() {
 				agentEnvService.FetchErr = errors.New("fake-fetch-err")
 
-				err := vm.AttachDisk(disk)
+				_, err := vm.AttachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-fetch-err"))
 			})
@@ -248,8 +249,8 @@ var _ = Describe("WardenVM", func() {
 		Context("when fetching agent env succeeds", func() {
 			BeforeEach(func() {
 				agentEnv := &apiv1.AgentEnvImpl{}
-				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), "/fake-hint-path")
-				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id"), apiv1.NewDiskHintFromString("/fake-hint-path"))
+				agentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), apiv1.NewDiskHintFromString("/fake-hint-path2"))
 				agentEnvService.FetchAgentEnv = agentEnv
 			})
 
@@ -267,7 +268,7 @@ var _ = Describe("WardenVM", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					afterAgentEnv := &apiv1.AgentEnvImpl{}
-					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), "/fake-hint-path2")
+					afterAgentEnv.AttachPersistentDisk(apiv1.NewDiskCID("fake-disk-id2"), apiv1.NewDiskHintFromString("/fake-hint-path2"))
 					Expect(agentEnvService.UpdateAgentEnv).To(Equal(afterAgentEnv))
 				})
 

@@ -19,7 +19,7 @@ type VM interface {
 
 	Delete() error
 
-	AttachDisk(bwcdisk.Disk) error
+	AttachDisk(bwcdisk.Disk) (apiv1.DiskHint, error)
 	DetachDisk(bwcdisk.Disk) error
 }
 
