@@ -323,6 +323,7 @@ var _ = Describe("WardenCreator", func() {
 									"umount /etc/hostname",
 									"rm -rf /var/vcap/data/sys",
 									"mkdir -p /var/vcap/data/sys",
+									"sed -i 's/chronyc/# chronyc/g' /var/vcap/bosh/bin/sync-time",
 									"exec env -i /usr/sbin/runsvdir-start",
 								}, "\n"),
 							},
