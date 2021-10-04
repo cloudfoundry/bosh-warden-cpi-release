@@ -4,7 +4,7 @@ result=0
 
 bin=$(dirname $0)
 
-go install -mod=vendor github.com/onsi/ginkgo/ginkgo
+GOBIN=/usr/local/bin go install -mod=vendor github.com/onsi/ginkgo/ginkgo
 
 echo -e "\n Formatting packages..."
 go fmt bosh-warden-cpi/...
