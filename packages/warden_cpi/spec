@@ -2,11 +2,10 @@
 name: warden_cpi
 
 dependencies:
-- golang-1.10-linux
+- golang-1.16-linux
 
 files:
-- "**/*.go"
-
-excluded_files:
-- github.com/onsi/ginkgo/**/*
-- github.com/onsi/gomega/**/*
+- "bosh-warden-cpi/**/*.go"
+- "bosh-warden-cpi/**/*.s"
+- "bosh-warden-cpi/go.{mod,sum}"
+- "bosh-warden-cpi/vendor/modules.txt"

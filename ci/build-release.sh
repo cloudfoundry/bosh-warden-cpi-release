@@ -10,7 +10,7 @@ cd bosh-warden-cpi-release
 
 source .envrc
 
-./src/github.com/cppforlife/bosh-warden-cpi/bin/test
+./src/bosh-warden-cpi/bin/test
 
 # todo remove installation
 gem install net-ssh -v 2.10.0.beta2

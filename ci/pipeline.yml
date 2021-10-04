@@ -3,16 +3,17 @@ jobs:
 - name: build
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - get: bosh-warden-cpi-release
     - {get: dev-version, params: {bump: patch}}
   - put: dev-version
     params: {file: dev-version/number}
   - task: build
-    privileged: true
     config:
       platform: linux
-      image: docker:///cloudfoundry/bosh-lite-ci
+      image_resource:
+        type: registry-image
+        source: { repository: bosh/bosh-ecosystem-concourse }
       inputs:
       - name: bosh-warden-cpi-release
       - name: dev-version
@@ -23,21 +24,22 @@ jobs:
 - name: bats
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: bosh-warden-cpi-release, passed: [build]}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
-    - {get: warden-ubuntu-trusty-stemcell, params: {tarball: false}}
+    - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
     - get: bosh-release
     - get: garden-linux-release
   - task: bats
-    privileged: true
     config:
+      image_resource:
+        type: registry-image
+        source: { repository: bosh/bosh-ecosystem-concourse }
       platform: linux
-      image: docker:///cloudfoundry/bosh-lite-ci
       inputs:
       - name: bosh-warden-cpi-release
       - name: pipeline-bosh-warden-cpi-tarball
-      - name: warden-ubuntu-trusty-stemcell
+      - name: warden-ubuntu-bionic-stemcell
       - name: bosh-release
       - name: garden-linux-release
       run: {path: bosh-warden-cpi-release/ci/bats.sh}
@@ -51,14 +53,16 @@ jobs:
 - name: promote
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: bosh-warden-cpi-release, passed: [bats]}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats], trigger: true}
   - task: promote
     file:
     config:
       platform: linux
-      image: docker:///cloudfoundry/bosh-lite-ci
+      image_resource:
+        type: registry-image
+        source: { repository: bosh/bosh-ecosystem-concourse }
       inputs:
       - name: bosh-warden-cpi-release
       - name: pipeline-bosh-warden-cpi-tarball
@@ -82,6 +86,7 @@ resources:
     bucket: {{s3_pipeline_bucket}}
     access_key_id: {{s3_pipeline_access_key_id}}
     secret_access_key: {{s3_pipeline_secret_access_key}}
+    initial_version: 42.0.0
 
 - name: pipeline-bosh-warden-cpi-tarball
   type: s3
@@ -94,8 +99,8 @@ resources:
 - name: bosh-warden-cpi-release
   type: git
   source:
-    uri: https://github.com/cppforlife/bosh-warden-cpi-release
-    branch: master
+    uri: https://github.com/cloudfoundry/bosh-warden-cpi-release
+    branch: update_ci
     ignore_paths:
     - .final_builds/**/*.yml
     - releases/**/*.yml
@@ -103,13 +108,13 @@ resources:
 - name: promoted-bosh-warden-cpi-release
   type: git
   source:
-    uri: git@github.com:cppforlife/bosh-warden-cpi-release.git
-    branch: master
+    uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
+    branch: update_ci
     private_key: {{github_promote_private_key}}
 
-- name: warden-ubuntu-trusty-stemcell
+- name: warden-ubuntu-bionic-stemcell
   type: bosh-io-stemcell
-  source: {name: bosh-warden-boshlite-ubuntu-trusty-go_agent}
+  source: {name: bosh-warden-boshlite-ubuntu-bionic-go_agent}
 
 - name: bosh-release
   type: bosh-io-release
