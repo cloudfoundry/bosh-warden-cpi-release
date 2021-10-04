@@ -1,6 +1,0 @@
-#!/bin/bash
-set -e
-go fmt ./...
-ginkgo -r .
-go build -o docs/example docs/example.go
-rm -f docs/example

@@ -1,15 +1,24 @@
 set -e -x
 
 if [ -z "$BOSH_PACKAGES_DIR" ]; then
-	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1.10-linux)
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1.16-linux)
 else
-	pkg_dir=$BOSH_PACKAGES_DIR/golang-1.10-linux
+	pkg_dir=$BOSH_PACKAGES_DIR/golang-1.16-linux
 fi
 
 source ${pkg_dir}/bosh/compile.env
 
-mkdir ../src && cp -a * ../src/ && mv ../src ./src
+# Since HOME is not set we must set GOPATH and GOCACHE
+mkdir -p /tmp/go/.cache
+export GOPATH=/tmp/go
+export GOCACHE=${GOPATH}/.cache
 
-mkdir $BOSH_INSTALL_TARGET/bin
 
-go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/cppforlife/bosh-warden-cpi/main/*.go
+cd ${BOSH_COMPILE_TARGET}/bosh-warden-cpi
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+export GOARCH=amd64
+export GOOS=linux
+export GOTOOLDIR=$GOROOT/pkg/linux_amd64
+
+go build -mod=vendor -o $BOSH_INSTALL_TARGET/bin/cpi ./main/*.go
