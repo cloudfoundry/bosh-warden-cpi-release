@@ -10,7 +10,9 @@ cd bosh-warden-cpi-release
 
 source .envrc
 
-./src/bosh-warden-cpi/bin/test
+pushd src/bosh-warden-cpi
+./bin/test
+popd
 
 # todo remove installation
 gem install net-ssh -v 2.10.0.beta2
