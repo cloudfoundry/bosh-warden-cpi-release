@@ -16,4 +16,4 @@ popd
 
 bosh create-release --version $dev_version --force --tarball=release.tgz
 
-mv dev_releases/bosh-warden-cpi/*.tgz ../out/
+mv *.tgz ../out/
