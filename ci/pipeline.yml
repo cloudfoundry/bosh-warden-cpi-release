@@ -111,7 +111,6 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-warden-cpi-release
     branch: update_ci
     ignore_paths:
-    - .final_builds/**/*.yml
     - releases/**/*.yml
 
 - name: promoted-bosh-warden-cpi-release
