@@ -29,7 +29,7 @@ jobs:
         JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
         JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
   - put: pipeline-bosh-warden-cpi-tarball
-    params: {file: releases/release.tgz}
+    params: {file: releases/bosh-warden-cpi-.*\.tgz}
 
 - name: bats
   serial: true
