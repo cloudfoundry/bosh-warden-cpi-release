@@ -8,6 +8,13 @@ run_bats_on_vm() {
   cpi_release_path=$3
   garden_linux_release_path=$4
 
+  jumpbox_url=${JUMPBOX_URL:-${JUMPBOX_IP}:22}
+  jumpbox_private_key_path=$(mktemp)
+  chmod 600 ${jumpbox_private_key_path}
+  echo "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
+  
+  export BOSH_ALL_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
+
   deploy_director $stemcell_url $bosh_release_path $cpi_release_path $garden_linux_release_path
   vagrant_ssh "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
   vagrant_ssh "set -e -x; $(declare -f run_bats); run_bats 10.244.8.2 '$stemcell_url'"
@@ -18,7 +25,6 @@ deploy_director() {
   bosh_release_path=$2
   cpi_release_path=$3
   garden_linux_release_path=$4
-
 
   # Upload specific dependencies
   bosh upload-stemcell $stemcell_url
