@@ -2,8 +2,6 @@
 
 set -e -x
 
-mkdir out
-
 dev_version=`cat dev-version/number`
 
 cd bosh-warden-cpi-release
@@ -16,4 +14,4 @@ popd
 
 bosh create-release --version $dev_version --force --tarball=release.tgz
 
-mv *.tgz ../out/
+mv *.tgz ../releases/
