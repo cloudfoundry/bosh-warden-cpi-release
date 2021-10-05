@@ -18,6 +18,14 @@ jobs:
       - name: bosh-warden-cpi-release
       - name: dev-version
       run: {path: bosh-warden-cpi-release/ci/build-release.sh}
+      params:
+        BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
+        BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
+        BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
+        BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
+        JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
+        JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
+        JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
   - put: pipeline-bosh-warden-cpi-tarball
     params: {from: build/out/bosh-warden-cpi-.*\.tgz}
 
@@ -44,12 +52,13 @@ jobs:
       - name: garden-linux-release
       run: {path: bosh-warden-cpi-release/ci/bats.sh}
       params:
-        BOSH_AWS_ACCESS_KEY_ID: {{bats_bosh_lite_access_key_id}}
-        BOSH_AWS_SECRET_ACCESS_KEY: {{bats_bosh_lite_secret_access_key}}
-        BOSH_LITE_SECURITY_GROUP: {{bats_bosh_lite_security_group}}
-        BOSH_LITE_KEYPAIR: {{bats_bosh_lite_keypair}}
-        BOSH_LITE_PRIVATE_KEY: {{bats_bosh_lite_private_key}}
-
+        BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
+        BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
+        BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
+        BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
+        JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
+        JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
+        JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
 - name: promote
   serial: true
   plan:

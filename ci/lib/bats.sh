@@ -21,12 +21,6 @@ deploy_director() {
 
   director_ip=$(vagrant_ip)
 
-  # todo remove installation
-  gem install net-ssh -v 2.10.0.beta2
-  gem install fog-google -v 0.1.0
-  gem install bosh_cli --no-ri --no-rdoc
-  rm -f ~/.bosh_config
-
   # Target bosh-lite
   bosh -n target $director_ip
   bosh -n login admin admin
