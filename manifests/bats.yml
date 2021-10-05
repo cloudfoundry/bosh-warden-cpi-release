@@ -1,8 +1,6 @@
 ---
 name: bats
 
-director_uuid:
-
 releases:
 - {name: bosh,            version: latest}
 - {name: bosh-warden-cpi, version: latest}
@@ -22,7 +20,7 @@ jobs:
   - {name: garden, release: garden-linux}
   resource_pool: default
   networks:
-  - {name: default, static_ips: [10.244.8.2]}
+  - {name: default, static_ips: [10.0.0.11]}
 
 properties:
   ntp: ["0.us.pool.ntp.org"]
@@ -91,34 +89,3 @@ properties:
     allow_host_access: true
     # todo expecting fix for this from garden team
     mount_btrfs_loopback: false
-
-resource_pools:
-- name: default
-  stemcell:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-    version: latest
-  network: default
-  cloud_properties: {}
-
-networks:
-- name: default
-  type: manual
-  subnets:
-  - range: 10.244.8.0/30
-    reserved: [10.244.8.1]
-    static: [10.244.8.2]
-    cloud_properties: {}
-- name: compilation
-  type: dynamic
-  cloud_properties: {}
-
-compilation:
-  workers: 5
-  network: compilation
-  cloud_properties: {}
-
-update:
-  canaries: 1
-  max_in_flight: 1
-  canary_watch_time: 5000 - 90000
-  update_watch_time: 5000 - 15000

@@ -19,22 +19,14 @@ deploy_director() {
   cpi_release_path=$3
   garden_linux_release_path=$4
 
-  director_ip=$(vagrant_ip)
-
-  # Target bosh-lite
-  bosh -n target $director_ip
-  bosh -n login admin admin
 
   # Upload specific dependencies
-  bosh upload stemcell $stemcell_url
-  bosh upload release $bosh_release_path
-  bosh upload release $cpi_release_path
-  bosh upload release $garden_linux_release_path
+  bosh upload-stemcell $stemcell_url
+  bosh upload-release $bosh_release_path
+  bosh upload-release $cpi_release_path
+  bosh upload-release $garden_linux_release_path
 
-  # Deploy **director** that will be tested
-  sed -i.bak "s/director_uuid:/director_uuid: $(bosh -n status --uuid)/" \
-    bosh-warden-cpi-release/manifests/bats.yml
-  bosh deployment bosh-warden-cpi-release/manifests/bats.yml
+  bosh deploy -d bats bosh-warden-cpi-release/manifests/bats.yml
   bosh -n deploy
 }
 
