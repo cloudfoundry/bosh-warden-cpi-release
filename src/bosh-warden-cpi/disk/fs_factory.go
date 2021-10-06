@@ -56,7 +56,7 @@ func (f FSFactory) Create(size int) (Disk, error) {
 		return nil, bosherr.WrapError(err, "Creating empty disk")
 	}
 
-	sizeStr := strconv.Itoa(size) + "MB"
+	sizeStr := strconv.Itoa(size) + "M"
 
 	_, _, _, err = f.cmdRunner.RunCommand("truncate", "-s", sizeStr, diskPath)
 	if err != nil {
