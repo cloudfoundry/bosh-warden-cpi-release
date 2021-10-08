@@ -1,0 +1,23 @@
+image_resource:
+  type: registry-image
+  source: { repository: bosh/bosh-ecosystem-concourse }
+platform: linux
+inputs:
+- name: bosh-warden-cpi-release
+- name: pipeline-bosh-warden-cpi-tarball
+- name: warden-ubuntu-bionic-stemcell
+- name: bosh-release
+- name: garden-linux-release
+run: {path: bosh-warden-cpi-release/ci/bats.sh}
+params:
+  BOSH_ENVIRONMENT: ""
+  BOSH_CA_CERT: ""
+  BOSH_CLIENT: ""
+  BOSH_CLIENT_SECRET: ""
+  JUMPBOX_PRIVATE_KEY: ""
+  JUMPBOX_USERNAME: ""
+  JUMPBOX_IP: ""
+  CREDHUB_CLIENT: ""
+  CREDHUB_SECRET: ""
+  CREDHUB_CA_PEM: ""
+  

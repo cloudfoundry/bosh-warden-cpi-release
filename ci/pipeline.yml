@@ -41,26 +41,18 @@ jobs:
     - get: bosh-release
     - get: garden-linux-release
   - task: bats
-    config:
-      image_resource:
-        type: registry-image
-        source: { repository: bosh/bosh-ecosystem-concourse }
-      platform: linux
-      inputs:
-      - name: bosh-warden-cpi-release
-      - name: pipeline-bosh-warden-cpi-tarball
-      - name: warden-ubuntu-bionic-stemcell
-      - name: bosh-release
-      - name: garden-linux-release
-      run: {path: bosh-warden-cpi-release/ci/bats.sh}
-      params:
-        BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
-        BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
-        BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
-        BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
-        JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
-        JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
-        JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
+    file: bosh-warden-cpi-release/ci/tasks/bats.yml
+    params:
+      BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
+      BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
+      BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
+      BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
+      JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
+      JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
+      JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
+      CREDHUB_CLIENT: ((bosh-credhub-admin-client.client-name))
+      CREDHUB_CLIENT_SECRET: ((bosh-credhub-admin-client.client-secret))
+
 - name: promote
   serial: true
   plan:

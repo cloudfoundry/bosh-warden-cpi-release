@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
+set -e
 
-set -e -x
+jumpbox_url=${JUMPBOX_URL:-${JUMPBOX_IP}:22}
+jumpbox_private_key_path=$(mktemp)
+chmod 600 ${jumpbox_private_key_path}
+echo "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
+export BOSH_ALL_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
+export CREDHUB_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
+export CREDHUB_SERVER=https://${BOSH_ENVIRONMENT}:8844
+export CREDHUB_CA_CERT=$(mktemp)
+echo "${CREDHUB_CA_PEM}" > ${CREDHUB_CA_CERT}
 
 run_bats_on_vm() {
   stemcell_url=$1
@@ -8,12 +17,6 @@ run_bats_on_vm() {
   cpi_release_path=$3
   garden_linux_release_path=$4
 
-  jumpbox_url=${JUMPBOX_URL:-${JUMPBOX_IP}:22}
-  jumpbox_private_key_path=$(mktemp)
-  chmod 600 ${jumpbox_private_key_path}
-  echo "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
-  
-  export BOSH_ALL_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
 
   deploy_director $stemcell_url $bosh_release_path $cpi_release_path $garden_linux_release_path
   vagrant_ssh "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
@@ -27,13 +30,61 @@ deploy_director() {
   garden_linux_release_path=$4
 
   # Upload specific dependencies
-  bosh upload-stemcell $stemcell_url
   bosh upload-release $bosh_release_path
   bosh upload-release $cpi_release_path
   bosh upload-release $garden_linux_release_path
 
-  bosh deploy -d bats bosh-warden-cpi-release/manifests/bats.yml
-  bosh -n deploy
+
+  git clone https://github.com/cloudfoundry/bosh-deployment.git
+  bd=./bosh-deployment
+    ops='
+
+    - type: replace
+      path: /releases/name=bosh/version
+      value: latest
+    - type: replace
+      path: /instance_groups/name=bosh/azs?
+      value: [az1]
+    - type: replace
+      path: /stemcells/alias=default/os
+      value: ubuntu-bionic
+    - type: replace
+      path: /instance_groups/name=bosh/jobs/-
+      value:
+        name: registry
+        release: bosh
+    - path: /instance_groups/name=bosh/properties/registry?
+      type: replace
+      value:
+        address: ((internal_ip))
+        db:
+          adapter: postgres
+          database: bosh
+          host: 127.0.0.1
+          password: ((postgres_password))
+          user: postgres
+        host: ((internal_ip))
+        http:
+          password: ((registry_password))
+          port: 25777
+          user: registry
+        password: ((registry_password))
+        port: 25777
+        username: registry
+    - path: /variables/-
+      type: replace
+      value:
+        name: registry_password
+        type: password
+    - type: remove
+      path: /instance_groups/name=bosh/jobs/name=disable_agent
+    '
+    bosh -d bosh -n deploy ${bd}/bosh.yml \
+        -o ${bd}/bosh-lite.yml \
+        -o ${bd}/misc/bosh-dev.yml \
+        -o <(echo -e "${ops}") \
+        -v internal_ip=10.0.0.10 \
+        -v director_name="dev-director"
 }
 
 install_bats_prereqs() {

@@ -1,5 +1,5 @@
 ---
-name: bats
+name: bosh
 
 releases:
 - {name: bosh,            version: latest}
