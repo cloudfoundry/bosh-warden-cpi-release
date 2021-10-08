@@ -3,6 +3,7 @@
 set -e -x
 
 source $(dirname $0)/lib/bats.sh
+credhub login --skip-tls-validation
 
 stemcell_url=`cat warden-ubuntu-bionic-stemcell/url`
 bosh_release_path=$PWD/bosh-release/*.tgz
