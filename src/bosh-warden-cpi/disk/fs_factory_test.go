@@ -64,7 +64,7 @@ var _ = Describe("FSFactory", func() {
 
 					Expect(len(cmdRunner.RunCommands)).To(BeNumerically(">", 0))
 					Expect(cmdRunner.RunCommands[0]).To(Equal(
-						[]string{"truncate", "-s", "40MB", "/fake-disks-dir/fake-uuid"},
+						[]string{"truncate", "-s", "40M", "/fake-disks-dir/fake-uuid"},
 					))
 				})
 
@@ -126,7 +126,7 @@ var _ = Describe("FSFactory", func() {
 				Context("when increasing file size fails", func() {
 					BeforeEach(func() {
 						cmdRunner.AddCmdResult(
-							"truncate -s 40MB /fake-disks-dir/fake-uuid",
+							"truncate -s 40M /fake-disks-dir/fake-uuid",
 							fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
 						)
 					})
