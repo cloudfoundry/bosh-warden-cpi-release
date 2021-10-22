@@ -38,6 +38,7 @@ jobs:
     - {get: bosh-warden-cpi-release, passed: [build]}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
     - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
+    - {get: google-ubuntu-bionic-stemcell, params: {tarball: false}}
     - get: bosh-release
     - get: garden-linux-release
   - task: bats
@@ -52,6 +53,7 @@ jobs:
       JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
       CREDHUB_CLIENT: ((bosh-credhub-admin-client.client-name))
       CREDHUB_CLIENT_SECRET: ((bosh-credhub-admin-client.client-secret))
+      CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
 
 - name: promote
   serial: true
@@ -117,6 +119,10 @@ resources:
 - name: warden-ubuntu-bionic-stemcell
   type: bosh-io-stemcell
   source: {name: bosh-warden-boshlite-ubuntu-bionic-go_agent}
+
+- name: google-ubuntu-bionic-stemcell
+  type: bosh-io-stemcell
+  source: {name: bosh-google-kvm-ubuntu-bionic-go_agent}
 
 - name: bosh-release
   type: bosh-io-release

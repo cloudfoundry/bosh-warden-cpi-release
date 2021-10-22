@@ -1,0 +1,39 @@
+#!/bin/bash
+if [[ -z $CREDS_PATH ]]; then
+
+echo "\$CREDS_PATH not set, creating rcfile for running locally"
+
+if ! credhub find -n iaas_directors_gcp-director > /dev/null; then
+  echo "couldn't find gcp iaas director creds in credhub. are you targeting the right credhub?"
+  echo 'source <(../bosh-ecosystem-concourse/bin/concourse-credhub-print-env )'
+  exit 1
+fi
+
+
+CREDS_PATH=$(mktemp)
+export CREDHUB_CLIENT_DATA=$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_credhub_client -j | jq -r .value )
+cat << EOF > ${CREDS_PATH}
+export BOSH_ENVIRONMENT="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_environment -j | jq -r .value )"
+export BOSH_CA_CERT="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_ca_cert -j | jq -r .value.ca )"
+export BOSH_CLIENT="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_client -j | jq -r .value.username )"
+export BOSH_CLIENT_SECRET="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_client -j | jq -r .value.password)"
+export JUMPBOX_PRIVATE_KEY="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_jumpbox_ssh -j | jq -r .value.private_key)"
+export JUMPBOX_USERNAME="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_jumpbox_username -j | jq -r .value)"
+export JUMPBOX_IP="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_jumpbox_ip -j | jq -r .value)"
+
+export CREDHUB_CA_PEM="$(credhub get -n /concourse/main/iaas_directors_gcp-director_bosh_credhub_ca_cert -j | jq .value.ca -r)"
+export CREDHUB_CLIENT="$(jq -r .username <<< $CREDHUB_CLIENT_DATA)"
+export CREDHUB_SECRET="$(jq -r .password <<< $CREDHUB_CLIENT_DATA)"
+EOF
+
+echo "run
+export CREDS_PATH=$CREDS_PATH
+
+and re-run the script"
+exit 0
+fi
+
+
+echo "Found \$CREDS_PATH in ENV, skipping creation"
+source $CREDS_PATH
+fly --target bosh-ecosystem execute -c ../bosh-warden-cpi-release/ci/tasks/bats.yml  -i bosh-warden-cpi-release=./ -j bosh-warden-cpi/bats
