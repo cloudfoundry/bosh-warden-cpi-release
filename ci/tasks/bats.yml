@@ -21,9 +21,9 @@ params:
   CREDHUB_CLIENT: ""
   CREDHUB_SECRET: ""
   CREDHUB_CA_PEM: ""
-  RECREATE: false
+  RECREATE: true
   SKIP_DRAIN: false
   FIX: false
-  SKIP_RUBY_INSTALL: true
-  SKIP_BUNDLE_INSTALL: true
+  SKIP_RUBY_INSTALL: false
+  SKIP_BUNDLE_INSTALL: false
   BOSH_CLI_VERSION: "6.4.7"
