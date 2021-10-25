@@ -186,7 +186,7 @@ properties:
   networks:
   - name: default
   stemcell:
-    name: bosh-warden-boshlite-ubuntu-xenial-go_agent
+    name: bosh-warden-boshlite-ubuntu-bionic-go_agent
     version: latest
   persistent_disk: 1024
 
