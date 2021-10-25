@@ -36,6 +36,7 @@ jobs:
   plan:
   - in_parallel:
     - {get: bosh-warden-cpi-release, passed: [build]}
+    - {get: bosh-acceptance-tests}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
     - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
     - {get: google-ubuntu-bionic-stemcell, params: {tarball: false}}
@@ -51,8 +52,8 @@ jobs:
       JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
       JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
       JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
-      CREDHUB_CLIENT: ((bosh-credhub-admin-client.client-name))
-      CREDHUB_CLIENT_SECRET: ((bosh-credhub-admin-client.client-secret))
+      CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
+      CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
       CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
 
 - name: promote
@@ -101,6 +102,11 @@ resources:
     access_key_id: {{s3_pipeline_access_key_id}}
     secret_access_key: {{s3_pipeline_secret_access_key}}
 
+- name: bosh-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-acceptance-tests
+    branch: master
 - name: bosh-warden-cpi-release
   type: git
   source:

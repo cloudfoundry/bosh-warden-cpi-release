@@ -36,4 +36,4 @@ fi
 
 echo "Found \$CREDS_PATH in ENV, skipping creation"
 source $CREDS_PATH
-fly --target bosh-ecosystem execute -c ../bosh-warden-cpi-release/ci/tasks/bats.yml  -i bosh-warden-cpi-release=./ -j bosh-warden-cpi/bats
+fly --target bosh-ecosystem execute -c ../bosh-warden-cpi-release/ci/tasks/bats.yml  -i bosh-acceptance-tests=../bosh-acceptance-tests -i bosh-warden-cpi-release=./ -j bosh-warden-cpi/bats 
