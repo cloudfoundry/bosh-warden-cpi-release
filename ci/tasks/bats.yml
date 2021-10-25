@@ -4,6 +4,7 @@ image_resource:
 platform: linux
 inputs:
 - name: bosh-warden-cpi-release
+- name: bosh-acceptance-tests
 - name: pipeline-bosh-warden-cpi-tarball
 - name: warden-ubuntu-bionic-stemcell
 - name: bosh-release
@@ -23,5 +24,6 @@ params:
   RECREATE: false
   SKIP_DRAIN: false
   FIX: false
-  SKIP_RUBY_INSTALL: false
+  SKIP_RUBY_INSTALL: true
+  SKIP_BUNDLE_INSTALL: true
   BOSH_CLI_VERSION: "6.4.7"

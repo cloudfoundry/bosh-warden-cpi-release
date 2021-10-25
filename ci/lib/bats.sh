@@ -25,6 +25,7 @@ run_bats_on_vm() {
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh/default_ca -j | jq .value.ca -r)"
   bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
   bosh -d bosh ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
+  bosh -d bosh scp -r bosh-acceptance-tests bosh/0:/tmp/bosh-acceptance-tests
 }
 
 deploy_director() {
@@ -122,10 +123,10 @@ run_bats() {
   lite_director_ip=$1
   stemcell_url=$2
   export BOSH_CA_CERT="$3"
-  export BOSH_ENVIRONMENT=$lite_director_ip 
   if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     # bosh_cli expects this key to exist
     ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+    cp ~/.ssh/id_rsa /tmp/id_rsa
   fi
 
   git clone --depth=1 https://github.com/cloudfoundry/bosh.git
@@ -145,55 +146,53 @@ run_bats() {
     sudo chmod +x /var/vcap/store/bosh/bin/bosh
   fi
 
-  sudo gem install bundler
-  cd bosh/src
+  pushd bosh/src
 
-  # Pull in bat submodule
-  git submodule update --init
+    # Pull in bat submodule
+    git submodule update --init
 
-  sudo gem install bundler
+    if ! $SKIP_BUNDLE_INSTALL; then
+    sudo -E gem install bundler
+    rm -rf ./.bundle
+    sudo -E bundler install
+    fi 
 
-  rm -rf ./.bundle
-  sudo bundler install
-
-  rm -f ~/.bosh_config
-  sudo -E bundle exec bosh -n login --client=admin --client-secret=admin
-  export UUID=$(bosh env --column uuid)
-  # 10.244.10.2 is specified as static IP in bat/templates/warden.yml.erb
-  cat > bats.spec << EOF
----
-cpi: warden
-properties:
-  static_ip: $lite_director_ip
-  uuid: $UUID
-  pool_size: 1
-  persistent_disk: 100
-  stemcell:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-    version: latest
-  instances: 1
-  mbus: "huh?"
-  networks:
-  - type: manual
-    static_ip: $lite_director_ip
-EOF
+    rm -f ~/.bosh_config
+  popd
 
   # Download specific stemcell
   sudo wget -O /var/vcap/store/stemcell.tgz $stemcell_url
 
-  export BAT_DIRECTOR=$lite_director_ip
-  export BAT_DNS_HOST=$lite_director_ip
-  export BAT_STEMCELL=`pwd`/stemcell.tgz
-  export BAT_DEPLOYMENT_SPEC=`pwd`/bats.spec
-  export BAT_VCAP_PASSWORD=c1oudc0w
-  export BAT_INFRASTRUCTURE=warden
-  export BAT_NETWORKING=manual
+  pushd /tmp/bosh-acceptance-tests
+    export BAT_BOSH_CLI=/var/vcap/store/bosh/bin/bosh
+    export BAT_DEPLOYMENT_SPEC=`pwd`/bats.spec
+    export BAT_DIRECTOR=$lite_director_ip
+    export BAT_DNS_HOST=$lite_director_ip
+    export BAT_INFRASTRUCTURE=warden
+    export BAT_NETWORKING=manual
+    export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
+    export BAT_VCAP_PASSWORD=c1oudc0w
+    export BAT_PRIVATE_KEY=~/tmp/id_rsa
 
-  cd bats
 
+    export BOSH_ENVIRONMENT=10.0.0.10
+    export BOSH_CLIENT=admin
+    export BOSH_CLIENT_SECRET=admin
+    cat > bats.spec << EOF
+---
+cpi: warden
+properties:
+  instances: 1
+  networks:
+  - name: default
+  stemcell:
+    name: bosh-warden-boshlite-ubuntu-xenial-go_agent
+    version: latest
+  persistent_disk: 1024
 
-  # All bats' VMs should be in 10.244.10.0/24
-  sed -i.bak "s/10\.244\.0\./10\.244\.10\./g" templates/warden.yml.erb
+EOF
+    sudo -E bundle install
+    sudo -E bundle exec rspec
 
-  bundle exec rake bat
+  popd
 }
