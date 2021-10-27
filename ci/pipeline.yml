@@ -74,8 +74,8 @@ jobs:
       - name: pipeline-bosh-warden-cpi-tarball
       run: {path: bosh-warden-cpi-release/ci/promote-release.sh}
       params:
-        BOSH_AWS_ACCESS_KEY_ID: {{promote_access_key_id}}
-        BOSH_AWS_SECRET_ACCESS_KEY: {{promote_secret_access_key}}
+        BOSH_AWS_ACCESS_KEY_ID: ((promote_access_key_id))
+        BOSH_AWS_SECRET_ACCESS_KEY: ((promote_secret_access_key))
   - put: bosh-warden-cpi-release
     resource: promoted-bosh-warden-cpi-release
     params:
@@ -89,18 +89,18 @@ resources:
   type: semver
   source:
     key: dev-version
-    bucket: {{s3_pipeline_bucket}}
-    access_key_id: {{s3_pipeline_access_key_id}}
-    secret_access_key: {{s3_pipeline_secret_access_key}}
+    bucket: ((s3_pipeline_bucket))
+    access_key_id: ((s3_pipeline_access_key_id))
+    secret_access_key: ((s3_pipeline_secret_access_key))
     initial_version: 42.0.0
 
 - name: pipeline-bosh-warden-cpi-tarball
   type: s3
   source:
-    bucket: {{s3_pipeline_bucket}}
+    bucket: ((s3_pipeline_bucket))
     regexp: bosh-warden-cpi-(.*).tgz
-    access_key_id: {{s3_pipeline_access_key_id}}
-    secret_access_key: {{s3_pipeline_secret_access_key}}
+    access_key_id: ((s3_pipeline_access_key_id))
+    secret_access_key: ((s3_pipeline_secret_access_key))
 
 - name: bosh-acceptance-tests
   type: git
@@ -120,7 +120,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
     branch: update_ci
-    private_key: {{github_promote_private_key}}
+    private_key: ((github_promote_private_key))
 
 - name: warden-ubuntu-bionic-stemcell
   type: bosh-io-stemcell
