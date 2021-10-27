@@ -1,0 +1,15 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source: { repository: bosh/bosh-ecosystem-concourse }
+inputs:
+- name: bosh-warden-cpi-release
+- name: pipeline-bosh-warden-cpi-tarball
+- name: dev-version
+outputs:
+- name: bosh-warden-cpi-release
+run: {path: bosh-warden-cpi-release/ci/promote-release.sh}
+params:
+  BOSH_AWS_ACCESS_KEY_ID:
+  BOSH_AWS_SECRET_ACCESS_KEY:
+  BOSH_CLI_VERSION: "6.4.7"
