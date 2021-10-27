@@ -106,7 +106,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
-    branch: warden_fi
+    branch: warden_fix
 - name: bosh-warden-cpi-release
   type: git
   source:
