@@ -25,7 +25,7 @@ run_bats_on_vm() {
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh/default_ca -j | jq .value.ca -r)"
   bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
   bosh -d bosh ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
-  bosh -d bosh scp -r bosh-acceptance-tests bosh/0:/tmp/bosh-acceptance-tests
+
 }
 
 deploy_director() {
@@ -45,6 +45,9 @@ deploy_director() {
   bd=./bosh-deployment
     ops='
 
+    - type: replace
+      path: /releases/name=bosh/version
+      value: latest
     - type: replace
       path: /releases/name=bosh/version
       value: latest
@@ -87,13 +90,24 @@ deploy_director() {
     - type: replace
       path: /instance_groups/name=bosh/persistent_disk_type
       value: large
+    - type: replace
+      path: /releases/name=bosh-warden-cpi/url
+      value: file://((local-bosh-warden-cpi-release))
+
+    - type: remove
+      path: /releases/name=bosh-warden-cpi/sha1
+
+    - type: replace
+      path: /releases/name=bosh-warden-cpi/version
+      value: latest
     '
     bosh int ${bd}/bosh.yml  \
         -o ${bd}/bosh-lite.yml \
         -o ${bd}/misc/bosh-dev.yml \
         -o <(echo -e "${ops}") \
         -v internal_ip="$lite_director_ip" \
-        -v director_name="dev-director"
+        -v director_name="dev-director" \
+        -v local-bosh-warden-cpi-release="$cpi_release_path"
     if $RECREATE ; then
       RC='--recreate'
     fi
@@ -109,7 +123,8 @@ deploy_director() {
         -o <(echo -e "${ops}") \
         -v internal_ip="$lite_director_ip" \
         -v director_name="dev-director" \
-        -v admin_password=admin
+        -v admin_password=admin \
+        -v local-bosh-warden-cpi-release="$cpi_release_path" \
         $RC $SD $FF
 }
 
@@ -147,7 +162,6 @@ run_bats() {
   fi
 
   pushd bosh/src
-
     # Pull in bat submodule
     git submodule update --init
 
@@ -162,37 +176,52 @@ run_bats() {
 
   # Download specific stemcell
   sudo wget -O /var/vcap/store/stemcell.tgz $stemcell_url
+  cat << EOF > /tmp/debug.rc
+  export BAT_BOSH_CLI=/var/vcap/store/bosh/bin/bosh
+  export BAT_DEPLOYMENT_SPEC=/tmp/bosh-acceptance-tests/bats.spec
+  export BAT_DIRECTOR=$lite_director_ip
+  export BAT_DNS_HOST=$lite_director_ip
+  export BAT_INFRASTRUCTURE=warden
+  export BAT_NETWORKING=manual
+  export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
+  export BAT_VCAP_PASSWORD=c1oudc0w
+  export BAT_PRIVATE_KEY=~/tmp/id_rsa
+
+
+
+  export BOSH_ENVIRONMENT=10.0.0.10
+  export BOSH_CLIENT=admin
+  export BOSH_CLIENT_SECRET=admin
+  export BOSH_CA_CERT="$BOSH_CA_CERT"
+
+  export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage )
+  env | grep BAT_ > /tmp/debug.rc
+  env | grep BOSH_ >> /tmp/debug.rc
+EOF
+
+  rm -rf /tmp/bosh-acceptance-tests
+  git clone  -b warden_fix https://github.com/cloudfoundry/bosh-acceptance-tests.git /tmp/bosh-acceptance-tests
 
   pushd /tmp/bosh-acceptance-tests
-    export BAT_BOSH_CLI=/var/vcap/store/bosh/bin/bosh
-    export BAT_DEPLOYMENT_SPEC=`pwd`/bats.spec
-    export BAT_DIRECTOR=$lite_director_ip
-    export BAT_DNS_HOST=$lite_director_ip
-    export BAT_INFRASTRUCTURE=warden
-    export BAT_NETWORKING=manual
-    export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
-    export BAT_VCAP_PASSWORD=c1oudc0w
-    export BAT_PRIVATE_KEY=~/tmp/id_rsa
 
-
-    export BOSH_ENVIRONMENT=10.0.0.10
-    export BOSH_CLIENT=admin
-    export BOSH_CLIENT_SECRET=admin
     cat > bats.spec << EOF
 ---
 cpi: warden
 properties:
   instances: 1
-  networks:
-  - name: default
   stemcell:
     name: bosh-warden-boshlite-ubuntu-bionic-go_agent
     version: latest
   persistent_disk: 1024
-
+  networks:
+  - name: default
+    type: manual
+    static_ip: 10.244.0.34
+  second_static_ip: 10.244.0.35
 EOF
+    source /tmp/debug.rc
     sudo -E bundle install
-    sudo -E bundle exec rspec
+    sudo -E bundle exec rspec "${BAT_RSPEC_FLAGS[@]}"
 
   popd
 }
