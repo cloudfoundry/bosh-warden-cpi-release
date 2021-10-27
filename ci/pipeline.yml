@@ -40,6 +40,7 @@ jobs:
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
     - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
     - {get: google-ubuntu-bionic-stemcell, params: {tarball: false}}
+    - {get: dev-version, passed: [build]}
     - get: bosh-release
     - get: garden-linux-release
   - task: bats
@@ -60,22 +61,16 @@ jobs:
   serial: true
   plan:
   - in_parallel:
+    - {get: dev-version, passed: [bats]}
     - {get: bosh-warden-cpi-release, passed: [bats]}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats], trigger: true}
   - task: promote
-    file:
-    config:
-      platform: linux
-      image_resource:
-        type: registry-image
-        source: { repository: bosh/bosh-ecosystem-concourse }
-      inputs:
-      - name: bosh-warden-cpi-release
-      - name: pipeline-bosh-warden-cpi-tarball
-      run: {path: bosh-warden-cpi-release/ci/promote-release.sh}
-      params:
-        BOSH_AWS_ACCESS_KEY_ID: ((promote_access_key_id))
-        BOSH_AWS_SECRET_ACCESS_KEY: ((promote_secret_access_key))
+    file: bosh-warden-cpi-release/ci/tasks/promote.yml
+    params:
+      BOSH_AWS_ACCESS_KEY_ID: ((s3_pipeline_access_key_id))
+      BOSH_AWS_SECRET_ACCESS_KEY: ((s3_pipeline_secret_access_key))
+      
+      
   - put: bosh-warden-cpi-release
     resource: promoted-bosh-warden-cpi-release
     params:
@@ -107,10 +102,11 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
     branch: warden_fix
+
 - name: bosh-warden-cpi-release
   type: git
   source:
-    uri: https://github.com/cloudfoundry/bosh-warden-cpi-release
+    uri: https://github.com/cloudfoundry/bosh-warden-cpi-release.git
     branch: update_ci
     ignore_paths:
     - releases/**/*.yml
@@ -119,7 +115,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
-    branch: update_ci
+    branch: master
     private_key: ((github_promote_private_key))
 
 - name: warden-ubuntu-bionic-stemcell
