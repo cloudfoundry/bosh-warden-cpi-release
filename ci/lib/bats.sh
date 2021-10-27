@@ -186,17 +186,14 @@ run_bats() {
   export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
   export BAT_VCAP_PASSWORD=c1oudc0w
   export BAT_PRIVATE_KEY=~/tmp/id_rsa
-
-
+  export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage )
+  export PATH=${PATH}:/var/vcap/store/bosh/bin/:/var/vcap/store/ruby/bin/
 
   export BOSH_ENVIRONMENT=10.0.0.10
   export BOSH_CLIENT=admin
   export BOSH_CLIENT_SECRET=admin
   export BOSH_CA_CERT="$BOSH_CA_CERT"
 
-  export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage )
-  env | grep BAT_ > /tmp/debug.rc
-  env | grep BOSH_ >> /tmp/debug.rc
 EOF
 
   rm -rf /tmp/bosh-acceptance-tests

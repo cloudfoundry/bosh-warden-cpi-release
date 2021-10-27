@@ -22,3 +22,5 @@ bosh_release_path=$PWD/bosh-release/*.tgz
 garden_linux_release_path=$PWD/garden-linux-release/*.tgz
 
 run_bats_on_vm $stemcell_url $bosh_release_path $cpi_release_path $garden_linux_release_path
+bosh delete-vm $(bosh is --details --column=VM_CID) -n
+bosh -d bosh delete-deployment
