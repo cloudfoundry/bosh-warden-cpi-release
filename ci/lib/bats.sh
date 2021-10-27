@@ -25,8 +25,8 @@ run_bats_on_vm() {
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh/default_ca -j | jq .value.ca -r)"
   bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
   bosh -d bosh ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
-  bosh delete-vm $(bosh is --details --column=VM_CID) -n
-  bosh -d bosh delete-deployment
+  bosh -d bosh delete-vm $(bosh is --details --column=VM_CID) -n
+  bosh -d bosh delete-deployment -n
 
 }
 
