@@ -56,7 +56,8 @@ jobs:
       CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
       CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
       CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
-      RECREATE: false
+      RECREATE: true
+      SKIP_BUNDLE_INSTALL: true
 
 - name: promote
   serial: true
@@ -75,7 +76,7 @@ jobs:
   - put: bosh-warden-cpi-release
     resource: promoted-bosh-warden-cpi-release
     params:
-      repository: promote/bosh-warden-cpi-release
+      repository: bosh-warden-cpi-release
       rebase: true
       tag_prefix: v
       tag: promote/final_version

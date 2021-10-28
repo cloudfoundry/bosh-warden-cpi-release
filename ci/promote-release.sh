@@ -29,5 +29,5 @@ EOF
   git config --global user.name "CI"
   git commit -m "New final release v$final_version"
 
-  echo $final_version > ../final_version
+  echo $final_version > final_version
 popd
