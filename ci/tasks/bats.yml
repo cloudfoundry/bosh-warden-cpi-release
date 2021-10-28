@@ -21,7 +21,7 @@ params:
   CREDHUB_CLIENT: ""
   CREDHUB_SECRET: ""
   CREDHUB_CA_PEM: ""
-  RECREATE: true
+  RECREATE: false
   SKIP_DRAIN: false
   FIX: false
   SKIP_RUBY_INSTALL: false

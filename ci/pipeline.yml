@@ -35,7 +35,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - {get: bosh-warden-cpi-release, passed: [build]}
+    - {get: bosh-warden-cpi-release}
     - {get: bosh-acceptance-tests}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
     - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
@@ -56,14 +56,15 @@ jobs:
       CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
       CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
       CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
+      RECREATE: false
 
 - name: promote
   serial: true
   plan:
   - in_parallel:
-    - {get: dev-version, passed: [bats]}
-    - {get: bosh-warden-cpi-release, passed: [bats]}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats], trigger: true}
+    - {get: dev-version, passed: [bats, build ]}
+    - {get: bosh-warden-cpi-release}
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats,build], trigger: true}
   - task: promote
     file: bosh-warden-cpi-release/ci/tasks/promote.yml
     params:
