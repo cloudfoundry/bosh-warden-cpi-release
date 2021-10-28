@@ -109,7 +109,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-warden-cpi-release.git
-    branch: update_ci
+    branch: master
     ignore_paths:
     - releases/**/*.yml
 
