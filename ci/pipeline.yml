@@ -65,7 +65,7 @@ jobs:
   - in_parallel:
     - {get: dev-version, passed: [bats, build ]}
     - {get: bosh-warden-cpi-release}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats,build], trigger: true}
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats,build] }
   - task: promote
     file: bosh-warden-cpi-release/ci/tasks/promote.yml
     params:
