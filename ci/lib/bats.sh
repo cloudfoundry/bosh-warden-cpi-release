@@ -13,6 +13,8 @@ run_bats_on_vm() {
   bosh_release_path=$2
   cpi_release_path=$3
   garden_linux_release_path=$4
+  SKIP_RUBY_INSTALL=$5
+  BOSH_CLI_VERSION=$6
   lite_director_ip="10.0.0.10"
 
   export CREDHUB_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
@@ -23,7 +25,7 @@ run_bats_on_vm() {
   credhub login --skip-tls-validation
   deploy_director $stemcell_url $bosh_release_path $cpi_release_path $garden_linux_release_path $lite_director_ip
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh/default_ca -j | jq .value.ca -r)"
-  bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs"
+  bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION $SKIP_BUNDLE_INSTALL"
   bosh -d bosh ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
   bosh -d bosh delete-vm $(bosh is --details --column=VM_CID) -n
   bosh -d bosh delete-deployment -n
@@ -131,9 +133,45 @@ deploy_director() {
 }
 
 install_bats_prereqs() {
+  
+  SKIP_RUBY_INSTALL=$1
+  BOSH_CLI_VERSION=$2
+  SKIP_BUNDLE_INSTALL=$3
   sudo apt-get -y update
   sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev 
 
+  export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
+
+  if bosh --version |  grep "$BOSH_CLI_VERSION"; then
+    echo "found bosh, skipping download"
+  else
+    sudo mkdir -p /var/vcap/store/bosh/bin || true
+    sudo wget -O /var/vcap/store/bosh/bin/bosh https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64
+    sudo chmod +x /var/vcap/store/bosh/bin/bosh
+  fi
+  sudo rm -rf /tmp/bosh
+  git clone --depth=1 https://github.com/cloudfoundry/bosh.git /tmp/bosh
+
+  if $SKIP_RUBY_INSTALL; then 
+    echo "SKIPPING RUBY INSTALL, SINCE \$SKIP_RUBY_INSTALL=$SKIP_RUBY_INSTALL IS SET"
+  else
+    git clone https://github.com/postmodern/ruby-install
+    sudo mkdir -p /var/vcap/store/ruby
+    sudo ruby-install/bin/ruby-install --install-dir /var/vcap/store/ruby $(cat /tmp/bosh/src/Gemfile | grep '^ruby ' | cut -f2 -d"'")
+  fi
+
+  pushd /tmp/bosh/src
+    # Pull in bat submodule
+    git submodule update --init
+
+    if ! $SKIP_BUNDLE_INSTALL; then
+    sudo -E gem install bundler
+    rm -rf ./.bundle
+    sudo -E bundler install
+    fi 
+
+    rm -f ~/.bosh_config
+  popd
 }
 
 run_bats() {
@@ -146,35 +184,9 @@ run_bats() {
     cp ~/.ssh/id_rsa /tmp/id_rsa
   fi
 
-  git clone --depth=1 https://github.com/cloudfoundry/bosh.git
-  if $SKIP_RUBY_INSTALL ; then 
-    echo "SKIPPING RUBY INSTALL, SINCE \$SKIP_RUBY_INSTALL IS SET"
-  else
-    git clone https://github.com/postmodern/ruby-install
-    sudo mkdir -p /var/vcap/store/ruby
-    sudo ruby-install/bin/ruby-install --install-dir /var/vcap/store/ruby $(cat bosh/src/Gemfile | grep '^ruby ' | cut -f2 -d"'")
-  fi
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
-  if type bosh || bosh --version |  grep "$BOSH_CLI_VERSION"; then
-    echo "found bosh, skipping download"
-  else
-    sudo mkdir -p /var/vcap/store/bosh/bin || true
-    sudo wget -O /var/vcap/store/bosh/bin/bosh https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64
-    sudo chmod +x /var/vcap/store/bosh/bin/bosh
-  fi
 
-  pushd bosh/src
-    # Pull in bat submodule
-    git submodule update --init
 
-    if ! $SKIP_BUNDLE_INSTALL; then
-    sudo -E gem install bundler
-    rm -rf ./.bundle
-    sudo -E bundler install
-    fi 
-
-    rm -f ~/.bosh_config
-  popd
 
   # Download specific stemcell
   sudo wget -O /var/vcap/store/stemcell.tgz $stemcell_url
@@ -219,7 +231,7 @@ properties:
   second_static_ip: 10.244.0.35
 EOF
     source /tmp/debug.rc
-    sudo -E bundle install
+    sudo -E bundle install 
     sudo -E bundle exec rspec "${BAT_RSPEC_FLAGS[@]}"
 
   popd
