@@ -79,7 +79,7 @@ jobs:
       repository: bosh-warden-cpi-release
       rebase: true
       tag_prefix: v
-      tag: promote/final_version
+      tag: bosh-warden-cpi-release/final_version
 
 resources:
 - name: dev-version
