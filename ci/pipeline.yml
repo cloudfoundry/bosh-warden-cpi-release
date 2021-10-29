@@ -65,7 +65,7 @@ jobs:
   - in_parallel:
     - {get: dev-version, passed: [bats, build ]}
     - {get: bosh-warden-cpi-release}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats,build] }
+    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats,build], trigger: true}
   - task: promote
     file: bosh-warden-cpi-release/ci/tasks/promote.yml
     params:
@@ -109,7 +109,11 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-warden-cpi-release.git
+<<<<<<< HEAD
     branch: master
+=======
+    branch: update_ci
+>>>>>>> f383908f3fb046dcc166ac012d3b8d2d1c4e028c
     ignore_paths:
     - releases/**/*.yml
 
