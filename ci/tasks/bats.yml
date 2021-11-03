@@ -25,6 +25,5 @@ params:
   SKIP_DRAIN: false
   FIX: false
   SKIP_RUBY_INSTALL: false
-  SKIP_BUNDLE_INSTALL: false
   BOSH_CLI_VERSION: "6.4.7"
   DEV_RELEASE: false

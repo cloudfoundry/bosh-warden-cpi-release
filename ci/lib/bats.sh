@@ -25,7 +25,7 @@ run_bats_on_vm() {
   credhub login --skip-tls-validation
   deploy_director $stemcell_url $bosh_release_path $cpi_release_path $garden_linux_release_path $lite_director_ip
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh/default_ca -j | jq .value.ca -r)"
-  bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION $SKIP_BUNDLE_INSTALL"
+  bosh -d bosh ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION"
   bosh -d bosh ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
   bosh -d bosh delete-vm $(bosh is --details --column=VM_CID) -n
   bosh -d bosh delete-deployment -n
@@ -136,7 +136,6 @@ install_bats_prereqs() {
   
   SKIP_RUBY_INSTALL=$1
   BOSH_CLI_VERSION=$2
-  SKIP_BUNDLE_INSTALL=$3
   sudo apt-get -y update
   sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev 
 
@@ -164,12 +163,6 @@ install_bats_prereqs() {
     # Pull in bat submodule
     git submodule update --init
 
-    if ! $SKIP_BUNDLE_INSTALL; then
-    sudo -E gem install bundler
-    rm -rf ./.bundle
-    sudo -E bundler install
-    fi 
-
     rm -f ~/.bosh_config
   popd
 }
@@ -181,7 +174,7 @@ run_bats() {
   if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     # bosh_cli expects this key to exist
     ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-    cp ~/.ssh/id_rsa /tmp/id_rsa
+    sudo cp ~/.ssh/id_rsa /tmp/id_rsa
   fi
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
@@ -211,7 +204,7 @@ run_bats() {
 EOF
 
   rm -rf /tmp/bosh-acceptance-tests
-  git clone  -b warden_fix https://github.com/cloudfoundry/bosh-acceptance-tests.git /tmp/bosh-acceptance-tests
+  git clone https://github.com/cloudfoundry/bosh-acceptance-tests.git /tmp/bosh-acceptance-tests
 
   pushd /tmp/bosh-acceptance-tests
 
