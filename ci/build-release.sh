@@ -6,8 +6,6 @@ dev_version=`cat dev-version/number`
 
 cd bosh-warden-cpi-release
 
-source .envrc
-
 pushd src/bosh-warden-cpi
 ./bin/test
 popd
