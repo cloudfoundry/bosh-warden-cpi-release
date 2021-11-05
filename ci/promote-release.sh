@@ -2,12 +2,8 @@
 
 set -e -x
 integer_version=$(cat dev-version/number | cut -f1 -d'.')
-pushd bosh-warden-cpi-release
-  mkdir /tmp/bin
-  export PATH=${PATH}:/tmp/bin
-  wget -O /tmp/bin/bosh https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64
-  chmod +x /tmp/bin/bosh
 
+pushd bosh-warden-cpi-release
   cat > config/private.yml << EOF
 ---
 blobstore:
