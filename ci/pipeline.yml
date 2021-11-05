@@ -77,7 +77,8 @@ jobs:
     params:
       BOSH_AWS_ACCESS_KEY_ID: ((final_blobs_iam_credentials.username))
       BOSH_AWS_SECRET_ACCESS_KEY: ((final_blobs_iam_credentials.password))
-      
+  - put: dev-version
+    params: { file: dev-version/number }
   - put: bosh-warden-cpi-release
     resource: promoted-bosh-warden-cpi-release
     params:
