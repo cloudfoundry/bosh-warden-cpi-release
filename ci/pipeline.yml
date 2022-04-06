@@ -92,18 +92,18 @@ resources:
   type: semver
   source:
     key: dev-version
-    bucket: ((s3_pipeline_bucket))
-    access_key_id: ((s3_pipeline_access_key_id))
-    secret_access_key: ((s3_pipeline_secret_access_key))
+    bucket: bosh-warden-cpi-tarball
+    access_key_id: ((bosh_cpis_aws_access_key.username))
+    secret_access_key: ((bosh_cpis_aws_access_key.password))
     initial_version: 42.0.0
 
 - name: pipeline-bosh-warden-cpi-tarball
   type: s3
   source:
-    bucket: ((s3_pipeline_bucket))
+    bucket: bosh-warden-cpi-tarball
     regexp: bosh-warden-cpi-(.*).tgz
-    access_key_id: ((s3_pipeline_access_key_id))
-    secret_access_key: ((s3_pipeline_secret_access_key))
+    access_key_id: ((bosh_cpis_aws_access_key.username))
+    secret_access_key: ((bosh_cpis_aws_access_key.password))
 
 - name: bosh-acceptance-tests
   type: git
