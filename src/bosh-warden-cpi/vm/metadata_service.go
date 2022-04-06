@@ -2,16 +2,12 @@ package vm
 
 import (
 	"encoding/json"
-	"fmt"
-
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type metadataService struct {
-	agentEnvService  string
-	registryOptions  RegistryOptions
 	userDataFilePath string
 	metadataFilePath string
 
@@ -20,13 +16,9 @@ type metadataService struct {
 }
 
 func NewMetadataService(
-	agentEnvService string,
-	registryOptions RegistryOptions,
 	logger boshlog.Logger,
 ) MetadataService {
 	return &metadataService{
-		agentEnvService:  agentEnvService,
-		registryOptions:  registryOptions,
 		userDataFilePath: "/var/vcap/bosh/warden-cpi-user-data.json",
 		metadataFilePath: "/var/vcap/bosh/warden-cpi-metadata.json",
 
@@ -48,23 +40,9 @@ type MetadataContentsType struct {
 }
 
 func (ms *metadataService) Save(wardenFileService WardenFileService, instanceID apiv1.VMCID) error {
-	var endpoint string
-
-	if ms.agentEnvService == "registry" {
-		endpoint = fmt.Sprintf(
-			"http://%s:%s@%s:%d",
-			ms.registryOptions.Username,
-			ms.registryOptions.Password,
-			ms.registryOptions.Host,
-			ms.registryOptions.Port,
-		)
-	} else {
-		endpoint = "/var/vcap/bosh/warden-cpi-agent-env.json"
-	}
-
 	userDataContents := UserDataContentsType{
 		Registry: RegistryType{
-			Endpoint: endpoint,
+			Endpoint: "/var/vcap/bosh/warden-cpi-agent-env.json",
 		},
 	}
 

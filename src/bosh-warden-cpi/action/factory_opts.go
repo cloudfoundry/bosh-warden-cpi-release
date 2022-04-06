@@ -3,8 +3,6 @@ package action
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	bwcvm "bosh-warden-cpi/vm"
-
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 )
 
@@ -20,9 +18,6 @@ type FactoryOpts struct {
 	GuestPersistentBindMountsDir string // e.g. /warden-cpi-dev
 
 	Agent apiv1.AgentOptions
-
-	AgentEnvService string
-	Registry        bwcvm.RegistryOptions
 }
 
 func (o FactoryOpts) Validate() error {

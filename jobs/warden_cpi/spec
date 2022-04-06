@@ -74,24 +74,3 @@ properties:
   warden_cpi.actions.guest_persistent_bind_mounts_dir:
     description: "Directory with sub-directories at which persistent disks are mounted inside VMs"
     default: "/warden-cpi-dev"
-
-  # Useful for testing bosh create-env (needs to be unnamespaced)
-  warden_cpi.enable_registry:
-    description: "Enables use of registry"
-    default: false
-
-  registry.host:
-    description: "Hostname of registry"
-    default: ""
-
-  registry.port:
-    description: "Port of registry"
-    default: 6901
-
-  registry.username:
-    description: "Username for registry"
-    default: ""
-
-  registry.password:
-    description: "Password for registry"
-    default: ""

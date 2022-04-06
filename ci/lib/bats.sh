@@ -61,34 +61,6 @@ deploy_director() {
     - type: replace
       path: /stemcells/alias=default/os
       value: ubuntu-bionic
-    - type: replace
-      path: /instance_groups/name=bosh/jobs/-
-      value:
-        name: registry
-        release: bosh
-    - path: /instance_groups/name=bosh/properties/registry?
-      type: replace
-      value:
-        address: ((internal_ip))
-        db:
-          adapter: postgres
-          database: bosh
-          host: 127.0.0.1
-          password: ((postgres_password))
-          user: postgres
-        host: ((internal_ip))
-        http:
-          password: ((registry_password))
-          port: 25777
-          user: registry
-        password: ((registry_password))
-        port: 25777
-        username: registry
-    - path: /variables/-
-      type: replace
-      value:
-        name: registry_password
-        type: password
     - type: remove
       path: /instance_groups/name=bosh/jobs/name=disable_agent
     - type: replace

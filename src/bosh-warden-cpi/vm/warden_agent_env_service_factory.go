@@ -6,20 +6,14 @@ import (
 )
 
 type WardenAgentEnvServiceFactory struct {
-	agentEnvService string
-	registryOptions RegistryOptions
-	logger          boshlog.Logger
+	logger boshlog.Logger
 }
 
 func NewWardenAgentEnvServiceFactory(
-	agentEnvService string,
-	registryOptions RegistryOptions,
 	logger boshlog.Logger,
 ) WardenAgentEnvServiceFactory {
 	return WardenAgentEnvServiceFactory{
-		logger:          logger,
-		agentEnvService: agentEnvService,
-		registryOptions: registryOptions,
+		logger: logger,
 	}
 }
 
@@ -27,8 +21,5 @@ func (f WardenAgentEnvServiceFactory) New(
 	wardenFileService WardenFileService,
 	instanceID apiv1.VMCID,
 ) AgentEnvService {
-	if f.agentEnvService == "registry" {
-		return NewRegistryAgentEnvService(f.registryOptions, instanceID, f.logger)
-	}
 	return NewFSAgentEnvService(wardenFileService, f.logger)
 }

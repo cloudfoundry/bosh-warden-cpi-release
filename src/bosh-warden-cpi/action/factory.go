@@ -85,11 +85,9 @@ func NewFactory(
 		return bwcvm.NewSystemResolvConfFromPath(fs)
 	}
 
-	metadataService := bwcvm.NewMetadataService(
-		opts.AgentEnvService, opts.Registry, logger)
+	metadataService := bwcvm.NewMetadataService(logger)
 
-	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(
-		opts.AgentEnvService, opts.Registry, logger)
+	agentEnvServiceFactory := bwcvm.NewWardenAgentEnvServiceFactory(logger)
 
 	vmCreator := bwcvm.NewWardenCreator(
 		uuidGen, wardenClient, metadataService, agentEnvServiceFactory, ports,

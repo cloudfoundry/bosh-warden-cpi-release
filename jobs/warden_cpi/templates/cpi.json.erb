@@ -1,7 +1,4 @@
 <%=
-
-env_service = p("warden_cpi.enable_registry") ? "registry" : "file"
-
 JSON.dump(
   "Warden" => {
     "ConnectNetwork" => p("warden_cpi.warden.connect_network"),
@@ -27,15 +24,6 @@ JSON.dump(
         "Provider" => p("warden_cpi.agent.blobstore.provider"),
         "Options"  => p("warden_cpi.agent.blobstore.options"),
       },
-    },
-
-    "AgentEnvService" => env_service,
-
-    "Registry" => {
-      "Host" => p("registry.host"),
-      "Port" => p("registry.port"),
-      "Username" => p("registry.username"),
-      "Password" => p("registry.password"),
     },
   }
 )
