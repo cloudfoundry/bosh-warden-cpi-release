@@ -59,7 +59,7 @@ instance_groups:
   - name: default
   stemcell: default
   vm_type: default
-name: bosh
+name: bosh-warden-cpi-bats-director
 releases: []
 stemcells:
 - alias: default
