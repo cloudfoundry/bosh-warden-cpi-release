@@ -110,7 +110,7 @@ EOF
     value: bosh-warden-cpi-bats-director
   "
 
-  bosh -d bosh-warden-cpi-bats-director -n deploy ${bd}/bosh.yml \
+  bosh -d bosh-warden-cpi-bats-director -n deploy ./bosh-deployment/bosh.yml \
       -o ./bosh-deployment/bosh-lite.yml \
       -o ./bosh-deployment/misc/bosh-dev.yml \
       -o <(echo -e "${ops}") \
