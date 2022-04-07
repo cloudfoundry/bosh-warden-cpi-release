@@ -34,15 +34,27 @@ jobs:
   serial: true
   plan:
   - in_parallel:
+    - {get: bosh-ecosystem-concourse}
     - {get: bosh-ecosystem-docker-image}
     - {get: bosh-warden-cpi-release}
     - {get: bosh-acceptance-tests}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
     - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
-    - {get: google-ubuntu-bionic-stemcell, params: {tarball: false}}
+    - {get: iaas-stemcell, resource: google-ubuntu-bionic-stemcell, params: {tarball: false}}
     - {get: dev-version, passed: [build]}
     - get: bosh-release
     - get: garden-linux-release
+  - task: clean-credhub
+    file: bosh-ecosystem-concourse/tasks/shared/delete-credhub-entries.yml
+    image: bosh-ecosystem-docker-image
+    params:
+      CREDHUB_CA_CERT_STRING: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
+      CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
+      CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
+      CREDHUB_SERVER: ((iaas_directors_gcp-director_bosh_credhub_server))
+      JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
+      JUMPBOX_URL: "((iaas_directors_gcp-director_bosh_jumpbox_ip)):22"
+      PATH_TO_DELETE: "/concourse/bosh-warden-cpi-bats-director/"
   - task: bats
     file: bosh-warden-cpi-release/ci/tasks/bats.yml
     image: bosh-ecosystem-docker-image
@@ -57,8 +69,6 @@ jobs:
       CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
       CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
       CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
-      RECREATE: true
-      SKIP_BUNDLE_INSTALL: true
 
 - name: promote
   serial: true
@@ -110,6 +120,12 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
     branch: master
+
+- name: bosh-ecosystem-concourse
+  type: git
+  source:
+    uri: git@github.com:pivotal/bosh-ecosystem-concourse.git
+    private_key: ((github_deploy_key_bosh_ecosystem_concourse.private_key))
 
 - name: bosh-warden-cpi-release
   type: git

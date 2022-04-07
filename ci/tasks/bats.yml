@@ -1,15 +1,23 @@
+---
+platform: linux
+
 image_resource:
   type: registry-image
-  source: { repository: bosh/bosh-ecosystem-concourse }
-platform: linux
+  source:
+    repository: bosh/bosh-ecosystem-concourse
+
 inputs:
-- name: bosh-warden-cpi-release
-- name: bosh-acceptance-tests
-- name: pipeline-bosh-warden-cpi-tarball
-- name: warden-ubuntu-bionic-stemcell
-- name: bosh-release
-- name: garden-linux-release
-run: {path: bosh-warden-cpi-release/ci/bats.sh}
+  - name: bosh-warden-cpi-release
+  - name: bosh-acceptance-tests
+  - name: pipeline-bosh-warden-cpi-tarball
+  - name: iaas-stemcell
+  - name: warden-ubuntu-bionic-stemcell
+  - name: bosh-release
+  - name: garden-linux-release
+
+run:
+  path: bosh-warden-cpi-release/ci/bats.sh
+
 params:
   BOSH_ENVIRONMENT: ""
   BOSH_CA_CERT: ""
@@ -21,9 +29,6 @@ params:
   CREDHUB_CLIENT: ""
   CREDHUB_SECRET: ""
   CREDHUB_CA_PEM: ""
-  RECREATE: false
-  SKIP_DRAIN: false
-  FIX: false
   SKIP_RUBY_INSTALL: false
   BOSH_CLI_VERSION: "6.4.7"
   DEV_RELEASE: false
