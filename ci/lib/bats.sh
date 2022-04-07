@@ -104,7 +104,7 @@ EOF
     path: /instance_groups/name=bosh/networks/0/static_ips
   - type: replace
     path: /stemcells/0/version
-    value: $iaas_stemcell_url
+    value: $iaas_stemcell_version
   - type: replace
     path: /name
     value: bosh-warden-cpi-bats-director
