@@ -36,7 +36,7 @@ run_bats_on_vm() {
 deploy_director() {
   iaas_stemcell_url=$1
   iaas_stemcell_version=$2
-  bosh_release_path=$2
+  bosh_release_path=$3
   cpi_release_path=$4
   garden_linux_release_path=$5
 
