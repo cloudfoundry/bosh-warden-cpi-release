@@ -16,7 +16,7 @@ else
 fi
 
 #credhub login --skip-tls-validation
-warden_stemcell_url=`cat warden-ubuntu-bionic-stemcell/url`
+warden_stemcell_url=`cat warden-ubuntu-jammy-stemcell/url`
 iaas_stemcell_url=`cat iaas-stemcell/url`
 iaas_stemcell_version=`cat iaas-stemcell/version`
 bosh_release_path=$PWD/bosh-release/*.tgz

@@ -63,7 +63,7 @@ name: bosh-warden-cpi-bats-director
 releases: []
 stemcells:
 - alias: default
-  os: ubuntu-bionic
+  os: ubuntu-jammy
   version: $iaas_stemcell_version
 update:
   canaries: 0
@@ -201,7 +201,7 @@ cpi: warden
 properties:
   instances: 1
   stemcell:
-    name: bosh-warden-boshlite-ubuntu-bionic-go_agent
+    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
     version: latest
   persistent_disk: 1024
   networks:

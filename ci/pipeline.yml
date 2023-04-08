@@ -39,8 +39,8 @@ jobs:
     - {get: bosh-warden-cpi-release}
     - {get: bosh-acceptance-tests}
     - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
-    - {get: warden-ubuntu-bionic-stemcell, params: {tarball: false}}
-    - {get: iaas-stemcell, resource: google-ubuntu-bionic-stemcell, params: {tarball: false}}
+    - {get: warden-ubuntu-jammy-stemcell, params: {tarball: false}}
+    - {get: iaas-stemcell, resource: google-ubuntu-jammy-stemcell, params: {tarball: false}}
     - {get: dev-version, passed: [build]}
     - get: bosh-release
     - get: garden-linux-release
@@ -143,13 +143,13 @@ resources:
     branch: master
     private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
 
-- name: warden-ubuntu-bionic-stemcell
+- name: warden-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  source: {name: bosh-warden-boshlite-ubuntu-bionic-go_agent}
+  source: {name: bosh-warden-boshlite-ubuntu-jammy-go_agent}
 
-- name: google-ubuntu-bionic-stemcell
+- name: google-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  source: {name: bosh-google-kvm-ubuntu-bionic-go_agent}
+  source: {name: bosh-google-kvm-ubuntu-jammy-go_agent}
 
 - name: bosh-release
   type: bosh-io-release

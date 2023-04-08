@@ -11,7 +11,7 @@ inputs:
   - name: bosh-acceptance-tests
   - name: pipeline-bosh-warden-cpi-tarball
   - name: iaas-stemcell
-  - name: warden-ubuntu-bionic-stemcell
+  - name: warden-ubuntu-jammy-stemcell
   - name: bosh-release
   - name: garden-linux-release
 
