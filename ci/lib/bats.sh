@@ -143,7 +143,7 @@ install_bats_prereqs() {
   else
     git clone https://github.com/postmodern/ruby-install
     sudo mkdir -p /var/vcap/store/ruby
-    sudo ruby-install/bin/ruby-install --install-dir /var/vcap/store/ruby $(cat /tmp/bosh/src/Gemfile | grep '^ruby ' | cut -f2 -d"'")
+    sudo ruby-install/bin/ruby-install --install-dir /var/vcap/store/ruby $(cat /tmp/bosh/src/Gemfile | grep '^ruby ' | egrep -o '[0-9.]+')
   fi
 
   pushd /tmp/bosh/src
