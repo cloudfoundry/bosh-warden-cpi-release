@@ -17,6 +17,11 @@ case $1 in
     modprobe -q overlayfs || true
     modprobe -q overlay || true
 
+    # Avoids "failed to setup loop device" when trying to "mount" persistent disks into garden containers
+    if [ ! -e /dev/loop-control ]; then
+      mknod /dev/loop-control c 10 237
+    fi
+
     <% if_p('warden_cpi.host_ip') do |host_ip| %>
     ifconfig lo:1 <%= host_ip %> netmask 255.255.255.0
     <% end %>
