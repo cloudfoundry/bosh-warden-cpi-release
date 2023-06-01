@@ -10,6 +10,7 @@ blobstore:
   options:
     access_key_id: $BOSH_AWS_ACCESS_KEY_ID
     secret_access_key: $BOSH_AWS_SECRET_ACCESS_KEY
+    assume_role_arn: $BOSH_AWS_ROLE_ARN
 EOF
 
   bosh finalize-release --version $integer_version ../pipeline-bosh-warden-cpi-tarball/*.tgz

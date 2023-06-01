@@ -85,8 +85,9 @@ jobs:
     file: bosh-warden-cpi-release/ci/tasks/promote.yml
     image: bosh-ecosystem-docker-image
     params:
-      BOSH_AWS_ACCESS_KEY_ID: ((final_blobs_iam_credentials.username))
-      BOSH_AWS_SECRET_ACCESS_KEY: ((final_blobs_iam_credentials.password))
+      BOSH_AWS_ACCESS_KEY_ID: ((warden_assume_aws_access_key.username))
+      BOSH_AWS_SECRET_ACCESS_KEY: ((warden_assume_aws_access_key.password))
+      BOSH_AWS_ROLE_ARN: ((warden_assume_aws_access_key.role_arn))
   - put: dev-version
     params: { file: dev-version/number }
   - put: bosh-warden-cpi-release
