@@ -29,7 +29,7 @@ run_bats_on_vm() {
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh-warden-cpi-bats-director/default_ca -j | jq .value.ca -r)"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
-  bosh -d bosh-warden-cpi-bats-director delete-vm $(bosh is --details --column=VM_CID) -n
+  bosh -d bosh-warden-cpi-bats-director delete-vm $(bosh -d bosh-warden-cpi-bats-director is --details --column=VM_CID) -n
   bosh -d bosh-warden-cpi-bats-director delete-deployment -n
 }
 
