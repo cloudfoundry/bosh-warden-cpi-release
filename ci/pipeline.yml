@@ -98,14 +98,22 @@ jobs:
       tag_prefix: v
       tag: bosh-warden-cpi-release/final_version
 
+resource_types:
+- name: semver
+  type: docker-image
+  source:
+    repository: concourse/semver-resource
+    tag: 1.6
+
 resources:
 - name: dev-version
   type: semver
   source:
     key: dev-version
     bucket: bosh-warden-cpi-tarball
-    access_key_id: ((bosh_cpis_aws_access_key.username))
-    secret_access_key: ((bosh_cpis_aws_access_key.password))
+    access_key_id: ((bosh_cpis_assume_aws_access_key.username))
+    secret_access_key: ((bosh_cpis_assume_aws_access_key.password))
+    assume_role_arn: ((bosh_cpis_assume_aws_access_key.role_arn))
     initial_version: 42.0.0
 
 - name: pipeline-bosh-warden-cpi-tarball
@@ -113,8 +121,9 @@ resources:
   source:
     bucket: bosh-warden-cpi-tarball
     regexp: bosh-warden-cpi-(.*).tgz
-    access_key_id: ((bosh_cpis_aws_access_key.username))
-    secret_access_key: ((bosh_cpis_aws_access_key.password))
+    access_key_id: ((bosh_cpis_assume_aws_access_key.username))
+    secret_access_key: ((bosh_cpis_assume_aws_access_key.password))
+    aws_role_arn: ((bosh_cpis_assume_aws_access_key.role_arn))
 
 - name: bosh-acceptance-tests
   type: git
