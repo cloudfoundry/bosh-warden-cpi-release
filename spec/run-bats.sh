@@ -32,8 +32,6 @@ EOF
 export BAT_DEPLOYMENT_SPEC=$spec_path
 export BAT_STEMCELL=$HOME/Downloads/bosh-stemcell-3-warden-boshlite-ubuntu-trusty-go_agent.tgz
 export BAT_DIRECTOR=$director_target
-export BAT_DNS_HOST=$director_target
-export BAT_VCAP_PASSWORD=c1oudc0w
 
 cd $HOME/workspace/bosh/bat
 

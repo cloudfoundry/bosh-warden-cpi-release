@@ -176,10 +176,7 @@ run_bats() {
   export BAT_DIRECTOR=$lite_director_ip
   export BAT_DNS_HOST=$lite_director_ip
   export BAT_INFRASTRUCTURE=warden
-  export BAT_NETWORKING=manual
   export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
-  export BAT_VCAP_PASSWORD=c1oudc0w
-  export BAT_PRIVATE_KEY=~/tmp/id_rsa
   export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage )
   export PATH=${PATH}:/var/vcap/store/bosh/bin/:/var/vcap/store/ruby/bin/
 
@@ -195,11 +192,16 @@ EOF
 
   pushd /tmp/bosh-acceptance-tests
 
-    cat > bats.spec << EOF
+  ssh_public_key="$( cat ~/.ssh/id_rsa.pub )"
+  ssh_private_key="$( cat ~/.ssh/id_rsa | sed 's/$/\\n/' | tr -d '\n' )"
+  cat > bats.spec << EOF
 ---
 cpi: warden
 properties:
   instances: 1
+  ssh_key_pair:
+    public_key: "${ssh_public_key}"
+    private_key: "${ssh_private_key}"
   stemcell:
     name: bosh-warden-boshlite-ubuntu-jammy-go_agent
     version: latest
