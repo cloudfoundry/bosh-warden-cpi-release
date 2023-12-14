@@ -108,6 +108,9 @@ EOF
   - type: replace
     path: /name
     value: bosh-warden-cpi-bats-director
+  - type: replace
+    path: /instance_groups/name=bosh/vm_type?
+    value: large
   "
 
   bosh -d bosh-warden-cpi-bats-director -n deploy ./bosh-deployment/bosh.yml \
