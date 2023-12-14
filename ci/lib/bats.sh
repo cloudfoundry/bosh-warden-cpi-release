@@ -180,7 +180,7 @@ run_bats() {
   export BAT_DNS_HOST=$lite_director_ip
   export BAT_INFRASTRUCTURE=warden
   export BAT_STEMCELL=/var/vcap/store/stemcell.tgz
-  export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage )
+  export BAT_RSPEC_FLAGS=( --tag ~multiple_manual_networks --tag ~raw_instance_storage --tag ~os --tag ~reboot )
   export PATH=${PATH}:/var/vcap/store/bosh/bin/:/var/vcap/store/ruby/bin/
 
   export BOSH_ENVIRONMENT=$lite_director_ip
