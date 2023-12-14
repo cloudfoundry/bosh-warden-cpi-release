@@ -58,7 +58,7 @@ instance_groups:
   networks:
   - name: default
   stemcell: default
-  vm_type: default
+  vm_type: large
 name: bosh-warden-cpi-bats-director
 releases: []
 stemcells:
