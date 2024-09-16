@@ -34,7 +34,8 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - {get: bosh-ecosystem-concourse}
+    - get: bosh-ecosystem-concourse
+      tags: [ broadcom ]
     - {get: bosh-ecosystem-docker-image}
     - {get: bosh-warden-cpi-release}
     - {get: bosh-acceptance-tests}
@@ -133,9 +134,11 @@ resources:
 
 - name: bosh-ecosystem-concourse
   type: git
+  tags: [ broadcom ]
   source:
-    uri: git@github.com:pivotal/bosh-ecosystem-concourse.git
-    private_key: ((github_deploy_key_bosh_ecosystem_concourse.private_key))
+    uri: https://github.gwd.broadcom.net/TNZ/bosh-ecosystem-concourse.git
+    username: svc.bosh-ecosystem@broadcom.net
+    password: ((svc-bosh-ecosystem-ghe-personal-access-token))
 
 - name: bosh-warden-cpi-release
   type: git
