@@ -4,14 +4,12 @@ result=0
 
 bin=$(dirname $0)
 
-GOBIN=/usr/local/bin go install -mod=vendor github.com/onsi/ginkgo/ginkgo
-
 echo -e "\n Formatting packages..."
 go fmt bosh-warden-cpi/...
 let "result+=$?"
 
 echo -e "\n Testing packages..."
-ginkgo -r -race -skipPackage=integration -mod vendor .
+go run github.com/onsi/ginkgo/v2/ginkgo --race -r .
 let "result+=$?"
 
 # todo vet

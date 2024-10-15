@@ -2,7 +2,7 @@ package vm_test
 
 import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "bosh-warden-cpi/vm"

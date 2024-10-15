@@ -2,7 +2,7 @@ package action_test
 
 import (
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "bosh-warden-cpi/action"
