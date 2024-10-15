@@ -45,7 +45,8 @@ nameserver 8.8.8.8`: []string{"10.0.2.3", "8.8.8.8"},
 
 		for content, servers := range examples {
 			It("parses /etc/resolv.conf", func() {
-				fs.WriteFileString("/etc/resolv.conf", content)
+				err := fs.WriteFileString("/etc/resolv.conf", content)
+				Expect(err).ToNot(HaveOccurred())
 
 				resolvConf, err := NewSystemResolvConfFromPath(fs)
 				Expect(err).ToNot(HaveOccurred())

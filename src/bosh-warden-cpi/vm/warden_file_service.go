@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 
 	wrdn "code.cloudfoundry.org/garden"
@@ -67,7 +66,7 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 		return []byte{}, bosherr.WrapErrorf(err, "Reading tar header for '%s'", sourceFileName)
 	}
 
-	return ioutil.ReadAll(tarReader)
+	return io.ReadAll(tarReader)
 }
 
 func (s *wardenFileService) Upload(destinationPath string, contents []byte) error {
