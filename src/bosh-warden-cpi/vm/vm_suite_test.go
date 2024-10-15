@@ -1,13 +1,13 @@
-package action_test
+package vm_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-func TestReg(t *testing.T) {
+func TestVm(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "action")
+	RunSpecs(t, "Vm Suite")
 }

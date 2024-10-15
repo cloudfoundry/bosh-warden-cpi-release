@@ -1,4 +1,4 @@
-package disk_test
+package action_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestReg(t *testing.T) {
+func TestAction(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disk")
+	RunSpecs(t, "Action Suite")
 }

@@ -1,13 +1,13 @@
 package stemcell_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-func TestReg(t *testing.T) {
+func TestStemcell(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "stemcell")
+	RunSpecs(t, "Stemcell Suite")
 }

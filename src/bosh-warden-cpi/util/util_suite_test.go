@@ -1,13 +1,13 @@
-package main_test
+package util_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-func TestReg(t *testing.T) {
+func TestUtil(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "main")
+	RunSpecs(t, "Util Suite")
 }
