@@ -15,7 +15,7 @@ jobs:
     output_mapping:
       output_repo: bosh-cpi-src-out
     params:
-      SOURCE_PATH: src/bosh-google-cpi
+      SOURCE_PATH: src/bosh-warden-cpi
   - task: test
     image: bosh-ecosystem-docker-image
     file: bosh-cpi-src-in/ci/tasks/test.yml
