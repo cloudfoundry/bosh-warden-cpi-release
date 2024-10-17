@@ -2,7 +2,7 @@
 name: warden_cpi
 
 dependencies:
-- golang-1.16-linux
+- golang-1-linux
 
 files:
 - "bosh-warden-cpi/**/*.go"
