@@ -1,0 +1,25 @@
+name: go
+on:
+  push:
+    paths:
+    - 'src/bosh-warden-cpi/**'
+  pull_request:
+    paths:
+    - 'src/bosh-warden-cpi/**'
+jobs:
+  lint_and_test:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    name: lint and test
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: src/bosh-warden-cpi/go.mod
+    - uses: golangci/golangci-lint-action@v6
+      with:
+        working-directory: src/bosh-warden-cpi/
+    - run: bin/test
+      working-directory: src/bosh-warden-cpi/

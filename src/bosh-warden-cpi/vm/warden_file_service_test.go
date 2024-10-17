@@ -5,9 +5,8 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	wrdn "code.cloudfoundry.org/garden"
@@ -76,7 +75,7 @@ var _ = Describe("WardenFileService", func() {
 
 			contentBytes := make([]byte, header.Size)
 
-			tarStream.Read(contentBytes)
+			tarStream.Read(contentBytes) //nolint:errcheck
 
 			Expect(contentBytes).To(Equal([]byte("fake-contents")))
 
@@ -185,7 +184,7 @@ var _ = Describe("WardenFileService", func() {
 			err = tarWriter.Close()
 			Expect(err).ToNot(HaveOccurred())
 
-			return ioutil.NopCloser(tarBytes)
+			return io.NopCloser(tarBytes)
 		}
 
 		BeforeEach(func() {
@@ -229,7 +228,7 @@ var _ = Describe("WardenFileService", func() {
 
 			Context("when container fails to stream out because tar stream contains bad header", func() {
 				BeforeEach(func() {
-					wardenConn.StreamOutReturns(ioutil.NopCloser(&bytes.Buffer{}), nil)
+					wardenConn.StreamOutReturns(io.NopCloser(&bytes.Buffer{}), nil)
 				})
 
 				It("returns error", func() {

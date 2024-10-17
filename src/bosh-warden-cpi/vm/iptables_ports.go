@@ -35,7 +35,7 @@ func (p IPTablesPorts) Forward(id apiv1.VMCID, containerIP string, mappings []Po
 
 		_, _, _, err := p.runCmd("-A", forwardArgs)
 		if err != nil {
-			p.removeRulesWithID(id)
+			p.removeRulesWithID(id) //nolint:errcheck
 			return bosherr.WrapErrorf(err, "Forwarding host port(s) '%v'", mapping.Host())
 		}
 	}

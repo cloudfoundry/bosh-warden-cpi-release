@@ -6,7 +6,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"bosh-warden-cpi/util"
@@ -74,7 +74,8 @@ var _ = Describe("GzipDecompressor", func() {
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		decompressor = util.NewGzipDecompressor(fs, cmdRunner)
 
-		fs.WriteFileString("src", "content")
+		err := fs.WriteFileString("src", "content")
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("Decompress", func() {
