@@ -169,10 +169,11 @@ run_bats() {
   fi
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
+  export BATS_ENV_FILE=/tmp/bats_env_file.sh
 
   # Download specific stemcell
   sudo wget -O /var/vcap/store/stemcell.tgz "${stemcell_url}"
-  cat << EOF > /tmp/debug.rc
+  cat << EOF > "${BATS_ENV_FILE}"
   export BAT_BOSH_CLI=/var/vcap/store/bosh/bin/bosh
   export BAT_DEPLOYMENT_SPEC=/tmp/bosh-acceptance-tests/bats.spec
   export BAT_DIRECTOR=$lite_director_ip
@@ -214,7 +215,8 @@ properties:
     static_ip: 10.244.0.34
   second_static_ip: 10.244.0.35
 EOF
-    source /tmp/debug.rc
+    # shellcheck disable=SC1090
+    source "${BATS_ENV_FILE}"
     sudo -E bundle install
     sudo -E bundle exec rspec "${BAT_RSPEC_FLAGS[@]}"
 
