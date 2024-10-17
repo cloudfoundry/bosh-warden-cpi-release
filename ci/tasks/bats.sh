@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -e
+set -x
 
 jumpbox_url=${JUMPBOX_URL:-${JUMPBOX_IP}:22}
 jumpbox_private_key_path=$(mktemp)
-chmod 600 ${jumpbox_private_key_path}
-echo "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
-export BOSH_ALL_PROXY=ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}
+chmod 600 "${jumpbox_private_key_path}"
+echo "${JUMPBOX_PRIVATE_KEY}" > "${jumpbox_private_key_path}"
+export BOSH_ALL_PROXY="ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}"
 
 run_bats_on_vm() {
   stemcell_url=$1
@@ -127,7 +128,7 @@ install_bats_prereqs() {
   SKIP_RUBY_INSTALL=$1
   BOSH_CLI_VERSION=$2
   sudo apt-get -y update
-  sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev 
+  sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
 
@@ -141,7 +142,7 @@ install_bats_prereqs() {
   sudo rm -rf /tmp/bosh
   git clone --depth=1 https://github.com/cloudfoundry/bosh.git /tmp/bosh
 
-  if $SKIP_RUBY_INSTALL; then 
+  if $SKIP_RUBY_INSTALL; then
     echo "SKIPPING RUBY INSTALL, SINCE \$SKIP_RUBY_INSTALL=$SKIP_RUBY_INSTALL IS SET"
   else
     git clone https://github.com/postmodern/ruby-install
@@ -168,8 +169,6 @@ run_bats() {
   fi
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
-
-
 
   # Download specific stemcell
   sudo wget -O /var/vcap/store/stemcell.tgz $stemcell_url
@@ -216,8 +215,29 @@ properties:
   second_static_ip: 10.244.0.35
 EOF
     source /tmp/debug.rc
-    sudo -E bundle install 
+    sudo -E bundle install
     sudo -E bundle exec rspec "${BAT_RSPEC_FLAGS[@]}"
 
   popd
 }
+
+if $DEV_RELEASE; then
+  git clone https://github.com/cloudfoundry/bosh-warden-cpi-release.git bosh-warden-cpi-release-dev
+  pushd bosh-warden-cpi-release-dev
+    cpi_release_path=`pwd`/dev-release.tgz
+    bosh create-release --force --tarball $cpi_release_path
+  popd
+
+else
+  cpi_release_path=$PWD/pipeline-bosh-warden-cpi-tarball/*.tgz
+fi
+
+#credhub login --skip-tls-validation
+warden_stemcell_url=`cat warden-ubuntu-jammy-stemcell/url`
+iaas_stemcell_url=`cat iaas-stemcell/url`
+iaas_stemcell_version=`cat iaas-stemcell/version`
+bosh_release_path=$PWD/bosh-release/*.tgz
+
+garden_linux_release_path=$PWD/garden-linux-release/*.tgz
+
+run_bats_on_vm $warden_stemcell_url $iaas_stemcell_url $iaas_stemcell_version $bosh_release_path $cpi_release_path $garden_linux_release_path $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION

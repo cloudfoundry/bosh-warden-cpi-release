@@ -1,0 +1,24 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: { repository: bosh/bosh-ecosystem-concourse }
+
+inputs:
+- name: bosh-cpi-src-in
+- name: dev-version
+
+outputs:
+- name: releases
+
+run:
+  path: bosh-cpi-src-in/ci/tasks/build.sh
+
+params:
+  BOSH_ENVIRONMENT:
+  BOSH_CA_CERT:
+  BOSH_CLIENT:
+  BOSH_CLIENT_SECRET:
+  JUMPBOX_PRIVATE_KEY:
+  JUMPBOX_USERNAME:
+  JUMPBOX_IP:

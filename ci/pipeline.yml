@@ -1,34 +1,88 @@
 ---
 jobs:
+- name: bump-deps
+  plan:
+  - in_parallel:
+    - get: bosh-ecosystem-docker-image
+    - get: bosh-cpi-src-in
+    - get: golang-release
+    - get: weekly
+      trigger: true
+  - task: bump-deps
+    file: golang-release/ci/tasks/shared/bump-deps.yml
+    input_mapping:
+      input_repo: bosh-cpi-src-in
+    output_mapping:
+      output_repo: bosh-cpi-src-out
+    params:
+      SOURCE_PATH: src/bosh-google-cpi
+  - task: test
+    image: bosh-ecosystem-docker-image
+    file: bosh-cpi-src-in/ci/tasks/test.yml
+  - put: bosh-cpi-src-out
+    params:
+      repository: bosh-cpi-src-out
+      rebase: true
+
+- name: bump-golang-packages
+  plan:
+  - in_parallel:
+    - get: bosh-ecosystem-docker-image
+    - get: bosh-cpi-src-in
+    - get: golang-release
+      trigger: true
+  - task: bump-golang-packages
+    file: golang-release/ci/tasks/shared/bump-golang-package.yml
+    input_mapping:
+      input_repo: bosh-cpi-src-in
+    output_mapping:
+      output_repo: bosh-cpi-src-out
+    params:
+      PACKAGES: [ golang-1-linux ]
+      PRIVATE_YML: |
+        blobstore:
+          options:
+            access_key_id: ((warden_assume_aws_access_key.username))
+            secret_access_key: ((warden_assume_aws_access_key.password))
+            assume_role_arn: ((warden_assume_aws_access_key.role_arn))
+  - task: test
+    image: bosh-ecosystem-docker-image
+    file: bosh-cpi-src-in/ci/tasks/test.yml
+  - put: bosh-cpi-src-out
+    params:
+      repository: bosh-cpi-src-out
+      rebase: true
+
 - name: build
   serial: true
   plan:
   - in_parallel:
     - get: bosh-ecosystem-docker-image
-    - {get: bosh-warden-cpi-release, trigger: true}
-    - {get: dev-version, params: {bump: patch}}
+    - get: bosh-cpi-src-in
+      trigger: true
+    - get: dev-version
+      params:
+        bump: patch
   - put: dev-version
-    params: {file: dev-version/number}
+    params:
+      file: dev-version/number
+  - task: test
+    image: bosh-ecosystem-docker-image
+    file: bosh-cpi-src-in/ci/tasks/test.yml
   - task: build
     image: bosh-ecosystem-docker-image
-    config:
-      platform: linux
-      inputs:
-      - name: bosh-warden-cpi-release
-      - name: dev-version
-      outputs:
-      - name: releases
-      run: {path: bosh-warden-cpi-release/ci/build-release.sh}
-      params:
-        BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
-        BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
-        BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
-        BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
-        JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
-        JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
-        JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
+    file: bosh-cpi-src-in/ci/tasks/build.yml
+    params:
+      BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
+      BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
+      BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
+      BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
+      JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
+      JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
+      JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
   - put: pipeline-bosh-warden-cpi-tarball
-    params: {file: releases/bosh-warden-cpi-*.tgz}
+    params:
+      file: releases/bosh-warden-cpi-*.tgz
 
 - name: bats
   serial: true
@@ -36,13 +90,23 @@ jobs:
   - in_parallel:
     - get: bosh-ecosystem-concourse
       tags: [ broadcom ]
-    - {get: bosh-ecosystem-docker-image}
-    - {get: bosh-warden-cpi-release}
-    - {get: bosh-acceptance-tests}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [build], trigger: true}
-    - {get: warden-ubuntu-jammy-stemcell, params: {tarball: false}}
-    - {get: iaas-stemcell, resource: google-ubuntu-jammy-stemcell, params: {tarball: false}}
-    - {get: dev-version, passed: [build]}
+    - get: bosh-ecosystem-docker-image
+    - get: bosh-cpi-src-in
+    - get: bosh-acceptance-tests
+    - get: pipeline-bosh-warden-cpi-tarball
+      passed:
+      - build
+      trigger: true
+    - get: warden-ubuntu-jammy-stemcell
+      params:
+        tarball: false
+    - get: iaas-stemcell
+      resource: google-ubuntu-jammy-stemcell
+      params:
+        tarball: false
+    - get: dev-version
+      passed:
+      - build
     - get: bosh-release
     - get: garden-linux-release
   - task: clean-credhub
@@ -57,7 +121,7 @@ jobs:
       JUMPBOX_URL: "((iaas_directors_gcp-director_bosh_jumpbox_ip)):22"
       PATH_TO_DELETE: "/concourse/bosh-warden-cpi-bats-director/"
   - task: bats
-    file: bosh-warden-cpi-release/ci/tasks/bats.yml
+    file: bosh-cpi-src-in/ci/tasks/bats.yml
     image: bosh-ecosystem-docker-image
     params:
       BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
@@ -76,28 +140,34 @@ jobs:
   plan:
   - in_parallel:
     - get: dev-version
-      passed: [bats]
+      passed: [ bats ]
       params:
         bump: major
-    - {get: bosh-ecosystem-docker-image}
-    - {get: bosh-warden-cpi-release}
-    - {get: pipeline-bosh-warden-cpi-tarball, passed: [bats]}
+    - get: bosh-ecosystem-docker-image
+    - get: bosh-cpi-src
+      resource: bosh-cpi-src-in
+    - get: pipeline-bosh-warden-cpi-tarball
+      passed:
+      - bats
   - task: promote
-    file: bosh-warden-cpi-release/ci/tasks/promote.yml
+    file: bosh-cpi-src/ci/tasks/promote.yml
     image: bosh-ecosystem-docker-image
     params:
-      BOSH_AWS_ACCESS_KEY_ID: ((warden_assume_aws_access_key.username))
-      BOSH_AWS_SECRET_ACCESS_KEY: ((warden_assume_aws_access_key.password))
-      BOSH_AWS_ROLE_ARN: ((warden_assume_aws_access_key.role_arn))
+      PRIVATE_YML: |
+        blobstore:
+          options:
+            access_key_id: ((warden_assume_aws_access_key.username))
+            secret_access_key: ((warden_assume_aws_access_key.password))
+            assume_role_arn: ((warden_assume_aws_access_key.role_arn))
   - put: dev-version
-    params: { file: dev-version/number }
-  - put: bosh-warden-cpi-release
-    resource: promoted-bosh-warden-cpi-release
     params:
-      repository: bosh-warden-cpi-release
+      file: dev-version/number
+  - put: bosh-cpi-src-out
+    params:
+      repository: bosh-cpi-src
       rebase: true
       tag_prefix: v
-      tag: bosh-warden-cpi-release/final_version
+      tag: bosh-cpi-src/final_version
 
 resource_types:
 - name: semver
@@ -107,6 +177,14 @@ resource_types:
     tag: 1.6
 
 resources:
+- name: weekly
+  type: time
+  source:
+    start: 3:00 -0700
+    stop: 4:30 -0700
+    days: [ Saturday ]
+    initial_version: true
+
 - name: dev-version
   type: semver
   source:
@@ -140,7 +218,7 @@ resources:
     username: svc.bosh-ecosystem@broadcom.net
     password: ((svc-bosh-ecosystem-ghe-personal-access-token))
 
-- name: bosh-warden-cpi-release
+- name: bosh-cpi-src-in
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
@@ -149,7 +227,7 @@ resources:
     ignore_paths:
     - releases/**/*.yml
 
-- name: promoted-bosh-warden-cpi-release
+- name: bosh-cpi-src-out
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
@@ -158,19 +236,24 @@ resources:
 
 - name: warden-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  source: {name: bosh-warden-boshlite-ubuntu-jammy-go_agent}
+  source: { name: bosh-warden-boshlite-ubuntu-jammy-go_agent }
 
 - name: google-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
-  source: {name: bosh-google-kvm-ubuntu-jammy-go_agent}
+  source: { name: bosh-google-kvm-ubuntu-jammy-go_agent }
 
 - name: bosh-release
   type: bosh-io-release
-  source: {repository: cloudfoundry/bosh}
+  source: { repository: cloudfoundry/bosh }
 
 - name: garden-linux-release
   type: bosh-io-release
-  source: {repository: cloudfoundry-incubator/garden-linux-release}
+  source: { repository: cloudfoundry-incubator/garden-linux-release }
+
+- name: golang-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
 - name: bosh-ecosystem-docker-image
   type: registry-image

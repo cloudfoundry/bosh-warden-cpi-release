@@ -1,0 +1,11 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: { repository: bosh/bosh-ecosystem-concourse }
+
+inputs:
+- name: bosh-cpi-src
+
+run:
+  path: bosh-cpi-src/ci/tasks/test.sh

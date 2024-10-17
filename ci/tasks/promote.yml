@@ -5,17 +5,15 @@ image_resource:
   source: { repository: bosh/bosh-ecosystem-concourse }
 
 inputs:
-- name: bosh-warden-cpi-release
+- name: bosh-cpi-src
 - name: pipeline-bosh-warden-cpi-tarball
 - name: dev-version
 
 outputs:
-- name: bosh-warden-cpi-release
+- name: bosh-cpi-src
 
 run:
-  path: bosh-warden-cpi-release/ci/promote-release.sh
+  path: bosh-cpi-src/ci/tasks/promote.sh
 
 params:
-  BOSH_AWS_ACCESS_KEY_ID:
-  BOSH_AWS_SECRET_ACCESS_KEY:
-  BOSH_AWS_ROLE_ARN:
+  PRIVATE_YML:

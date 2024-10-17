@@ -7,7 +7,7 @@ image_resource:
     repository: bosh/bosh-ecosystem-concourse
 
 inputs:
-  - name: bosh-warden-cpi-release
+  - name: bosh-cpi-src-in
   - name: bosh-acceptance-tests
   - name: pipeline-bosh-warden-cpi-tarball
   - name: iaas-stemcell
@@ -16,7 +16,7 @@ inputs:
   - name: garden-linux-release
 
 run:
-  path: bosh-warden-cpi-release/ci/bats.sh
+  path: bosh-cpi-src-in/ci/tasks/bats.sh
 
 params:
   BOSH_ENVIRONMENT: ""
