@@ -29,8 +29,6 @@ type agentEnvSpec struct {
 	Mbus string   `json:"mbus"`
 	NTP  []string `json:"ntp"`
 
-	Blobstore BlobstoreSpec `json:"blobstore"`
-
 	Networks NetworksSpec `json:"networks"`
 
 	Disks DisksSpec `json:"disks"`
@@ -54,6 +52,8 @@ type NetworkSpec struct {
 
 	DNS     []string `json:"dns"`
 	Default []string `json:"default"`
+	Routes  []Route  `json:"routes"`
+	Alias   string   `json:"alias,omitempty"`
 
 	MAC string `json:"mac"`
 
@@ -70,11 +70,6 @@ type PersistentSpec map[string]DiskHint
 
 type EnvSpec map[string]interface{}
 
-type BlobstoreSpec struct {
-	Provider string                 `json:"provider"`
-	Options  map[string]interface{} `json:"options"`
-}
-
 func (ae *AgentEnvImpl) AttachSystemDisk(hint DiskHint) {
 	ae.spec.Disks.System = hint
 }
@@ -83,8 +78,7 @@ func (ae *AgentEnvImpl) AttachEphemeralDisk(hint DiskHint) {
 	ae.spec.Disks.Ephemeral = hint
 }
 
-// todo better type for hint
-func (ae *AgentEnvImpl) AttachPersistentDisk(cid DiskCID, hint DiskHint) {
+func (ae *AgentEnvImpl) AttachPersistentDisk(cid DiskCID, hint DiskHint) { // TODO better type for hint
 	spec := PersistentSpec{}
 
 	if ae.spec.Disks.Persistent != nil {

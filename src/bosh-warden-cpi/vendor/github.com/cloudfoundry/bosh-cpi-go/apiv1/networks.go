@@ -25,10 +25,11 @@ type Network interface {
 	SetMAC(string)
 	SetDNS([]string)
 	SetPreconfigured()
+	SetAlias(a string)
+	AddRoute(string, string, string)
 
 	CloudProps() NetworkCloudProps
 
-	// Misc
 	IsDynamic() bool
 	IsDefaultFor(string) bool
 	IPWithSubnetMask() string
@@ -38,6 +39,12 @@ type Network interface {
 
 type NetworkCloudProps interface {
 	As(interface{}) error
+}
+
+type Route struct {
+	Destination string
+	Gateway     string
+	Netmask     string
 }
 
 type NetworkImpl struct {
@@ -56,9 +63,10 @@ type networkSpec2 struct {
 	Netmask string `json:"netmask,omitempty"`
 	Gateway string `json:"gateway,omitempty"`
 
-	DNS     []string `json:"dns"`
-	Default []string `json:"default"`
-
+	DNS        []string       `json:"dns"`
+	Default    []string       `json:"default"`
+	Routes     []Route        `json:"routes"`
+	Alias      string         `json:"alias,omitempty"`
 	CloudProps CloudPropsImpl `json:"cloud_properties"`
 }
 
@@ -71,6 +79,8 @@ type NetworkOpts struct {
 
 	DNS     []string
 	Default []string
+	Routes  []Route `json:"routes"`
+	Alias   string  `json:"alias,omitempty"`
 
 	CloudProps CloudPropsImpl `json:"cloud_properties"`
 }
@@ -86,6 +96,8 @@ func NewNetwork(opts NetworkOpts) Network {
 
 			DNS:     opts.DNS,
 			Default: opts.Default,
+			Routes:  opts.Routes,
+			Alias:   opts.Alias,
 		},
 	}
 }
@@ -102,6 +114,14 @@ func (n NetworkImpl) Default() []string { return n.spec.Default }
 func (n *NetworkImpl) SetMAC(mac string)           { n.mac = mac }
 func (n *NetworkImpl) SetDNS(nameservers []string) { n.spec.DNS = nameservers }
 func (n *NetworkImpl) SetPreconfigured()           { n.preconfigured = true }
+func (n *NetworkImpl) SetAlias(a string)           { n.spec.Alias = a }
+func (n *NetworkImpl) AddRoute(ip, netmask, gw string) {
+	n.spec.Routes = append(n.spec.Routes, Route{
+		Destination: ip,
+		Gateway:     gw,
+		Netmask:     netmask,
+	})
+}
 
 func (n NetworkImpl) CloudProps() NetworkCloudProps { return n.spec.CloudProps }
 
@@ -177,5 +197,6 @@ func (n NetworkImpl) IPWithSubnetMask() string {
 		netmaskIP = v4
 	}
 	ones, _ := gonet.IPMask(netmaskIP).Size()
-	return fmt.Sprintf("%s/%d", n.IP(), ones)
+	_, cidr, _ := gonet.ParseCIDR(fmt.Sprintf("%s/%d", n.IP(), ones))
+	return cidr.String()
 }

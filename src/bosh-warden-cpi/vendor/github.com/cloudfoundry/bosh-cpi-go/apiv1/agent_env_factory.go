@@ -40,8 +40,9 @@ func (f AgentEnvFactory) ForVM(
 
 			DNS:     typedNet.spec.DNS,
 			Default: typedNet.spec.Default,
-
-			MAC: typedNet.mac,
+			Routes:  typedNet.spec.Routes,
+			Alias:   typedNet.spec.Alias,
+			MAC:     typedNet.mac,
 
 			Preconfigured: typedNet.preconfigured,
 		}
@@ -57,11 +58,6 @@ func (f AgentEnvFactory) ForVM(
 
 		Mbus: agentOptions.Mbus,
 		NTP:  agentOptions.NTP,
-
-		Blobstore: BlobstoreSpec{
-			Provider: agentOptions.Blobstore.Type,
-			Options:  agentOptions.Blobstore.Options,
-		},
 
 		Networks: networksSpec,
 

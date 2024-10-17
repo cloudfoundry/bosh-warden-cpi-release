@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"sync"
 
 	"code.cloudfoundry.org/garden/transport"
-	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/v3"
 )
-
-type hijackFunc func(streamType string) (net.Conn, io.Reader, error)
 
 type streamHandler struct {
 	log lager.Logger
@@ -32,7 +29,10 @@ func (sh *streamHandler) streamIn(processWriter io.WriteCloser, stdin io.Reader)
 
 	go func(processInputStream io.WriteCloser, stdin io.Reader, log lager.Logger) {
 		if _, err := io.Copy(processInputStream, stdin); err == nil {
-			processInputStream.Close()
+			err := processInputStream.Close()
+			if err != nil {
+				sh.log.Debug("failed-to-close-input-stream", lager.Data{"error": err})
+			}
 		} else {
 			log.Error("streaming-stdin-payload", err)
 		}
@@ -42,7 +42,10 @@ func (sh *streamHandler) streamIn(processWriter io.WriteCloser, stdin io.Reader)
 func (sh *streamHandler) streamOut(streamWriter io.Writer, streamReader io.Reader) {
 	sh.wg.Add(1)
 	go func() {
-		io.Copy(streamWriter, streamReader)
+		_, err := io.Copy(streamWriter, streamReader)
+		if err != nil {
+			sh.log.Debug("failed-to-copy-stream-data", lager.Data{"error": err})
+		}
 		sh.wg.Done()
 	}()
 }
