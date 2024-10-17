@@ -19,6 +19,8 @@ jobs:
   - task: test
     image: bosh-ecosystem-docker-image
     file: bosh-cpi-src-in/ci/tasks/test.yml
+    input_mapping:
+      bosh-cpi-src-in: bosh-cpi-src-out
   - put: bosh-cpi-src-out
     params:
       repository: bosh-cpi-src-out
@@ -45,9 +47,6 @@ jobs:
             access_key_id: ((warden_assume_aws_access_key.username))
             secret_access_key: ((warden_assume_aws_access_key.password))
             assume_role_arn: ((warden_assume_aws_access_key.role_arn))
-  - task: test
-    image: bosh-ecosystem-docker-image
-    file: bosh-cpi-src-in/ci/tasks/test.yml
   - put: bosh-cpi-src-out
     params:
       repository: bosh-cpi-src-out
