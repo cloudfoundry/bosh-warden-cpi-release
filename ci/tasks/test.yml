@@ -5,7 +5,7 @@ image_resource:
   source: { repository: bosh/bosh-ecosystem-concourse }
 
 inputs:
-- name: bosh-cpi-src
+- name: bosh-cpi-src-in
 
 run:
-  path: bosh-cpi-src/ci/tasks/test.sh
+  path: bosh-cpi-src-in/ci/tasks/test.sh
