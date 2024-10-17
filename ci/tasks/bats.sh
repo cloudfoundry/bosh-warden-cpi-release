@@ -171,7 +171,7 @@ run_bats() {
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
 
   # Download specific stemcell
-  sudo wget -O /var/vcap/store/stemcell.tgz $stemcell_url
+  sudo wget -O /var/vcap/store/stemcell.tgz "${stemcell_url}"
   cat << EOF > /tmp/debug.rc
   export BAT_BOSH_CLI=/var/vcap/store/bosh/bin/bosh
   export BAT_DEPLOYMENT_SPEC=/tmp/bosh-acceptance-tests/bats.spec

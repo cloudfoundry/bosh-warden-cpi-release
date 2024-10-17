@@ -2,7 +2,8 @@ platform: linux
 
 image_resource:
   type: registry-image
-  source: { repository: bosh/bosh-ecosystem-concourse }
+  source:
+    repository: bosh/integration
 
 inputs:
 - name: bosh-cpi-src-in

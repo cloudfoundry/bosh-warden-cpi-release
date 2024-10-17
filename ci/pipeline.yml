@@ -3,7 +3,7 @@ jobs:
 - name: bump-deps
   plan:
   - in_parallel:
-    - get: bosh-ecosystem-docker-image
+    - get: bosh-integration-image
     - get: bosh-cpi-src-in
     - get: golang-release
     - get: weekly
@@ -17,7 +17,7 @@ jobs:
     params:
       SOURCE_PATH: src/bosh-warden-cpi
   - task: test
-    image: bosh-ecosystem-docker-image
+    image: bosh-integration-image
     file: bosh-cpi-src-in/ci/tasks/test.yml
     input_mapping:
       bosh-cpi-src-in: bosh-cpi-src-out
@@ -29,7 +29,7 @@ jobs:
 - name: bump-golang-packages
   plan:
   - in_parallel:
-    - get: bosh-ecosystem-docker-image
+    - get: bosh-integration-image
     - get: bosh-cpi-src-in
     - get: golang-release
       trigger: true
@@ -56,7 +56,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: bosh-ecosystem-docker-image
+    - get: bosh-integration-image
     - get: bosh-cpi-src-in
       trigger: true
     - get: dev-version
@@ -66,10 +66,10 @@ jobs:
     params:
       file: dev-version/number
   - task: test
-    image: bosh-ecosystem-docker-image
+    image: bosh-integration-image
     file: bosh-cpi-src-in/ci/tasks/test.yml
   - task: build
-    image: bosh-ecosystem-docker-image
+    image: bosh-integration-image
     file: bosh-cpi-src-in/ci/tasks/build.yml
     params:
       BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
@@ -90,6 +90,7 @@ jobs:
     - get: bosh-ecosystem-concourse
       tags: [ broadcom ]
     - get: bosh-ecosystem-docker-image
+    - get: bosh-integration-image
     - get: bosh-cpi-src-in
     - get: bosh-acceptance-tests
     - get: pipeline-bosh-warden-cpi-tarball
@@ -121,7 +122,7 @@ jobs:
       PATH_TO_DELETE: "/concourse/bosh-warden-cpi-bats-director/"
   - task: bats
     file: bosh-cpi-src-in/ci/tasks/bats.yml
-    image: bosh-ecosystem-docker-image
+    image: bosh-integration-image
     params:
       BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
       BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
@@ -142,7 +143,7 @@ jobs:
       passed: [ bats ]
       params:
         bump: major
-    - get: bosh-ecosystem-docker-image
+    - get: bosh-integration-image
     - get: bosh-cpi-src
       resource: bosh-cpi-src-in
     - get: pipeline-bosh-warden-cpi-tarball
@@ -150,7 +151,7 @@ jobs:
       - bats
   - task: promote
     file: bosh-cpi-src/ci/tasks/promote.yml
-    image: bosh-ecosystem-docker-image
+    image: bosh-integration-image
     params:
       PRIVATE_YML: |
         blobstore:
@@ -258,5 +259,12 @@ resources:
   type: registry-image
   source:
     repository: bosh/bosh-ecosystem-concourse
+    username: ((docker.username))
+    password: ((docker.password))
+
+- name: bosh-integration-image
+  type: registry-image
+  source:
+    repository: bosh/integration
     username: ((docker.username))
     password: ((docker.password))
