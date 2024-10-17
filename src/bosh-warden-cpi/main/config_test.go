@@ -35,10 +35,6 @@ var validActionsOptions = bwcaction.FactoryOpts{
 	Agent: apiv1.AgentOptions{
 		Mbus: "fake-mbus",
 		NTP:  []string{},
-
-		Blobstore: apiv1.BlobstoreOptions{
-			Type: "fake-blobstore-type",
-		},
 	},
 }
 
