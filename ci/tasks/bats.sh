@@ -144,8 +144,8 @@ install_bats_prereqs() {
   sudo rm -rf /tmp/bosh
   git clone --depth=1 https://github.com/cloudfoundry/bosh.git /tmp/bosh
 
-  if $SKIP_RUBY_INSTALL; then
-    echo "SKIPPING RUBY INSTALL, SINCE \$SKIP_RUBY_INSTALL=$SKIP_RUBY_INSTALL IS SET"
+  if [ -z "${SKIP_RUBY_INSTALL:-}" ]; then
+    echo "SKIP_RUBY_INSTALL='${SKIP_RUBY_INSTALL}' is empty SKIPPING ruby installation"
   else
     git clone https://github.com/postmodern/ruby-install
     sudo mkdir -p /var/vcap/store/ruby
@@ -232,7 +232,7 @@ EOF
   popd
 }
 
-if $DEV_RELEASE; then
+if [ -n "${DEV_RELEASE:-}" ]; then
   dev_release_dir="bosh-warden-cpi-release-dev"
   cpi_release_path="${PWD}/${dev_release_dir}/dev-release.tgz"
 
