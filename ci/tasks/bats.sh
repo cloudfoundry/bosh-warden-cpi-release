@@ -20,15 +20,16 @@ run_bats_on_vm() {
 
   export CREDHUB_PROXY="ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}"
   export CREDHUB_SERVER=https://${BOSH_ENVIRONMENT}:8844
-  export CREDHUB_CA_CERT=$(mktemp)
+  CREDHUB_CA_CERT=$(mktemp)
+  export CREDHUB_CA_CERT
   echo "${CREDHUB_CA_PEM}" > "${CREDHUB_CA_CERT}"
 
   credhub login --skip-tls-validation
-  deploy_director $iaas_stemcell_url $iaas_stemcell_version $bosh_release_path $cpi_release_path $garden_linux_release_path
+  deploy_director "${iaas_stemcell_url}" "${iaas_stemcell_version}" "${bosh_release_path}" "${cpi_release_path}" "${garden_linux_release_path}"
   lite_director_ip="$(bosh -d bosh-warden-cpi-bats-director instances --json | jq -r '.Tables[].Rows[] | select( .instance | contains("bosh"))'.ips)"
 
   BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh-warden-cpi-bats-director/default_ca -j | jq .value.ca -r)"
-  bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION"
+  bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs ${SKIP_RUBY_INSTALL} ${BOSH_CLI_VERSION}"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
   bosh -d bosh-warden-cpi-bats-director delete-vm "$(bosh -d bosh-warden-cpi-bats-director is --details --column=VM_CID)" -n
   bosh -d bosh-warden-cpi-bats-director delete-deployment -n
@@ -49,7 +50,7 @@ deploy_director() {
 
   # Deploy empty VM so we can get the IP
   empty_manifest=$(mktemp)
-  cat <<EOF > $empty_manifest
+  cat <<EOF > "${empty_manifest}"
 instance_groups:
 - azs:
   - az1
@@ -73,7 +74,7 @@ update:
   update_watch_time: 60000
 EOF
 
-  bosh -d bosh-warden-cpi-bats-director -n deploy $empty_manifest
+  bosh -d bosh-warden-cpi-bats-director -n deploy "${empty_manifest}"
 
   lite_director_ip="$(bosh -d bosh-warden-cpi-bats-director instances --json | jq -r '.Tables[].Rows[] | select( .instance | contains("bosh"))'.ips)"
 
@@ -132,11 +133,12 @@ install_bats_prereqs() {
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
 
-  if bosh --version |  grep "$BOSH_CLI_VERSION"; then
+  if bosh --version |  grep "${BOSH_CLI_VERSION}"; then
     echo "found bosh, skipping download"
   else
     sudo mkdir -p /var/vcap/store/bosh/bin || true
-    sudo wget -O /var/vcap/store/bosh/bin/bosh https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64
+    sudo wget -O /var/vcap/store/bosh/bin/bosh \
+      "https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64"
     sudo chmod +x /var/vcap/store/bosh/bin/bosh
   fi
   sudo rm -rf /tmp/bosh
@@ -147,7 +149,8 @@ install_bats_prereqs() {
   else
     git clone https://github.com/postmodern/ruby-install
     sudo mkdir -p /var/vcap/store/ruby
-    sudo ruby-install/bin/ruby-install --install-dir /var/vcap/store/ruby $(cat /tmp/bosh/src/Gemfile | grep '^ruby ' | egrep -o '[0-9.]+')
+    sudo ruby-install/bin/ruby-install \
+      --install-dir /var/vcap/store/ruby "$( grep '^ruby ' /tmp/bosh/src/Gemfile  | grep -E -o '[0-9.]+')"
   fi
 
   pushd /tmp/bosh/src
@@ -195,7 +198,7 @@ EOF
   pushd /tmp/bosh-acceptance-tests
 
   ssh_public_key="$( cat ~/.ssh/id_rsa.pub )"
-  ssh_private_key="$( cat ~/.ssh/id_rsa | sed 's/$/\\n/' | tr -d '\n' )"
+  ssh_private_key="$( sed 's/$/\\n/' ~/.ssh/id_rsa | tr -d '\n' )"
   cat > bats.spec << EOF
 ---
 cpi: warden
@@ -230,22 +233,32 @@ EOF
 }
 
 if $DEV_RELEASE; then
-  git clone https://github.com/cloudfoundry/bosh-warden-cpi-release.git bosh-warden-cpi-release-dev
-  pushd bosh-warden-cpi-release-dev
-    cpi_release_path=${PWD}/dev-release.tgz
-    bosh create-release --force --tarball $cpi_release_path
-  popd
+  dev_release_dir="bosh-warden-cpi-release-dev"
+  cpi_release_path="${PWD}/${dev_release_dir}/dev-release.tgz"
 
+  git clone https://github.com/cloudfoundry/bosh-warden-cpi-release.git "${dev_release_dir}"
+  (
+    cd "${dev_release_dir}"
+    bosh create-release --force --tarball "${cpi_release_path}"
+  )
 else
-  cpi_release_path=${PWD}/pipeline-bosh-warden-cpi-tarball/*.tgz
+  cpi_release_path=$(ls "${PWD}"/pipeline-bosh-warden-cpi-tarball/*.tgz)
 fi
 
 #credhub login --skip-tls-validation
 warden_stemcell_url=$(cat warden-ubuntu-jammy-stemcell/url)
 iaas_stemcell_url=$(cat iaas-stemcell/url)
 iaas_stemcell_version=$(cat iaas-stemcell/version)
-bosh_release_path=${PWD}/bosh-release/*.tgz
+bosh_release_path=$(ls "${PWD}"/bosh-release/*.tgz)
 
-garden_linux_release_path=${PWD}/garden-linux-release/*.tgz
+garden_linux_release_path=$(ls "${PWD}"/garden-linux-release/*.tgz)
 
-run_bats_on_vm $warden_stemcell_url $iaas_stemcell_url $iaas_stemcell_version $bosh_release_path $cpi_release_path $garden_linux_release_path $SKIP_RUBY_INSTALL $BOSH_CLI_VERSION
+run_bats_on_vm \
+  "${warden_stemcell_url}" \
+  "${iaas_stemcell_url}" \
+  "${iaas_stemcell_version}" \
+  "${bosh_release_path}" \
+  "${cpi_release_path}" \
+  "${garden_linux_release_path}" \
+  "${SKIP_RUBY_INSTALL}" \
+  "${BOSH_CLI_VERSION}"
