@@ -1,5 +1,5 @@
-code.cloudfoundry.org/garden v0.0.0-20241015133258-e596c7c58892 h1:N+I+moyN8Mb3yWQKAWSoV9r3Lr0QmcCx0/mpiyyp/Yw=
-code.cloudfoundry.org/garden v0.0.0-20241015133258-e596c7c58892/go.mod h1:7sPyrlpr67irSpPSNfS9BcDnuuI1V1VKYVW54QaWnCY=
+code.cloudfoundry.org/garden v0.0.0-20241018132925-991b03c78f6c h1:KcYCT2TjVSBGhCpWbNPHIRYsDS1aBIoxD74NuYB8yYE=
+code.cloudfoundry.org/garden v0.0.0-20241018132925-991b03c78f6c/go.mod h1:+w+9UQ7hVLKyYI/fu8Zpi0Jq7gU5w+HlVTZqhCS3h10=
 code.cloudfoundry.org/lager/v3 v3.10.0 h1:63K7qjkVFLEU1Yz3BOcMigRyMh5y7T+mWHLBoQzoczA=
 code.cloudfoundry.org/lager/v3 v3.10.0/go.mod h1:k3MEaJUFTzPYosFWnzaS9ojfiYw/vqNqApOK2RIqgQY=
 github.com/bmatcuk/doublestar v1.3.4 h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0=
