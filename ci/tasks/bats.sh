@@ -207,13 +207,6 @@ properties:
     static_ip: 10.244.0.34
   second_static_ip: 10.244.0.35
 EOF
-    echo '----------- ENV'
-    env
-    command sudo || true
-    command bundle || true
-    command ruby || true
-    echo '^^^^^^^^^^^ ENV'
-
     # shellcheck disable=SC1090
     source "${BATS_ENV_FILE}"
     sudo --preserve-env bundle install
