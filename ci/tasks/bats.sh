@@ -17,17 +17,11 @@ run_bats_on_vm() {
   garden_linux_release_path=$6
   BOSH_CLI_VERSION=$7
 
-  export CREDHUB_PROXY="ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}"
-  export CREDHUB_SERVER=https://${BOSH_ENVIRONMENT}:8844
-  CREDHUB_CA_CERT=$(mktemp)
-  export CREDHUB_CA_CERT
-  echo "${CREDHUB_CA_PEM}" > "${CREDHUB_CA_CERT}"
-
-  credhub login --skip-tls-validation
-  deploy_director "${iaas_stemcell_url}" "${iaas_stemcell_version}" "${bosh_release_path}" "${cpi_release_path}" "${garden_linux_release_path}"
+  vars_store_path=$(mktemp)
+  deploy_director "${iaas_stemcell_url}" "${iaas_stemcell_version}" "${bosh_release_path}" "${cpi_release_path}" "${garden_linux_release_path}" "${vars_store_path}"
   lite_director_ip="$(bosh -d bosh-warden-cpi-bats-director instances --json | jq -r '.Tables[].Rows[] | select( .instance | contains("bosh"))'.ips)"
 
-  BOSH_LITE_CA_CERT="$(credhub get -n /concourse/bosh-warden-cpi-bats-director/default_ca -j | jq .value.ca -r)"
+  BOSH_LITE_CA_CERT="$(bosh int --path /default_ca/ca "${vars_store_path}")"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs ${BOSH_CLI_VERSION}"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
   bosh -d bosh-warden-cpi-bats-director delete-vm "$(bosh -d bosh-warden-cpi-bats-director is --details --column=VM_CID)" -n
@@ -40,6 +34,7 @@ deploy_director() {
   bosh_release_path=$3
   cpi_release_path=$4
   garden_linux_release_path=$5
+  vars_store_path=$6
 
   # Upload specific dependencies
   bosh upload-release $bosh_release_path
@@ -121,7 +116,8 @@ EOF
       -v internal_ip="$lite_director_ip" \
       -v director_name="dev-director" \
       -v admin_password=admin \
-      -v local-bosh-warden-cpi-release="$cpi_release_path"
+      -v local-bosh-warden-cpi-release="$cpi_release_path" \
+      --vars-store "${vars_store_path}"
 }
 
 install_bats_prereqs() {

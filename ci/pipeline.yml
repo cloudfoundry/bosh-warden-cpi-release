@@ -87,9 +87,6 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: bosh-ecosystem-concourse
-      tags: [ broadcom ]
-    - get: bosh-ecosystem-docker-image
     - get: bosh-integration-image
     - get: bosh-cpi-src-in
     - get: bosh-acceptance-tests
@@ -113,17 +110,6 @@ jobs:
       params:
         globs:
           - "no-files-needed"
-  - task: clean-credhub
-    file: bosh-ecosystem-concourse/tasks/shared/delete-credhub-entries.yml
-    image: bosh-ecosystem-docker-image
-    params:
-      CREDHUB_CA_CERT_STRING: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
-      CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
-      CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
-      CREDHUB_SERVER: ((iaas_directors_gcp-director_bosh_credhub_server))
-      JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
-      JUMPBOX_URL: "((iaas_directors_gcp-director_bosh_jumpbox_ip)):22"
-      PATH_TO_DELETE: "/concourse/bosh-warden-cpi-bats-director/"
   - task: bats
     file: bosh-cpi-src-in/ci/tasks/bats.yml
     image: bosh-integration-image
@@ -135,9 +121,6 @@ jobs:
       JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
       JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
       JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
-      CREDHUB_CLIENT: ((iaas_directors_gcp-director_bosh_credhub_client.username))
-      CREDHUB_SECRET: ((iaas_directors_gcp-director_bosh_credhub_client.password))
-      CREDHUB_CA_PEM: ((iaas_directors_gcp-director_bosh_credhub_ca_cert.ca))
 
 - name: promote
   serial: true
@@ -214,14 +197,6 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
     branch: master
 
-- name: bosh-ecosystem-concourse
-  type: git
-  tags: [ broadcom ]
-  source:
-    uri: https://github.gwd.broadcom.net/TNZ/bosh-ecosystem-concourse.git
-    username: svc.bosh-ecosystem@broadcom.net
-    password: ((svc-bosh-ecosystem-ghe-personal-access-token))
-
 - name: bosh-cpi-src-in
   type: git
   source:
@@ -265,13 +240,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
-
-- name: bosh-ecosystem-docker-image
-  type: registry-image
-  source:
-    repository: bosh/bosh-ecosystem-concourse
-    username: ((docker.username))
-    password: ((docker.password))
 
 - name: bosh-integration-image
   type: registry-image
