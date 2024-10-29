@@ -141,7 +141,7 @@ install_bats_prereqs() {
   git clone https://github.com/postmodern/ruby-install
   sudo mkdir -p /var/vcap/store/ruby
   sudo ruby-install/bin/ruby-install \
-    --install-dir /var/vcap/store/ruby "$( grep '^ruby ' /tmp/bosh/src/Gemfile  | grep -E -o '[0-9.]+')"
+    --install-dir /var/vcap/store/ruby "$(cat /tmp/bosh/src/.ruby-version)"
 
   pushd /tmp/bosh/src
     # Pull in bat submodule
