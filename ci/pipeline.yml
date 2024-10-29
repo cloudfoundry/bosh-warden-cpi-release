@@ -109,6 +109,10 @@ jobs:
       - build
     - get: bosh-release
     - get: garden-linux-release
+    - get: bosh-cli-github-release
+      params:
+        globs:
+          - "no-files-needed"
   - task: clean-credhub
     file: bosh-ecosystem-concourse/tasks/shared/delete-credhub-entries.yml
     image: bosh-ecosystem-docker-image
@@ -249,6 +253,13 @@ resources:
 - name: garden-linux-release
   type: bosh-io-release
   source: { repository: cloudfoundry-incubator/garden-linux-release }
+
+- name: bosh-cli-github-release
+  type: github-release
+  source:
+    access_token: ((github_public_repo_token))
+    owner: cloudfoundry
+    repository: bosh-cli
 
 - name: golang-release
   type: git

@@ -14,6 +14,7 @@ inputs:
   - name: warden-ubuntu-jammy-stemcell
   - name: bosh-release
   - name: garden-linux-release
+  - name: bosh-cli-github-release
 
 run:
   path: bosh-cpi-src-in/ci/tasks/bats.sh
@@ -29,6 +30,3 @@ params:
   CREDHUB_CLIENT: ""
   CREDHUB_SECRET: ""
   CREDHUB_CA_PEM: ""
-  SKIP_RUBY_INSTALL: false
-  BOSH_CLI_VERSION: "6.4.7"
-  DEV_RELEASE: false
