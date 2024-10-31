@@ -1,6 +1,6 @@
 ---
 final_name: bosh-warden-cpi
 blobstore:
-  provider: s3
+  provider: gcs
   options:
     bucket_name: bosh-warden-cpi-blobs

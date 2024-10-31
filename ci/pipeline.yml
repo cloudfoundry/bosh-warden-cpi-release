@@ -43,10 +43,10 @@ jobs:
       PACKAGES: [ golang-1-linux ]
       PRIVATE_YML: |
         blobstore:
+          provider: gcs
           options:
-            access_key_id: ((warden_assume_aws_access_key.username))
-            secret_access_key: ((warden_assume_aws_access_key.password))
-            assume_role_arn: ((warden_assume_aws_access_key.role_arn))
+            credentials_source: static
+            json_key: '((cloud-foundry-gcp-credentials))'
   - put: bosh-cpi-src-out
     params:
       repository: bosh-cpi-src-out
@@ -142,10 +142,10 @@ jobs:
     params:
       PRIVATE_YML: |
         blobstore:
+          provider: gcs
           options:
-            access_key_id: ((warden_assume_aws_access_key.username))
-            secret_access_key: ((warden_assume_aws_access_key.password))
-            assume_role_arn: ((warden_assume_aws_access_key.role_arn))
+            credentials_source: static
+            json_key: '((cloud-foundry-gcp-credentials))'
   - put: dev-version
     params:
       file: dev-version/number
