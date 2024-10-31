@@ -218,7 +218,7 @@ warden_stemcell_url=$(cat warden-ubuntu-jammy-stemcell/url)
 iaas_stemcell_url=$(cat iaas-stemcell/url)
 iaas_stemcell_version=$(cat iaas-stemcell/version)
 bosh_release_path=$(ls "${PWD}"/bosh-release/*.tgz)
-cpi_release_path=$(ls "${PWD}"/pipeline-bosh-warden-cpi-tarball/*.tgz)
+cpi_release_path=$(ls "${PWD}"/releases/*.tgz)
 garden_linux_release_path=$(ls "${PWD}"/garden-linux-release/*.tgz)
 bosh_cli_version=$(cat bosh-cli-github-release/version)
 

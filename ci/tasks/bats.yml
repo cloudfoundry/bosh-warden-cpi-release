@@ -9,7 +9,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src-in
   - name: bosh-acceptance-tests
-  - name: pipeline-bosh-warden-cpi-tarball
+  - name: releases
   - name: iaas-stemcell
   - name: warden-ubuntu-jammy-stemcell
   - name: bosh-release
