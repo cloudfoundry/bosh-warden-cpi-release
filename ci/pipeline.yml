@@ -27,6 +27,7 @@ jobs:
       rebase: true
 
 - name: bump-golang-packages
+  serial: true
   plan:
   - in_parallel:
     - get: bosh-integration-image
