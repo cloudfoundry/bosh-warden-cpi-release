@@ -6,10 +6,10 @@ image_resource:
     repository: bosh/integration
 
 inputs:
-- name: bosh-cpi-src-in
+- name: bosh-cpi-src
 
 outputs:
 - name: releases
 
 run:
-  path: bosh-cpi-src-in/ci/tasks/build.sh
+  path: bosh-cpi-src/ci/tasks/build.sh

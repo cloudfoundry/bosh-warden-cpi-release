@@ -47,7 +47,7 @@ jobs:
           provider: gcs
           options:
             credentials_source: static
-            json_key: '((cloud-foundry-gcp-credentials))'
+            json_key: '((gcp_json_key))'
   - put: bosh-cpi-src-out
     params:
       repository: bosh-cpi-src-out
@@ -64,12 +64,148 @@ jobs:
     image: bosh-integration-image
     file: bosh-cpi-src-in/ci/tasks/test.yml
 
+- name: setup-infrastructure
+  serial: true
+  plan:
+    - in_parallel:
+      - get: bosh-cpi-src
+        resource: bosh-cpi-src-in
+        trigger: true
+        passed:
+        - test
+      - get: stemcell
+        resource: google-ubuntu-stemcell
+    - in_parallel: &teardown_step
+      - task: teardown-infrastructure
+        file: bosh-cpi-src/ci/tasks/teardown-infrastructure.yml
+        params:
+          google_auto_network: warden-cpi-ci-auto-network
+          google_json_key_data: ((gcp_json_key))
+          google_network: warden-cpi-ci-network
+          google_project: cloud-foundry-310819
+          google_region: us-east1
+          google_zone: us-east1-b
+    - put: infrastructure
+      params:
+        env_name: warden-bosh-cpi
+        terraform_source: bosh-cpi-src/ci/assets/terraform
+        delete_on_failure: true
+    - in_parallel: *teardown_step
+
+- name: teardown-infrastructure
+  serial: true
+  plan:
+    - in_parallel:
+      - get: bosh-cpi-src
+        resource: bosh-cpi-src-in
+        trigger: true
+        passed:
+        - bats
+      - get: bosh-cpi-release
+      - get: director-creds
+        passed:
+        - bats
+      - get: director-state
+        passed:
+        - deploy-ubuntu
+      - get: infrastructure
+        trigger: true
+        passed:
+        - bats
+      - get: stemcell
+        resource: google-ubuntu-stemcell
+      - get: bosh-cli
+        params:
+          globs:
+          - 'bosh-cli-*-linux-amd64'
+      - get: bosh-deployment
+    - in_parallel: *teardown_step
+    - task: setup-deployment
+      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+    - task: teardown-director
+      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      params:
+        google_project:                 cloud-foundry-310819
+        google_region:                  us-east1
+        google_zone:                    us-east1-b
+        cpi_source_branch:              master
+        google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
+        google_subnetwork_range:        "10.0.0.0/24"
+        google_subnetwork_gw:           "10.0.0.1"
+        google_address_static_director: "10.0.0.6"
+        google_json_key_data:           ((gcp_json_key))
+    - put: infrastructure
+      params:
+        env_name: warden-bosh-cpi
+        terraform_source: bosh-cpi-src/ci/assets/terraform
+        action: destroy
+      get_params:
+        terraform_source: bosh-cpi-src/ci/assets/terraform
+        action: destroy
+
+- name: deploy-ubuntu
+  serial: true
+  plan:
+    - in_parallel:
+      - get: bosh-cpi-src
+        resource: bosh-cpi-src-in
+        trigger: true
+        passed:
+        - setup-infrastructure
+      - get:   bosh-cpi-release
+      - get: infrastructure
+        trigger: true
+        passed:
+        - setup-infrastructure
+      - get: stemcell
+        resource: google-ubuntu-stemcell
+        trigger: true
+        passed:
+        - setup-infrastructure
+      - get: bosh-cli
+        params:
+          globs:
+          - 'bosh-cli-*-linux-amd64'
+      - get: bosh-deployment
+    - task: setup-deployment
+      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+    - task: setup-director
+      file: bosh-cpi-src/ci/tasks/setup-director.yml
+      params:
+        cpi_source_branch:              master
+        google_project:                 cloud-foundry-310819
+        google_region:                  us-east1
+        google_zone:                    us-east1-b
+        google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
+        google_subnetwork_range:        "10.0.0.0/24"
+        google_subnetwork_gw:           "10.0.0.1"
+        google_address_static_director: "10.0.0.6"
+        google_json_key_data:           ((gcp_json_key))
+      on_failure:
+        task: teardown-director
+        file: bosh-cpi-src/ci/tasks/teardown-director.yml
+        params:
+          google_project:                 cloud-foundry-310819
+          google_region:                  us-east1
+          google_zone:                    us-east1-b
+          cpi_source_branch:              master
+          google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
+          google_subnetwork_range:        "10.0.0.0/24"
+          google_subnetwork_gw:           "10.0.0.1"
+          google_address_static_director: "10.0.0.6"
+          google_json_key_data:           ((gcp_json_key))
+    - put: director-creds
+      params: {file: director-creds/master-creds.yml}
+    - put: director-state
+      params: {file: director-state/master-manifest-state.json}
+
 - name: bats
   serial: true
   plan:
   - in_parallel:
     - get: bosh-integration-image
-    - get: bosh-cpi-src-in
+    - get: bosh-cpi-src
+      resource: bosh-cpi-src-in
       trigger: true
       passed:
       - test
@@ -83,24 +219,31 @@ jobs:
         tarball: false
     - get: bosh-release
     - get: garden-linux-release
+    - get: bosh-deployment
     - get: bosh-cli-github-release
       params:
         globs:
           - "no-files-needed"
+    - get:  infrastructure
+      trigger: true
+      passed:
+      - deploy-ubuntu
+    - get:  director-state
+      passed:
+      - deploy-ubuntu
+    - get:  director-creds
+      trigger: true
+      passed:
+      - deploy-ubuntu
+    - get: bosh-cpi-release
   - task: build
     image: bosh-integration-image
-    file: bosh-cpi-src-in/ci/tasks/build.yml
+    file: bosh-cpi-src/ci/tasks/build.yml
   - task: bats
-    file: bosh-cpi-src-in/ci/tasks/bats.yml
+    file: bosh-cpi-src/ci/tasks/bats.yml
     image: bosh-integration-image
     params:
-      BOSH_ENVIRONMENT: ((iaas_directors_gcp-director_bosh_environment))
-      BOSH_CA_CERT: ((iaas_directors_gcp-director_bosh_ca_cert.ca))
-      BOSH_CLIENT: ((iaas_directors_gcp-director_bosh_client.username))
-      BOSH_CLIENT_SECRET: ((iaas_directors_gcp-director_bosh_client.password))
-      JUMPBOX_PRIVATE_KEY: ((iaas_directors_gcp-director_bosh_jumpbox_ssh.private_key))
-      JUMPBOX_USERNAME: ((iaas_directors_gcp-director_bosh_jumpbox_username))
-      JUMPBOX_IP: ((iaas_directors_gcp-director_bosh_jumpbox_ip))
+      cpi_source_branch: master
 
 - name: promote
   serial: true
@@ -125,12 +268,23 @@ jobs:
           provider: gcs
           options:
             credentials_source: static
-            json_key: '((cloud-foundry-gcp-credentials))'
+            json_key: '((gcp_json_key))'
   - put: bosh-cpi-src-out
     params:
       repository: release_repo
       rebase: true
       tag: release_metadata/tag-name
+
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
 
 resources:
 - name: bosh-shared-ci
@@ -157,7 +311,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
-    branch: master
+    branch: pipeline
     private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
     ignore_paths:
     - releases/**/*.yml
@@ -166,7 +320,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
-    branch: master
+    branch: pipeline
     private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
 
 - name: warden-ubuntu-jammy-stemcell
@@ -201,5 +355,64 @@ resources:
   type: registry-image
   source:
     repository: bosh/integration
-    username: ((docker.username))
-    password: ((docker.password))
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: infrastructure
+  type: terraform
+  source:
+    backend_type: gcs
+    backend_config:
+      bucket: bosh-warden-cpi-release-pipeline
+      prefix: ci-state/terraform-master
+      credentials: ((gcp_json_key))
+    vars:
+      google_project:           cloud-foundry-310819
+      google_region:            us-east1
+      google_zone:              us-east1-b
+      google_json_key_data:     ((gcp_json_key))
+      google_subnetwork_range:  "10.0.0.0/24"
+      google_firewall_internal: google-cpi-ci-firewall-internal
+      google_firewall_external: google-cpi-ci-firewall-external
+      prefix:                   wardencpi
+      google_auto_network:      google-cpi-ci-auto-network
+      google_network:           google-cpi-ci-network
+
+- name: bosh-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-deployment
+    branch: master
+
+- name: director-creds
+  type: gcs-resource
+  source:
+    json_key:         ((gcp_json_key))
+    bucket:           bosh-warden-cpi-release-pipeline
+    versioned_file:   ci-state/master-creds.yml
+
+- name: director-state
+  type: gcs-resource
+  source:
+    json_key:         ((gcp_json_key))
+    bucket:           bosh-warden-cpi-release-pipeline
+    versioned_file:   ci-state/master-manifest-state.json
+
+- name: google-ubuntu-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-jammy-go_agent
+    force_regular: true
+    tarball: true
+
+- name: bosh-cli
+  source:
+    access_token: ((github_public_repo_token))
+    owner: cloudfoundry
+    repository: bosh-cli
+  type: github-release
+
+- name: bosh-cpi-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry/bosh-google-cpi-release

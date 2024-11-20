@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd bosh-cpi-src-in
+cd bosh-cpi-src
 
 bosh create-release \
   --timestamp-version \

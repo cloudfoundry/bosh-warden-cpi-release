@@ -1,0 +1,19 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/gce-cpi-release
+inputs:
+  - name: bosh-cpi-src
+  - name: bosh-cli
+  - name: deployment
+  - name: director-creds
+  - name: director-state
+  - name: infrastructure
+run:
+  path: bosh-cpi-src/ci/tasks/teardown-director.sh
+params:
+  BOSH_INIT_LOG_LEVEL: warn
+  google_json_key_data:           replace-me
+  cpi_source_branch:              replace-me
