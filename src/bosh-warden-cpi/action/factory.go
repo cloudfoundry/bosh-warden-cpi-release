@@ -8,6 +8,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
+	. "bosh-warden-cpi/config"
 	bwcdisk "bosh-warden-cpi/disk"
 	bwcstem "bosh-warden-cpi/stemcell"
 	bwcutil "bosh-warden-cpi/util"
@@ -56,6 +57,7 @@ func NewFactory(
 	uuidGen boshuuid.Generator,
 	opts FactoryOpts,
 	logger boshlog.Logger,
+	config Config,
 ) Factory {
 	var decompressor bwcutil.Decompressor
 	if opts.ExpandStemcellTarball {
@@ -91,7 +93,7 @@ func NewFactory(
 
 	vmCreator := bwcvm.NewWardenCreator(
 		uuidGen, wardenClient, metadataService, agentEnvServiceFactory, ports,
-		hostBindMounts, guestBindMounts, systemResolvConfProvider, opts.Agent, logger)
+		hostBindMounts, guestBindMounts, systemResolvConfProvider, opts.Agent, logger, config)
 
 	vmFinder := bwcvm.NewWardenFinder(
 		wardenClient, agentEnvServiceFactory, ports, hostBindMounts, guestBindMounts, logger)

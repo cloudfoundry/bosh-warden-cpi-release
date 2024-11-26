@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -eu
+
+<% if p("warden_cpi.start_containers_with_systemd") %>
+sed -i 's/\/var\/vcap\/data\/garden\/bin\/init/\/sbin\/init/' /var/vcap/jobs/garden/config/config.ini
+<% else %>
+sed -i 's/\/sbin\/init/\/var\/vcap\/data\/garden\/bin\/init/' /var/vcap/jobs/garden/config/config.ini
+<% end %>

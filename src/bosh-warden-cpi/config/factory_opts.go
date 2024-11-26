@@ -1,4 +1,4 @@
-package action
+package config
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

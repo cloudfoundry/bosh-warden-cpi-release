@@ -6,6 +6,7 @@ templates:
   cpi_ctl.erb: bin/cpi_ctl
   cpi.json.erb: config/cpi.json
   sudoers: config/sudoers
+  pre-start.erb: bin/pre-start
 
 packages:
 - warden_cpi
@@ -74,3 +75,7 @@ properties:
   warden_cpi.actions.guest_persistent_bind_mounts_dir:
     description: "Directory with sub-directories at which persistent disks are mounted inside VMs"
     default: "/warden-cpi-dev"
+
+  warden_cpi.start_containers_with_systemd:
+    description: "Containers will use /sbin/init as the entry point. Enabling this is required for Noble stemcells, but currently breaks all pre-Noble stemcells"
+    default: false

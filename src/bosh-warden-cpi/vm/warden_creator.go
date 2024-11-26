@@ -9,6 +9,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
+	"bosh-warden-cpi/config"
 	bwcstem "bosh-warden-cpi/stemcell"
 )
 
@@ -27,6 +28,7 @@ type WardenCreator struct {
 
 	agentOptions apiv1.AgentOptions
 	logger       boshlog.Logger
+	Config       config.Config
 }
 
 func NewWardenCreator(
@@ -40,9 +42,11 @@ func NewWardenCreator(
 	systemResolvConfProvider func() (ResolvConf, error),
 	agentOptions apiv1.AgentOptions,
 	logger boshlog.Logger,
+	config config.Config,
 ) WardenCreator {
 	return WardenCreator{
 		uuidGen: uuidGen,
+		Config:  config,
 
 		wardenClient:           wardenClient,
 		metadataService:        metadataService,
@@ -113,6 +117,15 @@ func (c WardenCreator) Create(
 		Privileged: true,
 	}
 
+	if c.Config.StartContainersWithSystemD {
+		containerSpec.BindMounts = append(containerSpec.BindMounts, wrdn.BindMount{
+			SrcPath: "/sys/fs/cgroup",
+			DstPath: "/sys/fs/cgroup",
+			Mode:    wrdn.BindMountModeRW,
+			Origin:  wrdn.BindMountOriginHost,
+		})
+	}
+
 	c.logger.Debug("WardenCreator", "Creating container with spec %#v", containerSpec)
 
 	container, err := c.wardenClient.Create(containerSpec)
@@ -150,10 +163,18 @@ func (c WardenCreator) Create(
 		return WardenVM{}, bosherr.WrapError(err, "Updating container's metadata")
 	}
 
-	err = c.startAgentInContainer(container)
-	if err != nil {
-		c.cleanUpContainer(container)
-		return WardenVM{}, err
+	if c.Config.StartContainersWithSystemD {
+		err = c.prepareContainer(container)
+		if err != nil {
+			c.cleanUpContainer(container)
+			return WardenVM{}, err
+		}
+	} else {
+		err = c.startAgentInContainer(container)
+		if err != nil {
+			c.cleanUpContainer(container)
+			return WardenVM{}, err
+		}
 	}
 
 	vm := NewWardenVM(
@@ -215,6 +236,25 @@ func (c WardenCreator) startAgentInContainer(container wrdn.Container) error {
 	_, err := container.Run(processSpec, wrdn.ProcessIO{})
 	if err != nil {
 		return bosherr.WrapError(err, "Running BOSH Agent in container")
+	}
+
+	return nil
+}
+
+func (c WardenCreator) prepareContainer(container wrdn.Container) error {
+	processSpec := wrdn.ProcessSpec{
+		Path: "/bin/bash",
+		User: "root",
+		Args: []string{
+			"-c",
+			"umount /etc/hosts",
+		},
+	}
+
+	// Do not Wait() for the process to finish
+	_, err := container.Run(processSpec, wrdn.ProcessIO{})
+	if err != nil {
+		return bosherr.WrapError(err, "Preparing Container")
 	}
 
 	return nil
