@@ -17,10 +17,10 @@ inputs:
   - name: bosh-cli-github-release
   - name: director-creds
   - name: director-state
+  - name: jumpbox-creds
+  - name: jumpbox-state
   - name: infrastructure
 
 run:
   path: bosh-cpi-src/ci/tasks/bats.sh
 
-params:
-  cpi_source_branch:              replace-me

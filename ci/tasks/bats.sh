@@ -14,7 +14,11 @@ run_bats_on_vm() {
   BOSH_CLI_VERSION=$7
 
   creds_dir="${PWD}/director-creds"
-  creds_file="${creds_dir}/${cpi_source_branch}-creds.yml"
+  creds_file="${creds_dir}/creds.yml"
+
+  jumpbox_creds_dir="${PWD}/jumpbox-creds"
+  jumpbox_creds_file="${jumpbox_creds_dir}/jumpbox-creds.yml"
+
   infrastructure_metadata="${PWD}/infrastructure/metadata"
 
   public_key="$(bosh interpolate ${creds_file} --path /jumpbox_ssh/public_key)"
@@ -22,14 +26,18 @@ run_bats_on_vm() {
 
   read_infrastructure
 
-  export BOSH_ENVIRONMENT="${google_address_director_ip}"
+  export BOSH_ENVIRONMENT="${google_address_director_internal_ip}"
   export BOSH_CLIENT="admin"
   export BOSH_CLIENT_SECRET="$(bosh interpolate ${creds_file} --path /admin_password)"
   export BOSH_CA_CERT="$(bosh interpolate ${creds_file} --path /director_ssl/ca)"
+  export JUMPBOX_PRIVATE_KEY="$(bosh interpolate ${jumpbox_creds_file} --path /jumpbox_ssh/private_key)"
+  export JUMPBOX_USERNAME="jumpbox"
+  export JUMPBOX_IP="${google_jumpbox_ip}"
 
-  private_key_path=$(mktemp)
-  echo -e "${private_key}" > ${private_key_path}
-  export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${google_address_director_ip}:22?private-key=${private_key_path}"
+  jumpbox_private_key_path=$(mktemp)
+  chmod 600 "${jumpbox_private_key_path}"
+  echo -e "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
+  export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${google_jumpbox_ip}:22?private-key=${jumpbox_private_key_path}"
 
   vars_store_path=$(mktemp)
   deploy_director "${iaas_stemcell_url}" "${iaas_stemcell_version}" "${bosh_release_path}" "${cpi_release_path}" "${garden_linux_release_path}" "${vars_store_path}"

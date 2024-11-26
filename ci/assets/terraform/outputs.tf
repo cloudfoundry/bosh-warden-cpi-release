@@ -34,18 +34,6 @@ output "google_firewall_external" {
   value = var.google_firewall_external
 }
 
-output "google_backend_service" {
-  value = google_compute_backend_service.backend_service.name
-}
-
-output "google_region_backend_service" {
-  value = google_compute_region_backend_service.region_backend_service.name
-}
-
-output "google_target_pool" {
-  value = google_compute_target_pool.regional.name
-}
-
 output "google_address_director_ip" {
   value = google_compute_address.director.address
 }
@@ -82,6 +70,18 @@ output "google_service_account" {
   value = google_service_account.service_account.email
 }
 
-output "google_node_group" {
-  value = google_compute_node_group.nodes.name
+output "internal_cidr" {
+  value = var.internal_cidr
+}
+
+output "internal_gw" {
+  value = cidrhost(var.internal_cidr, 1)
+}
+
+output "jumpbox_ip" {
+  value = google_compute_address.jumpbox.address
+}
+
+output "internal_jumpbox_ip" {
+  value = cidrhost(var.internal_cidr, 3)
 }

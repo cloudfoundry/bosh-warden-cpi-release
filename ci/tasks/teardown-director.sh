@@ -4,8 +4,10 @@ set -e
 
 source bosh-cpi-src/ci/tasks/utils.sh
 
-creds_file="${PWD}/director-creds/${cpi_source_branch}-creds.yml"
-state_file="${PWD}/director-state/${cpi_source_branch}-manifest-state.json"
+creds_file="${PWD}/director-creds/creds.yml"
+state_file="${PWD}/director-state/manifest-state.json"
+jumpbox_creds_file="${PWD}/jumpbox-creds/jumpbox-creds.yml"
+jumpbox_state_file="${PWD}/jumpbox-state/jumpbox-manifest-state.json"
 cpi_release_name=bosh-google-cpi
 deployment_dir="${PWD}/deployment"
 google_json_key=${deployment_dir}/google_key.json
@@ -46,6 +48,13 @@ cat > "${deployment_dir}/ops_local_stemcell.yml" <<EOF
     url: file://${deployment_dir}/stemcell.tgz
 EOF
 
+cat > "${deployment_dir}/enable_gcp_external_ip.yml" <<EOF
+---
+- path: /networks/name=default/subnets/0/cloud_properties/ephemeral_external_ip
+  type: replace
+  value: true
+EOF
+
 echo "Using bosh version..."
 ${BOSH_CLI} --version
 
@@ -59,6 +68,7 @@ pushd ${deployment_dir}
       -o bosh-deployment/external-ip-not-recommended.yml \
       -o ops_local_cpi.yml \
       -o ops_local_stemcell.yml \
+      -o enable_gcp_external_ip.yml \
       -v director_name=micro-google \
       -v internal_cidr=${google_subnetwork_range} \
       -v internal_gw=${google_subnetwork_gateway} \
@@ -74,3 +84,19 @@ pushd ${deployment_dir}
      --var-file director_gcs_credentials_json=${google_json_key} \
      --var-file agent_gcs_credentials_json=${google_json_key}
 popd
+
+echo "Destroying Jumpbox..."
+bosh delete-env "jumpbox-deployment/jumpbox.yml" \
+  -o "jumpbox-deployment/gcp/cpi.yml" \
+  --state=${jumpbox_state_file} \
+  --vars-store=${jumpbox_creds_file} \
+  -v external_ip=${google_jumpbox_ip} \
+  -v zone=${google_zone} \
+  -v network=${google_network} \
+  -v subnetwork=${google_subnetwork} \
+  -v project_id=${google_project} \
+  -v internal_cidr=${google_internal_cidr} \
+  -v internal_gw=${google_internal_gw} \
+  -v internal_ip=${google_internal_jumpbox_ip} \
+  -v "tags=["jumpbox"]" \
+  --var-file gcp_credentials_json=${google_json_key}

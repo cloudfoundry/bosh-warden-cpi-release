@@ -9,18 +9,21 @@ inputs:
   - name: bosh-cli
   - name: bosh-cpi-release
   - name: bosh-deployment
+  - name: jumpbox-deployment
   - name: deployment
   - name: infrastructure
   - name: stemcell
 outputs:
   - name: director-creds
   - name: director-state
+  - name: jumpbox-creds
+  - name: jumpbox-state
+
 run:
   path: bosh-cpi-src/ci/tasks/setup-director.sh
   user: non-root-user
 params:
   BOSH_INIT_LOG_LEVEL:            warn
-  cpi_source_branch:              replace-me
   google_subnetwork_range:        replace-me
   google_json_key_data:           replace-me
   google_test_bucket_name:        replace-me

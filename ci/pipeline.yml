@@ -107,7 +107,13 @@ jobs:
         - bats
       - get: director-state
         passed:
-        - deploy-ubuntu
+        - bats
+      - get: jumpbox-creds
+        passed:
+        - bats
+      - get: jumpbox-state
+        passed:
+        - bats
       - get: infrastructure
         trigger: true
         passed:
@@ -119,6 +125,7 @@ jobs:
           globs:
           - 'bosh-cli-*-linux-amd64'
       - get: bosh-deployment
+      - get: jumpbox-deployment
     - in_parallel: *teardown_step
     - task: setup-deployment
       file: bosh-cpi-src/ci/tasks/setup-deployment.yml
@@ -128,7 +135,6 @@ jobs:
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
         google_zone:                    us-east1-b
-        cpi_source_branch:              master
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -143,7 +149,7 @@ jobs:
         terraform_source: bosh-cpi-src/ci/assets/terraform
         action: destroy
 
-- name: deploy-ubuntu
+- name: deploy-director
   serial: true
   plan:
     - in_parallel:
@@ -152,7 +158,7 @@ jobs:
         trigger: true
         passed:
         - setup-infrastructure
-      - get:   bosh-cpi-release
+      - get: bosh-cpi-release
       - get: infrastructure
         trigger: true
         passed:
@@ -167,12 +173,12 @@ jobs:
           globs:
           - 'bosh-cli-*-linux-amd64'
       - get: bosh-deployment
+      - get: jumpbox-deployment
     - task: setup-deployment
       file: bosh-cpi-src/ci/tasks/setup-deployment.yml
     - task: setup-director
       file: bosh-cpi-src/ci/tasks/setup-director.yml
       params:
-        cpi_source_branch:              master
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
         google_zone:                    us-east1-b
@@ -188,16 +194,36 @@ jobs:
           google_project:                 cloud-foundry-310819
           google_region:                  us-east1
           google_zone:                    us-east1-b
-          cpi_source_branch:              master
+
           google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
           google_subnetwork_range:        "10.0.0.0/24"
           google_subnetwork_gw:           "10.0.0.1"
           google_address_static_director: "10.0.0.6"
           google_json_key_data:           ((gcp_json_key))
     - put: director-creds
-      params: {file: director-creds/master-creds.yml}
+      params: {file: director-creds/creds.yml}
     - put: director-state
-      params: {file: director-state/master-manifest-state.json}
+      params: {file: director-state/manifest-state.json}
+    - put: jumpbox-creds
+      params: {file: jumpbox-creds/jumpbox-creds.yml}
+    - put: jumpbox-state
+      params: {file: jumpbox-state/jumpbox-manifest-state.json}
+  ensure:
+    do:
+    - in_parallel: *teardown_step
+    - task: setup-deployment
+      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+    - task: teardown-director
+      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      params:
+        google_project:                 cloud-foundry-310819
+        google_region:                  us-east1
+        google_zone:                    us-east1-b
+        google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
+        google_subnetwork_range:        "10.0.0.0/24"
+        google_subnetwork_gw:           "10.0.0.1"
+        google_address_static_director: "10.0.0.6"
+        google_json_key_data:           ((gcp_json_key))
 
 - name: bats
   serial: true
@@ -227,14 +253,20 @@ jobs:
     - get:  infrastructure
       trigger: true
       passed:
-      - deploy-ubuntu
+      - deploy-director
     - get:  director-state
       passed:
-      - deploy-ubuntu
+      - deploy-director
     - get:  director-creds
       trigger: true
       passed:
-      - deploy-ubuntu
+      - deploy-director
+    - get:  jumpbox-state
+      passed:
+      - deploy-director
+    - get:  jumpbox-creds
+      passed:
+      - deploy-director
     - get: bosh-cpi-release
   - task: build
     image: bosh-integration-image
@@ -242,8 +274,22 @@ jobs:
   - task: bats
     file: bosh-cpi-src/ci/tasks/bats.yml
     image: bosh-integration-image
-    params:
-      cpi_source_branch: master
+  ensure:
+    do:
+    - in_parallel: *teardown_step
+    - task: setup-deployment
+      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+    - task: teardown-director
+      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      params:
+        google_project:                 cloud-foundry-310819
+        google_region:                  us-east1
+        google_zone:                    us-east1-b
+        google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
+        google_subnetwork_range:        "10.0.0.0/24"
+        google_subnetwork_gw:           "10.0.0.1"
+        google_address_static_director: "10.0.0.6"
+        google_json_key_data:           ((gcp_json_key))
 
 - name: promote
   serial: true
@@ -384,19 +430,38 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-deployment
     branch: master
 
+- name: jumpbox-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/jumpbox-deployment.git
+
 - name: director-creds
   type: gcs-resource
   source:
     json_key:         ((gcp_json_key))
     bucket:           bosh-warden-cpi-release-pipeline
-    versioned_file:   ci-state/master-creds.yml
+    versioned_file:   ci-state/creds.yml
 
 - name: director-state
   type: gcs-resource
   source:
     json_key:         ((gcp_json_key))
     bucket:           bosh-warden-cpi-release-pipeline
-    versioned_file:   ci-state/master-manifest-state.json
+    versioned_file:   ci-state/manifest-state.json
+
+- name: jumpbox-creds
+  type: gcs-resource
+  source:
+    json_key:         ((gcp_json_key))
+    bucket:           bosh-warden-cpi-release-pipeline
+    versioned_file:   ci-state/jumpbox-creds.yml
+
+- name: jumpbox-state
+  type: gcs-resource
+  source:
+    json_key:         ((gcp_json_key))
+    bucket:           bosh-warden-cpi-release-pipeline
+    versioned_file:   ci-state/jumpbox-manifest-state.json
 
 - name: google-ubuntu-stemcell
   type: bosh-io-stemcell

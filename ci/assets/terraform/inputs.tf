@@ -22,3 +22,6 @@ variable "google_firewall_external" {
 variable "prefix" {
 }
 
+variable "internal_cidr" {
+  default = "10.0.0.0/24"
+}

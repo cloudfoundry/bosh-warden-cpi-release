@@ -11,8 +11,10 @@ check_param google_test_bucket_name
 check_param google_subnetwork_range
 check_param google_json_key_data
 
-creds_file="${PWD}/director-creds/${cpi_source_branch}-creds.yml"
-state_file="${PWD}/director-state/${cpi_source_branch}-manifest-state.json"
+creds_file="${PWD}/director-creds/creds.yml"
+state_file="${PWD}/director-state/manifest-state.json"
+jumpbox_creds_file="${PWD}/jumpbox-creds/jumpbox-creds.yml"
+jumpbox_state_file="${PWD}/jumpbox-state/jumpbox-manifest-state.json"
 cpi_release_name=bosh-google-cpi
 infrastructure_metadata="${PWD}/infrastructure/metadata"
 deployment_dir="${PWD}/deployment"
@@ -54,6 +56,33 @@ cat > "${deployment_dir}/ops_local_stemcell.yml" <<EOF
     url: file://${deployment_dir}/stemcell.tgz
 EOF
 
+cat > "${deployment_dir}/enable_gcp_external_ip.yml" <<EOF
+---
+- path: /networks/name=default/subnets/0/cloud_properties/ephemeral_external_ip
+  type: replace
+  value: true
+EOF
+
+echo "Deploying Jumpbox..."
+bosh create-env "jumpbox-deployment/jumpbox.yml" \
+  -o "jumpbox-deployment/gcp/cpi.yml" \
+  --state=${jumpbox_state_file} \
+  --vars-store=${jumpbox_creds_file} \
+  -v external_ip=${google_jumpbox_ip} \
+  -v zone=${google_zone} \
+  -v network=${google_network} \
+  -v subnetwork=${google_subnetwork} \
+  -v project_id=${google_project} \
+  -v internal_cidr=${google_internal_cidr} \
+  -v internal_gw=${google_internal_gw} \
+  -v internal_ip=${google_internal_jumpbox_ip} \
+  -v "tags=["jumpbox"]" \
+  --var-file gcp_credentials_json=${google_json_key}
+
+jumpbox_private_key=$(mktemp)
+bosh int "${jumpbox_creds_file}" --path=/jumpbox_ssh/private_key > "${jumpbox_private_key}"
+export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${google_jumpbox_ip}:22?private-key=${jumpbox_private_key}"
+
 pushd ${deployment_dir}
   function finish {
     echo "Final state of director deployment:"
@@ -74,7 +103,7 @@ pushd ${deployment_dir}
       --vars-store=${creds_file} \
       -o bosh-deployment/gcp/cpi.yml \
       -o bosh-deployment/gcp/gcs-blobstore.yml \
-      -o bosh-deployment/external-ip-not-recommended.yml \
+      -o enable_gcp_external_ip.yml \
       -o bosh-deployment/jumpbox-user.yml \
       -o ops_local_cpi.yml \
       -o ops_local_stemcell.yml \
@@ -94,7 +123,7 @@ pushd ${deployment_dir}
      --var-file agent_gcs_credentials_json=${google_json_key}
 
   echo "Smoke testing connection to BOSH Director"
-  export BOSH_ENVIRONMENT="${google_address_director_ip}"
+  export BOSH_ENVIRONMENT="${google_address_director_internal_ip}"
   export BOSH_CLIENT="admin"
   export BOSH_CLIENT_SECRET="$(${BOSH_CLI} interpolate ${creds_file} --path /admin_password)"
   export BOSH_CA_CERT="$(${BOSH_CLI} interpolate ${creds_file} --path /director_ssl/ca)"

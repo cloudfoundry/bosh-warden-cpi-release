@@ -20,14 +20,6 @@ resource "google_compute_address" "director_internal" {
   subnetwork   = google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_address" "bats" {
-  name = "${var.prefix}-bats"
-}
-
-resource "google_compute_address" "int" {
-  name = "${var.prefix}-int"
-}
-
 resource "google_compute_address" "int_internal" {
   count        = 3
   name         = "${var.prefix}-int-internal-${count.index}"
@@ -93,101 +85,50 @@ resource "google_compute_firewall" "external" {
   }
 }
 
-# Target Pool
-resource "google_compute_target_pool" "regional" {
-  name   = "${var.prefix}-r"
+resource "google_compute_address" "jumpbox" {
+  name   = "${var.prefix}-jumpbox-ip"
   region = var.google_region
 }
 
-# Backend Service
-resource "google_compute_instance_group" "backend_service" {
-  name = var.prefix
-  zone = var.google_zone
-}
 
-resource "google_compute_http_health_check" "backend_service" {
-  name = var.prefix
-}
+resource "google_compute_firewall" "mbus-jumpbox" {
+  name    = "${var.prefix}-jumpbox-ingress"
+  network = google_compute_network.manual.name
 
-resource "google_compute_backend_service" "backend_service" {
-  health_checks = [google_compute_http_health_check.backend_service.self_link]
-  name          = var.prefix
-  port_name     = "http"
-  timeout_sec   = "30"
-
-  backend {
-    group           = google_compute_instance_group.backend_service.self_link
-    balancing_mode  = "UTILIZATION"
-    capacity_scaler = "1"
-    max_utilization = "0.8"
+  allow {
+    protocol = "icmp"
   }
-}
 
-# Regional Backend Service
-resource "google_compute_health_check" "region_backend_service" {
-  name = "${var.prefix}-r"
-
-  tcp_health_check {
-    port = "8080"
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "6868"]
   }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["jumpbox"]
 }
 
-resource "google_compute_instance_group" "region_backend_service" {
-  name    = "${var.prefix}-r"
-  zone    = var.google_zone
-  network = google_compute_network.manual.self_link
-}
+resource "google_compute_firewall" "director-ingress" {
+  name    = "${var.prefix}-director-from-jumpbox"
+  network = google_compute_network.manual.name
 
-resource "google_compute_region_backend_service" "region_backend_service" {
-  name          = "${var.prefix}-r"
-  health_checks = [google_compute_health_check.region_backend_service.self_link]
-  region        = var.google_region
-  protocol      = "TCP"
-  timeout_sec   = "30"
-
-  backend {
-    group = google_compute_instance_group.region_backend_service.self_link
-    balancing_mode  = "CONNECTION"
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "5001", "5985", "5986", "6868", "8443", "8844", "10006", "25555"]
   }
+
+  source_tags = ["jumpbox"]
+  target_tags   = ["bosh-deployed"]
 }
 
-resource "google_compute_backend_service" "collision_backend_service" {
-  health_checks = [google_compute_http_health_check.backend_service.self_link]
-  name          = "${var.prefix}-collision"
-  port_name     = "http"
-  timeout_sec   = "30"
+resource "google_compute_firewall" "bosh-internal" {
+  name    = "${var.prefix}-bosh-internal"
+  network = google_compute_network.manual.name
 
-  backend {
-    group           = google_compute_instance_group.backend_service.self_link
-    balancing_mode  = "UTILIZATION"
-    capacity_scaler = "1"
-    max_utilization = "0.8"
+  allow {
+    protocol = "all"
   }
-}
 
-resource "google_compute_region_backend_service" "collision_region_backend_service" {
-  name          = "${var.prefix}-collision"
-  health_checks = [google_compute_health_check.region_backend_service.self_link]
-  region        = var.google_region
-  protocol      = "TCP"
-  timeout_sec   = "30"
-
-  backend {
-    group = google_compute_instance_group.region_backend_service.self_link
-    balancing_mode  = "CONNECTION"
-  }
-}
-
-# Node Group
-resource "google_compute_node_template" "soletenant-tmpl" {
-  name      = "${var.prefix}-node-group-template"
-  region    = var.google_region
-  node_type = "c2-node-60-240"
-}
-
-resource "google_compute_node_group" "nodes" {
-  name          = "${var.prefix}-node-group"
-  zone          = var.google_zone
-  initial_size  = 1
-  node_template = google_compute_node_template.soletenant-tmpl.id
+  source_tags = ["bosh-deployed"]
+  target_tags   = ["bosh-deployed"]
 }
