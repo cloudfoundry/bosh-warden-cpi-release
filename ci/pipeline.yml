@@ -234,7 +234,7 @@ jobs:
       resource: bosh-cpi-src-in
       trigger: true
       passed:
-      - test
+      - deploy-director
     - get: bosh-acceptance-tests
     - get: warden-ubuntu-jammy-stemcell
       params:
