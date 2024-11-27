@@ -20,6 +20,12 @@ resource "google_compute_address" "director_internal" {
   subnetwork   = google_compute_subnetwork.subnetwork.self_link
 }
 
+resource "google_compute_address" "jumpbox_internal" {
+  name         = "${var.prefix}-jumpbox-internal"
+  address_type = "INTERNAL"
+  subnetwork   = google_compute_subnetwork.subnetwork.self_link
+}
+
 resource "google_compute_address" "int_internal" {
   count        = 3
   name         = "${var.prefix}-int-internal-${count.index}"

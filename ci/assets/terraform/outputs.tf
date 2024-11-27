@@ -83,5 +83,5 @@ output "jumpbox_ip" {
 }
 
 output "internal_jumpbox_ip" {
-  value = cidrhost(var.internal_cidr, 3)
+  value = google_compute_address.jumpbox_internal.address
 }
