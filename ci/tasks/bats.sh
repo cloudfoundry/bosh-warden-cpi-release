@@ -2,11 +2,7 @@
 set -e
 set -x
 
-jumpbox_url=${JUMPBOX_URL:-${JUMPBOX_IP}:22}
-jumpbox_private_key_path=$(mktemp)
-chmod 600 "${jumpbox_private_key_path}"
-echo "${JUMPBOX_PRIVATE_KEY}" > "${jumpbox_private_key_path}"
-export BOSH_ALL_PROXY="ssh+socks5://${JUMPBOX_USERNAME}@${jumpbox_url}?private-key=${jumpbox_private_key_path}"
+source bosh-cpi-src/ci/tasks/utils.sh
 
 run_bats_on_vm() {
   stemcell_url=$1
@@ -16,6 +12,32 @@ run_bats_on_vm() {
   cpi_release_path=$5
   garden_linux_release_path=$6
   BOSH_CLI_VERSION=$7
+
+  creds_dir="${PWD}/director-creds"
+  creds_file="${creds_dir}/creds.yml"
+
+  jumpbox_creds_dir="${PWD}/jumpbox-creds"
+  jumpbox_creds_file="${jumpbox_creds_dir}/jumpbox-creds.yml"
+
+  infrastructure_metadata="${PWD}/infrastructure/metadata"
+
+  public_key="$(bosh interpolate ${creds_file} --path /jumpbox_ssh/public_key)"
+  private_key="$(bosh interpolate ${creds_file} --path /jumpbox_ssh/private_key)"
+
+  read_infrastructure
+
+  export BOSH_ENVIRONMENT="${google_address_director_internal_ip}"
+  export BOSH_CLIENT="admin"
+  export BOSH_CLIENT_SECRET="$(bosh interpolate ${creds_file} --path /admin_password)"
+  export BOSH_CA_CERT="$(bosh interpolate ${creds_file} --path /director_ssl/ca)"
+  export JUMPBOX_PRIVATE_KEY="$(bosh interpolate ${jumpbox_creds_file} --path /jumpbox_ssh/private_key)"
+  export JUMPBOX_USERNAME="jumpbox"
+  export JUMPBOX_IP="${google_jumpbox_ip}"
+
+  jumpbox_private_key_path=$(mktemp)
+  chmod 600 "${jumpbox_private_key_path}"
+  echo -e "${JUMPBOX_PRIVATE_KEY}" > ${jumpbox_private_key_path}
+  export BOSH_ALL_PROXY="ssh+socks5://jumpbox@${google_jumpbox_ip}:22?private-key=${jumpbox_private_key_path}"
 
   vars_store_path=$(mktemp)
   deploy_director "${iaas_stemcell_url}" "${iaas_stemcell_version}" "${bosh_release_path}" "${cpi_release_path}" "${garden_linux_release_path}" "${vars_store_path}"
@@ -122,7 +144,7 @@ EOF
 install_bats_prereqs() {
   BOSH_CLI_VERSION=$1
   sudo apt-get -y update
-  sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev
+  sudo apt-get install -y git libmysqlclient-dev libpq-dev libsqlite3-dev netcat-openbsd
 
   export PATH=$PATH:/var/vcap/store/ruby/bin:/var/vcap/store/bosh/bin
 
@@ -213,6 +235,9 @@ EOF
 
   popd
 }
+
+
+
 
 warden_stemcell_url=$(cat warden-ubuntu-jammy-stemcell/url)
 iaas_stemcell_url=$(cat iaas-stemcell/url)

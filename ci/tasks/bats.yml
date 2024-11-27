@@ -7,7 +7,7 @@ image_resource:
     repository: bosh/integration
 
 inputs:
-  - name: bosh-cpi-src-in
+  - name: bosh-cpi-src
   - name: bosh-acceptance-tests
   - name: releases
   - name: iaas-stemcell
@@ -15,15 +15,12 @@ inputs:
   - name: bosh-release
   - name: garden-linux-release
   - name: bosh-cli-github-release
+  - name: director-creds
+  - name: director-state
+  - name: jumpbox-creds
+  - name: jumpbox-state
+  - name: infrastructure
 
 run:
-  path: bosh-cpi-src-in/ci/tasks/bats.sh
+  path: bosh-cpi-src/ci/tasks/bats.sh
 
-params:
-  BOSH_ENVIRONMENT: ""
-  BOSH_CA_CERT: ""
-  BOSH_CLIENT: ""
-  BOSH_CLIENT_SECRET: ""
-  JUMPBOX_PRIVATE_KEY: ""
-  JUMPBOX_USERNAME: ""
-  JUMPBOX_IP: ""
