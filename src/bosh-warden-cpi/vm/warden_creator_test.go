@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"bosh-warden-cpi/config"
 	fakestem "bosh-warden-cpi/stemcell/fakes"
 	. "bosh-warden-cpi/vm"
 	fakevm "bosh-warden-cpi/vm/fakes"
@@ -36,6 +37,7 @@ var _ = Describe("WardenCreator", func() {
 
 		logger  boshlog.Logger
 		creator WardenCreator
+		config  config.Config
 	)
 
 	BeforeEach(func() {
@@ -63,7 +65,7 @@ var _ = Describe("WardenCreator", func() {
 
 		creator = NewWardenCreator(
 			uuidGen, wardenClient, fakeMetadataService, agentEnvServiceFactory,
-			ports, hostBindMounts, guestBindMounts, resolvProvider, agentOptions, logger)
+			ports, hostBindMounts, guestBindMounts, resolvProvider, agentOptions, logger, config)
 	})
 
 	Describe("Create", func() {
@@ -191,6 +193,22 @@ var _ = Describe("WardenCreator", func() {
 
 				Expect(hostBindMounts.MakeEphemeralID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
 				Expect(hostBindMounts.MakePersistentID).To(Equal(apiv1.NewVMCID("fake-vm-id")))
+			})
+
+			It("bind mounts cgroups into the container when starting container with systemd", func() {
+				creator.Config.StartContainersWithSystemD = true
+				_, err := creator.Create(apiv1.NewAgentID("fake-agent-id"), stemcell, VMProps{}, networks, env)
+				Expect(err).ToNot(HaveOccurred())
+
+				containerSpec := wardenConn.CreateArgsForCall(0)
+				Expect(containerSpec.BindMounts).To(ContainElement(
+					wrdn.BindMount{
+						SrcPath: "/sys/fs/cgroup",
+						DstPath: "/sys/fs/cgroup",
+						Mode:    wrdn.BindMountModeRW,
+						Origin:  wrdn.BindMountOriginHost,
+					},
+				))
 			})
 
 			It("returns error if making host ephemeral bind mount fails", func() {
@@ -326,6 +344,29 @@ var _ = Describe("WardenCreator", func() {
 									"sed -i 's/chronyc/# chronyc/g' /var/vcap/bosh/bin/sync-time",
 									"exec env -i /usr/sbin/runsvdir-start",
 								}, "\n"),
+							},
+						}
+
+						handle, processSpec, processIO := wardenConn.RunArgsForCall(0)
+						Expect(handle).To(Equal("fake-vm-id"))
+						Expect(processSpec).To(Equal(expectedProcessSpec))
+						Expect(processIO).To(Equal(wrdn.ProcessIO{}))
+					})
+
+					It("does not start the bosh agent when starting container with systemd", func() {
+						creator.Config.StartContainersWithSystemD = true
+						_, err := creator.Create(apiv1.NewAgentID("fake-agent-id"), stemcell, VMProps{}, networks, env)
+						Expect(err).ToNot(HaveOccurred())
+
+						count := wardenConn.RunCallCount()
+						Expect(count).To(Equal(1))
+
+						expectedProcessSpec := wrdn.ProcessSpec{
+							Path: "/bin/bash",
+							User: "root",
+							Args: []string{
+								"-c",
+								"umount /etc/hosts",
 							},
 						}
 

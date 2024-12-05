@@ -1,18 +1,18 @@
-package main
+package config
 
 import (
 	"encoding/json"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
-	bwcaction "bosh-warden-cpi/action"
 )
 
 type Config struct {
 	Warden WardenConfig
 
-	Actions bwcaction.FactoryOpts
+	Actions FactoryOpts
+
+	StartContainersWithSystemD bool `json:"start_containers_with_systemd"`
 }
 
 type WardenConfig struct {

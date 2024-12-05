@@ -1,15 +1,13 @@
-package main_test
+package config_test
 
 import (
+	. "bosh-warden-cpi/config"
 	"errors"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	bwcaction "bosh-warden-cpi/action"
-	. "bosh-warden-cpi/main"
 )
 
 var validConfig = Config{
@@ -22,7 +20,7 @@ var validWardenConfig = WardenConfig{
 	ConnectAddress: "fake-address",
 }
 
-var validActionsOptions = bwcaction.FactoryOpts{
+var validActionsOptions = FactoryOpts{
 	StemcellsDir: "/tmp/stemcells",
 	DisksDir:     "/tmp/disks",
 

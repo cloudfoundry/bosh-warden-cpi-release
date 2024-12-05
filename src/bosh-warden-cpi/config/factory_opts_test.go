@@ -1,11 +1,11 @@
-package action_test
+package config_test
 
 import (
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "bosh-warden-cpi/action"
+	. "bosh-warden-cpi/config"
 )
 
 var _ = Describe("FactoryOpts", func() {

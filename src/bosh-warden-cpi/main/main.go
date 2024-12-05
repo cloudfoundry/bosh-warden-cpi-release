@@ -4,6 +4,8 @@ import (
 	"flag"
 	"os"
 
+	. "bosh-warden-cpi/config"
+
 	wrdnclient "code.cloudfoundry.org/garden/client"
 	wrdnconn "code.cloudfoundry.org/garden/client/connection"
 	"github.com/cloudfoundry/bosh-cpi-go/rpc"
@@ -34,7 +36,7 @@ func main() {
 	wardenClient := wrdnclient.New(wardenConn)
 
 	cpiFactory := bwcaction.NewFactory(
-		wardenClient, fs, cmdRunner, uuidGen, config.Actions, logger)
+		wardenClient, fs, cmdRunner, uuidGen, config.Actions, logger, config)
 
 	cli := rpc.NewFactory(logger).NewCLI(cpiFactory)
 
