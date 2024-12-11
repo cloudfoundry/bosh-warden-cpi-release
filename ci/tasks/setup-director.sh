@@ -174,8 +174,8 @@ networks:
     gateway: 10.0.0.1
     range: 10.0.0.0/24
     reserved:
-    - 10.0.0.2
-    - 10.0.0.3
+    - ${google_internal_jumpbox_ip}
+    - ${google_address_director_internal_ip}
   type: manual
 disk_types:
 - disk_size: 3000
