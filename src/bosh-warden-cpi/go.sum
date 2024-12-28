@@ -10,8 +10,8 @@ github.com/charlievieth/fs v0.0.3 h1:3lZQXTj4PbE81CVPwALSn+JoyCNXkZgORHN6h2XHGlg
 github.com/charlievieth/fs v0.0.3/go.mod h1:hD4sRzto1Hw8zCua76tNVKZxaeZZr1RiKftjAJQRLLo=
 github.com/cloudfoundry/bosh-cpi-go v0.0.0-20241228010207-de18a52339cf h1:eICG1052YALw4jMHFktzVMj+EnBIwRTNdP7HXwsrPMU=
 github.com/cloudfoundry/bosh-cpi-go v0.0.0-20241228010207-de18a52339cf/go.mod h1:ypXrFLvrpPHa4jjwtwGCw/8fIF4w9NdKUMypa7PQig4=
-github.com/cloudfoundry/bosh-utils v0.0.517 h1:g0yo2Q2Fx3/L4bFaf6Bq2XTLspnXneEBMJIM1lbMExs=
-github.com/cloudfoundry/bosh-utils v0.0.517/go.mod h1:8/o8+8yhbomvuSyzFyiuieN00l4PJRoFyM6Ir/Qd2sA=
+github.com/cloudfoundry/bosh-utils v0.0.518 h1:qHF9i+9Sk2pRT66bV7QIejEKSnz4T8svT9XY6grEBKg=
+github.com/cloudfoundry/bosh-utils v0.0.518/go.mod h1:9rYAuhb5ytCiypBvb0kZx204nhMMyEUin3jUlZEapBQ=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
