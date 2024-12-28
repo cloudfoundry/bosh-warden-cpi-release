@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/garden v0.0.0-20241211021234-a5b8a31e9187
+# code.cloudfoundry.org/garden v0.0.0-20241225021532-d08842acfc0b
 ## explicit; go 1.22.0
 code.cloudfoundry.org/garden
 code.cloudfoundry.org/garden/client
@@ -7,7 +7,7 @@ code.cloudfoundry.org/garden/client/connection/connectionfakes
 code.cloudfoundry.org/garden/gardenfakes
 code.cloudfoundry.org/garden/routes
 code.cloudfoundry.org/garden/transport
-# code.cloudfoundry.org/lager/v3 v3.18.0
+# code.cloudfoundry.org/lager/v3 v3.20.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -20,11 +20,11 @@ github.com/bmizerany/pat
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20241207100358-4719c3273ffb
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20241228010207-de18a52339cf
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.513
+# github.com/cloudfoundry/bosh-utils v0.0.517
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
@@ -51,18 +51,12 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad
 ## explicit; go 1.22
 github.com/google/pprof/profile
-# github.com/klauspost/compress v1.17.11
-## explicit; go 1.21
-github.com/klauspost/compress/flate
-# github.com/klauspost/pgzip v1.2.6
-## explicit
-github.com/klauspost/pgzip
 # github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 ## explicit
 github.com/nu7hatch/gouuid
 # github.com/nxadm/tail v1.4.11
 ## explicit; go 1.13
-# github.com/onsi/ginkgo/v2 v2.22.0
+# github.com/onsi/ginkgo/v2 v2.22.1
 ## explicit; go 1.22.0
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
@@ -84,8 +78,8 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.36.1
-## explicit; go 1.22
+# github.com/onsi/gomega v1.36.2
+## explicit; go 1.22.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/internal
@@ -106,7 +100,6 @@ github.com/openzipkin/zipkin-go/model
 github.com/tedsuo/rata
 # golang.org/x/net v0.33.0
 ## explicit; go 1.18
-golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset

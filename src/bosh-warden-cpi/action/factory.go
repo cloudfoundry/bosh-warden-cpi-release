@@ -61,7 +61,7 @@ func NewFactory(
 ) Factory {
 	var decompressor bwcutil.Decompressor
 	if opts.ExpandStemcellTarball {
-		compressor := boshcmd.NewTarballCompressor(fs)
+		compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
 		decompressor = bwcutil.NewTarDecompressor(fs, compressor)
 	} else {
 		decompressor = bwcutil.NewGzipDecompressor(fs, cmdRunner)
