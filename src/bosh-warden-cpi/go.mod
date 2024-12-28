@@ -25,7 +25,7 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
