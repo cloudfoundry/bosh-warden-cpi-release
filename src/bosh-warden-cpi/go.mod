@@ -3,9 +3,9 @@ module bosh-warden-cpi
 go 1.22.0
 
 require (
-	code.cloudfoundry.org/garden v0.0.0-20250108022507-4d85c9b08b69
+	code.cloudfoundry.org/garden v0.0.0-20250115235658-0e958c0cf159
 	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250111100038-3f19018803f1
-	github.com/cloudfoundry/bosh-utils v0.0.520
+	github.com/cloudfoundry/bosh-utils v0.0.522
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 )
