@@ -3,11 +3,11 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: boshcpi/gce-cpi-release
+    repository: foundationalinfrastructure/gce-cpi-release
 inputs:
-  - name: bosh-cpi-src
+  - name: bosh-warden-cpi-release
 
 run:
-  path: bosh-cpi-src/ci/tasks/teardown-infrastructure.sh
+  path: bosh-warden-cpi-release/ci/tasks/teardown-infrastructure.sh
 params:
   google_json_key_data:           replace-me

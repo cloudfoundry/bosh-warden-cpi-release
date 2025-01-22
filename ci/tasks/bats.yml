@@ -7,9 +7,9 @@ image_resource:
     repository: bosh/integration
 
 inputs:
-  - name: bosh-cpi-src
+  - name: bosh-warden-cpi-release
   - name: bosh-acceptance-tests
-  - name: releases
+  - name: release_tarball
   - name: iaas-stemcell
   - name: warden-ubuntu-jammy-stemcell
   - name: bosh-release
@@ -22,5 +22,5 @@ inputs:
   - name: infrastructure
 
 run:
-  path: bosh-cpi-src/ci/tasks/bats.sh
+  path: bosh-warden-cpi-release/ci/tasks/bats.sh
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-warden-cpi-release/ci/tasks/utils.sh
 
 check_param google_json_key_data
 check_param google_project

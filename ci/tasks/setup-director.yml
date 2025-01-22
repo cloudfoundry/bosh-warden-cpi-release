@@ -3,9 +3,9 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: boshcpi/gce-cpi-release
+    repository: foundationalinfrastructure/gce-cpi-release
 inputs:
-  - name: bosh-cpi-src
+  - name: bosh-warden-cpi-release
   - name: bosh-cli
   - name: bosh-cpi-release
   - name: bosh-deployment
@@ -20,7 +20,7 @@ outputs:
   - name: jumpbox-state
 
 run:
-  path: bosh-cpi-src/ci/tasks/setup-director.sh
+  path: bosh-warden-cpi-release/ci/tasks/setup-director.sh
   user: non-root-user
 params:
   BOSH_INIT_LOG_LEVEL:            warn

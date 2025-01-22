@@ -5,7 +5,7 @@ set -e
 export HOME=/home/non-root-user
 sudo chown -R non-root-user $(pwd)
 
-source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-warden-cpi-release/ci/tasks/utils.sh
 
 check_param google_test_bucket_name
 check_param google_subnetwork_range

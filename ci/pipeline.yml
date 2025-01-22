@@ -4,26 +4,24 @@ jobs:
   plan:
   - in_parallel:
     - get: bosh-integration-image
-    - get: bosh-cpi-src-in
+    - get: bosh-warden-cpi-release
     - get: golang-release
     - get: weekly
       trigger: true
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
-      input_repo: bosh-cpi-src-in
+      input_repo: bosh-warden-cpi-release
     output_mapping:
-      output_repo: bosh-cpi-src-out
+      output_repo: bosh-warden-cpi-release
     params:
       SOURCE_PATH: src/bosh-warden-cpi
   - task: test
     image: bosh-integration-image
-    file: bosh-cpi-src-in/ci/tasks/test.yml
-    input_mapping:
-      bosh-cpi-src-in: bosh-cpi-src-out
-  - put: bosh-cpi-src-out
+    file: bosh-warden-cpi-release/ci/tasks/test.yml
+  - put: bosh-warden-cpi-release
     params:
-      repository: bosh-cpi-src-out
+      repository: bosh-warden-cpi-release
       rebase: true
 
 - name: bump-golang-packages
@@ -31,15 +29,15 @@ jobs:
   plan:
   - in_parallel:
     - get: bosh-integration-image
-    - get: bosh-cpi-src-in
+    - get: bosh-warden-cpi-release
     - get: golang-release
       trigger: true
   - task: bump-golang-packages
     file: golang-release/ci/tasks/shared/bump-golang-package.yml
     input_mapping:
-      input_repo: bosh-cpi-src-in
+      input_repo: bosh-warden-cpi-release
     output_mapping:
-      output_repo: bosh-cpi-src-out
+      output_repo: bosh-warden-cpi-release
     params:
       PACKAGES: [ golang-1-linux ]
       PRIVATE_YML: |
@@ -48,9 +46,9 @@ jobs:
           options:
             credentials_source: static
             json_key: '((gcp_json_key))'
-  - put: bosh-cpi-src-out
+  - put: bosh-warden-cpi-release
     params:
-      repository: bosh-cpi-src-out
+      repository: bosh-warden-cpi-release
       rebase: true
 
 - name: test
@@ -58,26 +56,27 @@ jobs:
   plan:
   - in_parallel:
     - get: bosh-integration-image
-    - get: bosh-cpi-src-in
+    - get: bosh-warden-cpi-release
       trigger: true
   - task: test
     image: bosh-integration-image
-    file: bosh-cpi-src-in/ci/tasks/test.yml
+    file: bosh-warden-cpi-release/ci/tasks/test.yml
 
 - name: setup-infrastructure
   serial: true
   plan:
     - in_parallel:
-      - get: bosh-cpi-src
-        resource: bosh-cpi-src-in
+      - get: bosh-warden-cpi-release
         trigger: true
         passed:
         - test
       - get: stemcell
         resource: google-ubuntu-stemcell
+      - get: gce-cpi-release-image
     - in_parallel: &teardown_step
       - task: teardown-infrastructure
-        file: bosh-cpi-src/ci/tasks/teardown-infrastructure.yml
+        file: bosh-warden-cpi-release/ci/tasks/teardown-infrastructure.yml
+        image: gce-cpi-release-image
         params:
           google_auto_network: warden-cpi-ci-auto-network
           google_json_key_data: ((gcp_json_key))
@@ -88,7 +87,7 @@ jobs:
     - put: infrastructure
       params:
         env_name: warden-bosh-cpi
-        terraform_source: bosh-cpi-src/ci/assets/terraform
+        terraform_source: bosh-warden-cpi-release/ci/assets/terraform
         delete_on_failure: true
     - in_parallel: *teardown_step
 
@@ -96,8 +95,7 @@ jobs:
   serial: true
   plan:
     - in_parallel:
-      - get: bosh-cpi-src
-        resource: bosh-cpi-src-in
+      - get: bosh-warden-cpi-release
         trigger: true
         passed:
         - bats
@@ -126,11 +124,14 @@ jobs:
           - 'bosh-cli-*-linux-amd64'
       - get: bosh-deployment
       - get: jumpbox-deployment
+      - get: gce-cpi-release-image
     - in_parallel: *teardown_step
     - task: setup-deployment
-      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+      file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
+      image: gce-cpi-release-image
     - task: teardown-director
-      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      file: bosh-warden-cpi-release/ci/tasks/teardown-director.yml
+      image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
@@ -143,18 +144,17 @@ jobs:
     - put: infrastructure
       params:
         env_name: warden-bosh-cpi
-        terraform_source: bosh-cpi-src/ci/assets/terraform
+        terraform_source: bosh-warden-cpi-release/ci/assets/terraform
         action: destroy
       get_params:
-        terraform_source: bosh-cpi-src/ci/assets/terraform
+        terraform_source: bosh-warden-cpi-release/ci/assets/terraform
         action: destroy
 
 - name: deploy-director
   serial: true
   plan:
     - in_parallel:
-      - get: bosh-cpi-src
-        resource: bosh-cpi-src-in
+      - get: bosh-warden-cpi-release
         trigger: true
         passed:
         - setup-infrastructure
@@ -174,10 +174,13 @@ jobs:
           - 'bosh-cli-*-linux-amd64'
       - get: bosh-deployment
       - get: jumpbox-deployment
+      - get: gce-cpi-release-image
     - task: setup-deployment
-      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+      file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
+      image: gce-cpi-release-image
     - task: setup-director
-      file: bosh-cpi-src/ci/tasks/setup-director.yml
+      file: bosh-warden-cpi-release/ci/tasks/setup-director.yml
+      image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
@@ -189,7 +192,8 @@ jobs:
         google_json_key_data:           ((gcp_json_key))
       on_failure:
         task: teardown-director
-        file: bosh-cpi-src/ci/tasks/teardown-director.yml
+        file: bosh-warden-cpi-release/ci/tasks/teardown-director.yml
+        image: gce-cpi-release-image
         params:
           google_project:                 cloud-foundry-310819
           google_region:                  us-east1
@@ -212,9 +216,11 @@ jobs:
     do:
     - in_parallel: *teardown_step
     - task: setup-deployment
-      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+      file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
+      image: gce-cpi-release-image
     - task: teardown-director
-      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      file: bosh-warden-cpi-release/ci/tasks/teardown-director.yml
+      image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
@@ -230,8 +236,7 @@ jobs:
   plan:
   - in_parallel:
     - get: bosh-integration-image
-    - get: bosh-cpi-src
-      resource: bosh-cpi-src-in
+    - get: bosh-warden-cpi-release
       trigger: true
       passed:
       - deploy-director
@@ -277,19 +282,26 @@ jobs:
       params:
         globs:
         - 'bosh-cli-*-linux-amd64'
+    - get: gce-cpi-release-image
+    - get: bosh-shared-ci
+    - get: bosh-cli-image
   - task: build
-    image: bosh-integration-image
-    file: bosh-cpi-src/ci/tasks/build.yml
+    file: bosh-shared-ci/tasks/release/create-dev-release.yml
+    image: bosh-cli-image
+    input_mapping:
+      release_repo: bosh-warden-cpi-release
   - task: bats
-    file: bosh-cpi-src/ci/tasks/bats.yml
+    file: bosh-warden-cpi-release/ci/tasks/bats.yml
     image: bosh-integration-image
   on_failure:
     do:
     - in_parallel: *teardown_step
     - task: setup-deployment
-      file: bosh-cpi-src/ci/tasks/setup-deployment.yml
+      file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
+      image: gce-cpi-release-image
     - task: teardown-director
-      file: bosh-cpi-src/ci/tasks/teardown-director.yml
+      file: bosh-warden-cpi-release/ci/tasks/teardown-director.yml
+      image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
         google_region:                  us-east1
@@ -299,22 +311,104 @@ jobs:
         google_subnetwork_gw:           "10.0.0.1"
         google_address_static_director: "10.0.0.6"
         google_json_key_data:           ((gcp_json_key))
+- name: bump-major
+  serial_groups: [ version ]
+  plan:
+    - put: version
+      params:
+        bump: major
+
+- name: bump-minor
+  serial_groups: [ version ]
+  plan:
+    - put: version
+      params:
+        bump: minor
+
+- name: bump-patch
+  serial_groups: [ version ]
+  plan:
+    - put: version
+      params:
+        bump: patch
+
+- name: automatically-release-new-patch
+  serial_groups: [ version ]
+  plan:
+    - in_parallel:
+      - get: bosh-warden-cpi-release
+        trigger: true
+        passed: [ bats ]
+      - get: bosh-shared-ci
+      - get: current-version
+        resource: version
+      - get: patched-version
+        resource: version
+        params:
+          bump: patch
+      - get: bosh-security-scanner-registry-image
+    - try:
+        task: check-for-patched-cves
+        file: bosh-shared-ci/tasks/release/check-for-patched-cves.yml
+        image: bosh-security-scanner-registry-image
+        input_mapping:
+          input_repo: bosh-warden-cpi-release
+          version: current-version
+        params:
+          SEVERITY: CRITICAL,HIGH
+        on_success:
+          do:
+            - put: release_notes
+              params:
+                file: release-notes/release-notes.md
+            - put: version
+              params:
+                file: patched-version/version
+    - task: ensure-cve-checker-succeeded
+      file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
+      image: bosh-security-scanner-registry-image
+      input_mapping:
+        task-output-folder: patched_cves
+    - try:
+        task: check-for-updated-vendored-packages
+        file: bosh-shared-ci/tasks/release/check-for-updated-vendored-packages.yml
+        image: bosh-security-scanner-registry-image
+        input_mapping:
+          input_repo: bosh-warden-cpi-release
+          version: current-version
+        params:
+          PACKAGES: [ golang-1-linux ]
+        on_success:
+          do:
+            - put: release_notes
+              params:
+                file: release-notes/release-notes.md
+            - put: version
+              params:
+                file: patched-version/version
+    - task: ensure-update-package-check-succeeded
+      file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
+      image: bosh-security-scanner-registry-image
+      input_mapping:
+        task-output-folder: package-updates
 
 - name: promote
-  serial: true
+  serial_groups: [ version ]
+  disable_manual_trigger: true
   plan:
   - in_parallel:
-    - get: bosh-integration-image
-    - get: bosh-cpi-src
-      resource: bosh-cpi-src-in
+    - get: bosh-cli-image
+    - get: bosh-warden-cpi-release
       passed:
       - bats
     - get: bosh-shared-ci
+    - get: version
+      trigger: true
   - task: promote
     file: bosh-shared-ci/tasks/release/create-final-release.yml
     input_mapping:
-      release_repo: bosh-cpi-src
-    image: bosh-integration-image
+      release_repo: bosh-warden-cpi-release
+    image: bosh-cli-image
     params:
       GIT_USER_NAME: CI Bot
       GIT_USER_EMAIL: bots@cloudfoundry.org
@@ -324,24 +418,43 @@ jobs:
           options:
             credentials_source: static
             json_key: '((gcp_json_key))'
-  - put: bosh-cpi-src-out
+  - put: bosh-warden-cpi-release
     params:
       repository: release_repo
       rebase: true
       tag: release_metadata/tag-name
+  - put: bosh-warden-cpi-release-github-release
+    params:
+      name: release_metadata/tag-name
+      tag: release_metadata/tag-name
+      body: release_notes/release-notes.md
+      commitish: bosh-warden-cpi-release/.git/ref
+      generate_release_notes: true
+  - put: release_notes
+    params:
+      file: release_metadata/empty-file
 
 resource_types:
 - name: gcs-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
 
 - name: terraform
-  type: docker-image
+  type: registry-image
   source:
     repository: ljfranklin/terraform-resource
 
 resources:
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
+    branch: release-semver
+    file: VERSION
+    private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
+
 - name: bosh-shared-ci
   type: git
   source:
@@ -362,21 +475,19 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
     branch: master
 
-- name: bosh-cpi-src-in
+- name: bosh-warden-cpi-release
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
     branch: master
     private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
-    ignore_paths:
-    - releases/**/*.yml
 
-- name: bosh-cpi-src-out
-  type: git
+- name: bosh-warden-cpi-release-github-release
+  type: github-release
   source:
-    uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
-    branch: master
-    private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
+    owner: cloudfoundry
+    repository: bosh-warden-cpi-release
+    access_token: ((github_public_repo_token))
 
 - name: warden-ubuntu-jammy-stemcell
   type: bosh-io-stemcell
@@ -406,10 +517,31 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
+- name: bosh-cli-image
+  type: registry-image
+  source:
+    repository: bosh/cli
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
 - name: bosh-integration-image
   type: registry-image
   source:
     repository: bosh/integration
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: bosh-security-scanner-registry-image
+  type: registry-image
+  source:
+    repository: bosh/security-scanner
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+
+- name: gce-cpi-release-image
+  type: registry-image
+  source:
+    repository: foundationalinfrastructure/gce-cpi-release
     username: ((dockerhub_username))
     password: ((dockerhub_password))
 
@@ -471,6 +603,13 @@ resources:
     json_key:         ((gcp_json_key))
     bucket:           bosh-warden-cpi-release-pipeline
     versioned_file:   ci-state/jumpbox-manifest-state.json
+
+- name: release_notes
+  type: gcs-resource
+  source:
+    json_key:         ((gcp_json_key))
+    bucket:           bosh-warden-cpi-release-pipeline
+    versioned_file:   release-notes.md
 
 - name: google-ubuntu-stemcell
   type: bosh-io-stemcell

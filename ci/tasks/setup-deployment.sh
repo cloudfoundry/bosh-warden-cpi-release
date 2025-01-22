@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-warden-cpi-release/ci/tasks/utils.sh
 
 deployment_dir="${PWD}/deployment"
 cpi_release_name=bosh-google-cpi

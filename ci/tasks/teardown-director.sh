@@ -2,7 +2,7 @@
 
 set -e
 
-source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-warden-cpi-release/ci/tasks/utils.sh
 
 creds_file="${PWD}/director-creds/creds.yml"
 state_file="${PWD}/director-state/manifest-state.json"

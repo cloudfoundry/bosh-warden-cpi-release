@@ -6,7 +6,7 @@ image_resource:
     repository: bosh/integration
 
 inputs:
-- name: bosh-cpi-src-in
+- name: bosh-warden-cpi-release
 
 run:
-  path: bosh-cpi-src-in/ci/tasks/test.sh
+  path: bosh-warden-cpi-release/ci/tasks/test.sh

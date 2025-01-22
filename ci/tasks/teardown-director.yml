@@ -3,9 +3,9 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: boshcpi/gce-cpi-release
+    repository: foundationalinfrastructure/gce-cpi-release
 inputs:
-  - name: bosh-cpi-src
+  - name: bosh-warden-cpi-release
   - name: bosh-cli
   - name: deployment
   - name: jumpbox-deployment
@@ -15,7 +15,7 @@ inputs:
   - name: jumpbox-state
   - name: infrastructure
 run:
-  path: bosh-cpi-src/ci/tasks/teardown-director.sh
+  path: bosh-warden-cpi-release/ci/tasks/teardown-director.sh
 params:
   BOSH_INIT_LOG_LEVEL: warn
   google_json_key_data:           replace-me
