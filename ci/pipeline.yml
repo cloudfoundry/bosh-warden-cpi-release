@@ -338,7 +338,7 @@ jobs:
     - in_parallel:
       - get: bosh-warden-cpi-release
         trigger: true
-        passed: [ bats ]
+        passed: [ teardown-infrastructure ]
       - get: bosh-shared-ci
       - get: current-version
         resource: version
@@ -400,8 +400,9 @@ jobs:
     - get: bosh-cli-image
     - get: bosh-warden-cpi-release
       passed:
-      - bats
+      - teardown-infrastructure
     - get: bosh-shared-ci
+    - get: release_notes
     - get: version
       trigger: true
   - task: promote
