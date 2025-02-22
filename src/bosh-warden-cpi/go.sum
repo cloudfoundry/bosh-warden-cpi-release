@@ -8,10 +8,10 @@ github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f h1:gOO/tNZMjjvTKZWpY
 github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
 github.com/charlievieth/fs v0.0.3 h1:3lZQXTj4PbE81CVPwALSn+JoyCNXkZgORHN6h2XHGlg=
 github.com/charlievieth/fs v0.0.3/go.mod h1:hD4sRzto1Hw8zCua76tNVKZxaeZZr1RiKftjAJQRLLo=
-github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250208100241-3dbf4a2cd12f h1:NFwfry7B04xKzRCPfijv+RikFC72falG0vsmS1cTcHE=
-github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250208100241-3dbf4a2cd12f/go.mod h1:cMZJBtT1LtvkWBZb+gUBhCcoZbIVR7R31+oC6Bb+fcg=
-github.com/cloudfoundry/bosh-utils v0.0.530 h1:aWZ386POSe3MNgCfvvg5dSZg5bWmZ3mShWqYwKv10ok=
-github.com/cloudfoundry/bosh-utils v0.0.530/go.mod h1:eCpeIN+9V0ERqmDDzIj3189RyNxg7flZqqxe1d1pcvI=
+github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250215100459-1fb2feb35a7b h1:KjkiiI2MzGDogU7EB/3yUlH0/kRVqm87WvckrAzEhBk=
+github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250215100459-1fb2feb35a7b/go.mod h1:LEZP9JkYs8AK9ZJewDEoHJHktWt+2LtOlzg2V161aec=
+github.com/cloudfoundry/bosh-utils v0.0.531 h1:jSETT0urNvCRJv+WR+QA7Lz5N67uNUvW9bJ+MXmF4es=
+github.com/cloudfoundry/bosh-utils v0.0.531/go.mod h1:S1rhUuu7mTCy1W8EwzbMfWcfUr4q0gSbLQ2RHUbP9Rc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
