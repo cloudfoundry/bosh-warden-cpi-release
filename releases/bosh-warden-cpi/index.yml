@@ -5,6 +5,8 @@ builds:
     version: "32"
   04b94d20-c4b7-4da3-b559-0fca68d0a3d2:
     version: "29"
+  10d80586-6912-4365-68fb-52a3038fd543:
+    version: 45.0.4
   1c5d89dc-1aa3-45ba-be8b-4a1667c10a87:
     version: "24"
   1d75fa85-a14c-40a6-5bb0-52200edb144a:
