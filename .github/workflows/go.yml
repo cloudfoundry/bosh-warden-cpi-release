@@ -18,7 +18,7 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version-file: src/bosh-warden-cpi/go.mod
-    - uses: golangci/golangci-lint-action@v6
+    - uses: golangci/golangci-lint-action@v7
       with:
         working-directory: src/bosh-warden-cpi/
     - run: bin/test
