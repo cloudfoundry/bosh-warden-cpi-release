@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/garden v0.0.0-20250319022510-05a9be852e89
+# code.cloudfoundry.org/garden v0.0.0-20250326022559-bc5d6fb7cf5c
 ## explicit; go 1.23.0
 code.cloudfoundry.org/garden
 code.cloudfoundry.org/garden/client
@@ -7,7 +7,7 @@ code.cloudfoundry.org/garden/client/connection/connectionfakes
 code.cloudfoundry.org/garden/gardenfakes
 code.cloudfoundry.org/garden/routes
 code.cloudfoundry.org/garden/transport
-# code.cloudfoundry.org/lager/v3 v3.30.0
+# code.cloudfoundry.org/lager/v3 v3.31.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -20,11 +20,11 @@ github.com/bmizerany/pat
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250315100108-9b0e6453625b
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250322100513-99658d44409c
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.536
+# github.com/cloudfoundry/bosh-utils v0.0.538
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
@@ -78,8 +78,8 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.36.2
-## explicit; go 1.22.0
+# github.com/onsi/gomega v1.36.3
+## explicit; go 1.23.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/internal
