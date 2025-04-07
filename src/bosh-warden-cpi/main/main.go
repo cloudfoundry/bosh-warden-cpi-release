@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	. "bosh-warden-cpi/config"
+	. "bosh-warden-cpi/config" //nolint:staticcheck
 
 	wrdnclient "code.cloudfoundry.org/garden/client"
 	wrdnconn "code.cloudfoundry.org/garden/client/connection"

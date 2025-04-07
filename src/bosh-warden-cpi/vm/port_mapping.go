@@ -26,10 +26,10 @@ func NewPortMapping(host, container PortRange, protocol string) (PortMapping, er
 	}
 	if host.Len() > 1 {
 		if !host.Same(container) {
-			return PortMapping{}, errors.New("Host and container port ranges must be same")
+			return PortMapping{}, errors.New("Host and container port ranges must be same") //nolint:staticcheck
 		}
 		if protocol != "tcp" && protocol != "udp" {
-			return PortMapping{}, errors.New("Port ranges can only be used with tcp or udp protocol")
+			return PortMapping{}, errors.New("Port ranges can only be used with tcp or udp protocol") //nolint:staticcheck
 		}
 	}
 	return PortMapping{host: host, container: container, protocol: protocol}, nil
@@ -45,13 +45,13 @@ type PortRange struct {
 
 func NewPortRange(start, end int) (PortRange, error) {
 	if start <= 0 || start > 65535 {
-		return PortRange{}, errors.New("Port range start must be > 0 and <= 65535")
+		return PortRange{}, errors.New("Port range start must be > 0 and <= 65535") //nolint:staticcheck
 	}
 	if end <= 0 || end > 65535 {
-		return PortRange{}, errors.New("Port range end must be > 0 and <= 65535")
+		return PortRange{}, errors.New("Port range end must be > 0 and <= 65535") //nolint:staticcheck
 	}
 	if start > end {
-		return PortRange{}, errors.New("Port range start must be <= end")
+		return PortRange{}, errors.New("Port range start must be <= end") //nolint:staticcheck
 	}
 	return PortRange{start: start, end: end}, nil
 }
@@ -59,7 +59,7 @@ func NewPortRange(start, end int) (PortRange, error) {
 func NewPortRangeFromString(s string) (PortRange, error) {
 	matches := portRangeRegexp.FindStringSubmatch(s)
 	if len(matches) == 0 {
-		return PortRange{}, fmt.Errorf("Port range must match '%s'", portRangeRegexp)
+		return PortRange{}, fmt.Errorf("Port range must match '%s'", portRangeRegexp) //nolint:staticcheck
 	}
 
 	if len(matches) != 4 {
@@ -73,7 +73,7 @@ func NewPortRangeFromString(s string) (PortRange, error) {
 
 	// matches[2] is delim
 
-	switch {
+	switch { //nolint:staticcheck
 	case matches[3] == "":
 		return NewPortRange(start, start)
 
