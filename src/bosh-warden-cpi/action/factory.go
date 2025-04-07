@@ -8,7 +8,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	. "bosh-warden-cpi/config"
+	. "bosh-warden-cpi/config" //nolint:staticcheck
 	bwcdisk "bosh-warden-cpi/disk"
 	bwcstem "bosh-warden-cpi/stemcell"
 	bwcutil "bosh-warden-cpi/util"
