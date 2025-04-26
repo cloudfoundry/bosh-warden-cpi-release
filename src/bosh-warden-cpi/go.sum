@@ -1,7 +1,7 @@
-code.cloudfoundry.org/garden v0.0.0-20250417175132-3dcb20fef8fb h1:DhJ+qx45Kw/9mPTzhrWM/tP1YxA2s/Ja8shKQJaHuS4=
-code.cloudfoundry.org/garden v0.0.0-20250417175132-3dcb20fef8fb/go.mod h1:9DK73F+cJNBA1Yoxbw+PCOM6LRaBj1CQlb2w/p+AVkg=
-code.cloudfoundry.org/lager/v3 v3.34.0 h1:AriZ8PszF6rU7d1E7hpxPdTq4HQCQkMDF/GePacKSlg=
-code.cloudfoundry.org/lager/v3 v3.34.0/go.mod h1:14wEcdCjiVA3AWrXBXPjThbUc/73lX/5rk4nWtSz+N4=
+code.cloudfoundry.org/garden v0.0.0-20250422223445-75bc73b534cf h1:nraEKvGUqrfPCHFmksO2ZnXFD71tis6hFu9t8995kPQ=
+code.cloudfoundry.org/garden v0.0.0-20250422223445-75bc73b534cf/go.mod h1:6StwqVE9a5i2weLm8YiRwvEuc+JxyM5LsYX1ibPSxGs=
+code.cloudfoundry.org/lager/v3 v3.35.0 h1:ZjjNVIax+YISv5RlmhnOIP9I83Qo2DWv+P1BELwNczM=
+code.cloudfoundry.org/lager/v3 v3.35.0/go.mod h1:Iib9F/zw9lGfLiKJ2aNLJ47kfhw4HgdnlDsXPn2kwfQ=
 github.com/bmatcuk/doublestar v1.3.4 h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0=
 github.com/bmatcuk/doublestar v1.3.4/go.mod h1:wiQtGV+rzVYxB7WIlirSN++5HPtPlXEo9MEoZQC/PmE=
 github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f h1:gOO/tNZMjjvTKZWpY7YnXC72ULNLErRtp94LountVE8=
@@ -22,8 +22,8 @@ github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1v
 github.com/go-task/slim-sprig/v3 v3.0.0/go.mod h1:W848ghGpv3Qj3dhTPRyJypKRiqCdHZiAzKg9hl15HA8=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/google/pprof v0.0.0-20250418163039-24c5476c6587 h1:b/8HpQhvKLSNzH5oTXN2WkNcMl6YB5K3FRbb+i+Ml34=
-github.com/google/pprof v0.0.0-20250418163039-24c5476c6587/go.mod h1:boTsfXsheKC2y+lKOCMpSfarhxDeIzfZG1jqGcPl3cA=
+github.com/google/pprof v0.0.0-20250423184734-337e5dd93bb4 h1:gD0vax+4I+mAj+jEChEf25Ia07Jq7kYOFO5PPhAxFl4=
+github.com/google/pprof v0.0.0-20250423184734-337e5dd93bb4/go.mod h1:5hDyRhoBCxViHszMt12TnOpEI4VVi+U8Gm9iphldiMA=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
