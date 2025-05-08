@@ -3,9 +3,11 @@ on:
   push:
     paths:
     - 'src/bosh-warden-cpi/**'
+    - '.github/**'
   pull_request:
     paths:
     - 'src/bosh-warden-cpi/**'
+    - '.github/**'
 jobs:
   lint_and_test:
     strategy:
