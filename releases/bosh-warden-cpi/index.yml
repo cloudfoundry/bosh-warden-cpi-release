@@ -37,6 +37,8 @@ builds:
     version: "16"
   62466c5d-a894-495f-9b13-26ad4f7b7ca5:
     version: "19"
+  65df09ef-8738-49a5-53de-3cd412d109f4:
+    version: 45.0.7
   677fe326-db5a-4bdf-9fc9-49d120350a5d:
     version: "12"
   6cafed4d-1d4f-46b1-5a75-e858a6338bef:
