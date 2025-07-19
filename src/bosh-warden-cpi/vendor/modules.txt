@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/garden v0.0.0-20250702171543-d3b7c3a6ecb8
+# code.cloudfoundry.org/garden v0.0.0-20250716020550-aabeeb44f19e
 ## explicit; go 1.23.0
 code.cloudfoundry.org/garden
 code.cloudfoundry.org/garden/client
@@ -7,7 +7,7 @@ code.cloudfoundry.org/garden/client/connection/connectionfakes
 code.cloudfoundry.org/garden/gardenfakes
 code.cloudfoundry.org/garden/routes
 code.cloudfoundry.org/garden/transport
-# code.cloudfoundry.org/lager/v3 v3.40.0
+# code.cloudfoundry.org/lager/v3 v3.41.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -20,11 +20,11 @@ github.com/bmizerany/pat
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250628100319-02573e18faff
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250712100150-51dcc456ff42
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.548
+# github.com/cloudfoundry/bosh-utils v0.0.551
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
