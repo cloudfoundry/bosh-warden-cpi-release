@@ -4,9 +4,9 @@ go 1.23.0
 
 require (
 	code.cloudfoundry.org/garden v0.0.0-20250820020934-176fcbafd0b1
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20250922221306-a43bc9c9a83a
-	github.com/cloudfoundry/bosh-utils v0.0.557
-	github.com/onsi/ginkgo/v2 v2.27.1
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20251025100150-f55ea7596702
+	github.com/cloudfoundry/bosh-utils v0.0.560
+	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
 )
 
@@ -24,7 +24,6 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
-	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
