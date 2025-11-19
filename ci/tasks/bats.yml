@@ -11,7 +11,7 @@ inputs:
   - name: bosh-acceptance-tests
   - name: release_tarball
   - name: iaas-stemcell
-  - name: warden-ubuntu-jammy-stemcell
+  - name: warden-ubuntu-noble-stemcell
   - name: bosh-release
   - name: garden-linux-release
   - name: bosh-cli-github-release

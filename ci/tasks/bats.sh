@@ -80,7 +80,7 @@ name: bosh-warden-cpi-bats-director
 releases: []
 stemcells:
 - alias: default
-  os: ubuntu-jammy
+  os: ubuntu-noble
   version: $iaas_stemcell_version
 update:
   canaries: 0
@@ -219,7 +219,7 @@ properties:
     public_key: "${ssh_public_key}"
     private_key: "${ssh_private_key}"
   stemcell:
-    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+    name: bosh-warden-boshlite-ubuntu-noble
     version: latest
   persistent_disk: 1024
   networks:
@@ -239,7 +239,7 @@ EOF
 
 
 
-warden_stemcell_url=$(cat warden-ubuntu-jammy-stemcell/url)
+warden_stemcell_url=$(cat warden-ubuntu-noble-stemcell/url)
 iaas_stemcell_url=$(cat iaas-stemcell/url)
 iaas_stemcell_version=$(cat iaas-stemcell/version)
 bosh_release_path=$(ls "${PWD}"/bosh-release/*.tgz)

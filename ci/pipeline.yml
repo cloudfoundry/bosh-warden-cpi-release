@@ -241,11 +241,11 @@ jobs:
       passed:
       - deploy-director
     - get: bosh-acceptance-tests
-    - get: warden-ubuntu-jammy-stemcell
+    - get: warden-ubuntu-noble-stemcell
       params:
         tarball: false
     - get: iaas-stemcell
-      resource: google-ubuntu-jammy-stemcell
+      resource: google-ubuntu-noble-stemcell
       params:
         tarball: false
     - get: bosh-release
@@ -490,13 +490,13 @@ resources:
     repository: bosh-warden-cpi-release
     access_token: ((github_public_repo_token))
 
-- name: warden-ubuntu-jammy-stemcell
+- name: warden-ubuntu-noble-stemcell
   type: bosh-io-stemcell
-  source: { name: bosh-warden-boshlite-ubuntu-jammy-go_agent }
+  source: { name: bosh-warden-boshlite-ubuntu-noble }
 
-- name: google-ubuntu-jammy-stemcell
+- name: google-ubuntu-noble-stemcell
   type: bosh-io-stemcell
-  source: { name: bosh-google-kvm-ubuntu-jammy-go_agent }
+  source: { name: bosh-google-kvm-ubuntu-noble }
 
 - name: bosh-release
   type: bosh-io-release
@@ -615,7 +615,7 @@ resources:
 - name: google-ubuntu-stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-jammy-go_agent
+    name: bosh-google-kvm-ubuntu-noble
     force_regular: true
     tarball: true
 
