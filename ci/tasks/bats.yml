@@ -11,7 +11,7 @@ inputs:
   - name: bosh-acceptance-tests
   - name: release_tarball
   - name: iaas-stemcell
-  - name: warden-ubuntu-noble-stemcell
+  - name: warden-ubuntu-stemcell
   - name: bosh-release
   - name: garden-linux-release
   - name: bosh-cli-github-release
@@ -24,3 +24,5 @@ inputs:
 run:
   path: bosh-warden-cpi-release/ci/tasks/bats.sh
 
+params:
+  STEMCELL_NAME:

@@ -71,7 +71,7 @@ jobs:
         passed:
         - test
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
       - get: gce-cpi-release-image
     - in_parallel: &teardown_step
       - task: teardown-infrastructure
@@ -117,7 +117,7 @@ jobs:
         passed:
         - bats
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
       - get: bosh-cli
         params:
           globs:
@@ -164,7 +164,7 @@ jobs:
         passed:
         - setup-infrastructure
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
         trigger: true
         passed:
         - setup-infrastructure
@@ -241,11 +241,11 @@ jobs:
       passed:
       - deploy-director
     - get: bosh-acceptance-tests
-    - get: warden-ubuntu-noble-stemcell
+    - get: warden-ubuntu-stemcell
       params:
         tarball: false
     - get: iaas-stemcell
-      resource: google-ubuntu-noble-stemcell
+      resource: google-ubuntu-stemcell
       params:
         tarball: false
     - get: bosh-release
@@ -275,7 +275,7 @@ jobs:
       - deploy-director
     - get: bosh-cpi-release
     - get: stemcell
-      resource: google-ubuntu-stemcell
+      resource: heavy-google-ubuntu-stemcell
       passed:
       - deploy-director
     - get: bosh-cli
@@ -293,6 +293,8 @@ jobs:
   - task: bats
     file: bosh-warden-cpi-release/ci/tasks/bats.yml
     image: bosh-integration-image
+    params:
+      STEMCELL_NAME: bosh-warden-boshlite-ubuntu-noble
   on_failure:
     do:
     - in_parallel: *teardown_step
@@ -490,11 +492,11 @@ resources:
     repository: bosh-warden-cpi-release
     access_token: ((github_public_repo_token))
 
-- name: warden-ubuntu-noble-stemcell
+- name: warden-ubuntu-stemcell
   type: bosh-io-stemcell
   source: { name: bosh-warden-boshlite-ubuntu-noble }
 
-- name: google-ubuntu-noble-stemcell
+- name: google-ubuntu-stemcell
   type: bosh-io-stemcell
   source: { name: bosh-google-kvm-ubuntu-noble }
 
@@ -612,7 +614,7 @@ resources:
     bucket:           bosh-warden-cpi-release-pipeline
     versioned_file:   release-notes.md
 
-- name: google-ubuntu-stemcell
+- name: heavy-google-ubuntu-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-google-kvm-ubuntu-noble
