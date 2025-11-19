@@ -523,16 +523,16 @@ resources:
 - name: bosh-cli-image
   type: registry-image
   source:
-    repository: bosh/cli
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    repository: ghcr.io/cloudfoundry/bosh/cli
+    username: ((github_read_write_packages.username))
+    password: ((github_read_write_packages.password))
 
 - name: bosh-integration-image
   type: registry-image
   source:
-    repository: bosh/integration
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    repository: ghcr.io/cloudfoundry/bosh/integration
+    username: ((github_read_write_packages.username))
+    password: ((github_read_write_packages.password))
 
 - name: bosh-security-scanner-registry-image
   type: registry-image
