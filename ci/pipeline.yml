@@ -82,8 +82,8 @@ jobs:
           google_json_key_data: ((gcp_json_key))
           google_network: warden-cpi-ci-network
           google_project: cloud-foundry-310819
-          google_region: us-east1
-          google_zone: us-east1-b
+          google_region: europe-west2
+          google_zone: europe-west2-a
     - put: infrastructure
       params:
         env_name: warden-bosh-cpi
@@ -134,8 +134,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -183,8 +183,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -196,8 +196,8 @@ jobs:
         image: gce-cpi-release-image
         params:
           google_project:                 cloud-foundry-310819
-          google_region:                  us-east1
-          google_zone:                    us-east1-b
+          google_region:                  europe-west2
+          google_zone:                    europe-west2-a
 
           google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
           google_subnetwork_range:        "10.0.0.0/24"
@@ -223,8 +223,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -306,8 +306,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -558,8 +558,8 @@ resources:
       credentials: ((gcp_json_key))
     vars:
       google_project:           cloud-foundry-310819
-      google_region:            us-east1
-      google_zone:              us-east1-b
+      google_region:            europe-west2
+      google_zone:              europe-west2-a
       google_json_key_data:     ((gcp_json_key))
       google_subnetwork_range:  "10.0.0.0/24"
       google_firewall_internal: google-cpi-ci-firewall-internal

@@ -134,7 +134,7 @@ pushd ${deployment_dir}
   cat <<EOF > "${cloud_config}"
 azs:
 - cloud_properties:
-    zone: us-east1-b
+    zone: europe-west2-a
   name: az1
 vm_types:
 - cloud_properties:

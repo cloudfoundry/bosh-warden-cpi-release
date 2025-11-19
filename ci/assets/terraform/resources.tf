@@ -47,6 +47,7 @@ resource "google_compute_subnetwork" "subnetwork" {
   name          = var.prefix
   ip_cidr_range = var.google_subnetwork_range
   network       = google_compute_network.manual.self_link
+  region        = var.google_region
 }
 
 resource "google_compute_firewall" "internal" {
