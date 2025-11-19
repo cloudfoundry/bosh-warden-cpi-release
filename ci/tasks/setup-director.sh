@@ -182,30 +182,6 @@ disk_types:
   name: default
 - disk_size: 50000
   name: large
-stemcells:
-- alias: default
-  os: ubuntu-jammy
-  version: '1.639'
-releases:
-- name: bosh-dns
-  sha1: fcdd6a0c9818da11d9dc081d7c4f3f97fd690035
-  url: https://bosh.io/d/github.com/cloudfoundry/bosh-dns-release?v=1.39.0
-  version: 1.39.0
-update:
-  canaries: 0
-  canary_watch_time: 60000
-  max_in_flight: 2
-  update_watch_time: 60000
-instance_groups:
-- azs:
-  - az1
-  instances: 1
-  jobs: []
-  name: bosh
-  networks:
-  - name: default
-  stemcell: default
-  vm_type: large
 EOF
 
   ${BOSH_CLI} -n update-cloud-config "${cloud_config}"
