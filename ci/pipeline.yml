@@ -73,14 +73,13 @@ jobs:
       - get: stemcell
         resource: heavy-google-ubuntu-stemcell
       - get: gce-cpi-release-image
-    - in_parallel: &teardown_step
-      - task: teardown-infrastructure
-        file: bosh-warden-cpi-release/ci/tasks/teardown-infrastructure.yml
+    - in_parallel: &clean_orphaned_vms
+      - task: clean-orphaned-vms
+        file: bosh-warden-cpi-release/ci/tasks/clean-orphaned-vms.yml
         image: gce-cpi-release-image
         params:
-          google_auto_network: warden-cpi-ci-auto-network
           google_json_key_data: ((gcp_json_key))
-          google_network: warden-cpi-ci-network
+          google_network: wardencpi-manual
           google_project: cloud-foundry-310819
           google_region: europe-west2
           google_zone: europe-west2-a
@@ -89,7 +88,6 @@ jobs:
         env_name: warden-bosh-cpi
         terraform_source: bosh-warden-cpi-release/ci/assets/terraform
         delete_on_failure: true
-    - in_parallel: *teardown_step
 
 - name: teardown-infrastructure
   serial: true
@@ -125,7 +123,7 @@ jobs:
       - get: bosh-deployment
       - get: jumpbox-deployment
       - get: gce-cpi-release-image
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -214,7 +212,7 @@ jobs:
       params: {file: jumpbox-state/jumpbox-manifest-state.json}
   on_failure:
     do:
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -297,7 +295,7 @@ jobs:
       STEMCELL_NAME: bosh-warden-boshlite-ubuntu-noble
   on_failure:
     do:
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -565,8 +563,6 @@ resources:
       google_firewall_internal: google-cpi-ci-firewall-internal
       google_firewall_external: google-cpi-ci-firewall-external
       prefix:                   wardencpi
-      google_auto_network:      google-cpi-ci-auto-network
-      google_network:           google-cpi-ci-network
 
 - name: bosh-deployment
   type: git

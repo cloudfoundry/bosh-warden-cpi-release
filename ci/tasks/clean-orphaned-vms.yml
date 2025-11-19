@@ -8,6 +8,6 @@ inputs:
   - name: bosh-warden-cpi-release
 
 run:
-  path: bosh-warden-cpi-release/ci/tasks/teardown-infrastructure.sh
+  path: bosh-warden-cpi-release/ci/tasks/clean-orphaned-vms.sh
 params:
   google_json_key_data:           replace-me

@@ -61,7 +61,6 @@ function read_infrastructure {
   export google_region=$(cat ${infrastructure_metadata} | jq -r .google_region)
   export google_zone=$(cat ${infrastructure_metadata} | jq -r .google_zone)
   export google_json_key_data=$(cat ${infrastructure_metadata} | jq -r .google_json_key_data)
-  export google_auto_network=$(cat ${infrastructure_metadata} | jq -r .google_auto_network)
   export google_network=$(cat ${infrastructure_metadata} | jq -r .google_network)
   export google_subnetwork=$(cat ${infrastructure_metadata} | jq -r .google_subnetwork)
   export google_subnetwork_gateway=$(cat ${infrastructure_metadata} | jq -r .google_subnetwork_gateway)
