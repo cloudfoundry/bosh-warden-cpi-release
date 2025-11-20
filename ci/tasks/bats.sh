@@ -130,6 +130,9 @@ EOF
   - type: replace
     path: /instance_groups/name=bosh/vm_type?
     value: large
+  - path: /instance_groups/name=bosh/properties/warden_cpi/start_containers_with_systemd?
+    type: replace
+    value: true
   "
 
   bosh -d bosh-warden-cpi-bats-director -n deploy ./bosh-deployment/bosh.yml \
