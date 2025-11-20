@@ -71,25 +71,23 @@ jobs:
         passed:
         - test
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
       - get: gce-cpi-release-image
-    - in_parallel: &teardown_step
-      - task: teardown-infrastructure
-        file: bosh-warden-cpi-release/ci/tasks/teardown-infrastructure.yml
+    - in_parallel: &clean_orphaned_vms
+      - task: clean-orphaned-vms
+        file: bosh-warden-cpi-release/ci/tasks/clean-orphaned-vms.yml
         image: gce-cpi-release-image
         params:
-          google_auto_network: warden-cpi-ci-auto-network
           google_json_key_data: ((gcp_json_key))
-          google_network: warden-cpi-ci-network
+          google_network: wardencpi-manual
           google_project: cloud-foundry-310819
-          google_region: us-east1
-          google_zone: us-east1-b
+          google_region: europe-west2
+          google_zone: europe-west2-a
     - put: infrastructure
       params:
         env_name: warden-bosh-cpi
         terraform_source: bosh-warden-cpi-release/ci/assets/terraform
         delete_on_failure: true
-    - in_parallel: *teardown_step
 
 - name: teardown-infrastructure
   serial: true
@@ -117,7 +115,7 @@ jobs:
         passed:
         - bats
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
       - get: bosh-cli
         params:
           globs:
@@ -125,7 +123,7 @@ jobs:
       - get: bosh-deployment
       - get: jumpbox-deployment
       - get: gce-cpi-release-image
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -134,8 +132,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -164,7 +162,7 @@ jobs:
         passed:
         - setup-infrastructure
       - get: stemcell
-        resource: google-ubuntu-stemcell
+        resource: heavy-google-ubuntu-stemcell
         trigger: true
         passed:
         - setup-infrastructure
@@ -183,8 +181,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -196,8 +194,8 @@ jobs:
         image: gce-cpi-release-image
         params:
           google_project:                 cloud-foundry-310819
-          google_region:                  us-east1
-          google_zone:                    us-east1-b
+          google_region:                  europe-west2
+          google_zone:                    europe-west2-a
 
           google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
           google_subnetwork_range:        "10.0.0.0/24"
@@ -214,7 +212,7 @@ jobs:
       params: {file: jumpbox-state/jumpbox-manifest-state.json}
   on_failure:
     do:
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -223,8 +221,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -241,11 +239,11 @@ jobs:
       passed:
       - deploy-director
     - get: bosh-acceptance-tests
-    - get: warden-ubuntu-jammy-stemcell
+    - get: warden-ubuntu-stemcell
       params:
         tarball: false
     - get: iaas-stemcell
-      resource: google-ubuntu-jammy-stemcell
+      resource: google-ubuntu-stemcell
       params:
         tarball: false
     - get: bosh-release
@@ -275,7 +273,7 @@ jobs:
       - deploy-director
     - get: bosh-cpi-release
     - get: stemcell
-      resource: google-ubuntu-stemcell
+      resource: heavy-google-ubuntu-stemcell
       passed:
       - deploy-director
     - get: bosh-cli
@@ -293,9 +291,11 @@ jobs:
   - task: bats
     file: bosh-warden-cpi-release/ci/tasks/bats.yml
     image: bosh-integration-image
+    params:
+      STEMCELL_NAME: bosh-warden-boshlite-ubuntu-noble
   on_failure:
     do:
-    - in_parallel: *teardown_step
+    - in_parallel: *clean_orphaned_vms
     - task: setup-deployment
       file: bosh-warden-cpi-release/ci/tasks/setup-deployment.yml
       image: gce-cpi-release-image
@@ -304,8 +304,8 @@ jobs:
       image: gce-cpi-release-image
       params:
         google_project:                 cloud-foundry-310819
-        google_region:                  us-east1
-        google_zone:                    us-east1-b
+        google_region:                  europe-west2
+        google_zone:                    europe-west2-a
         google_test_bucket_name:        bosh-warden-cpi-release-pipeline-director-env
         google_subnetwork_range:        "10.0.0.0/24"
         google_subnetwork_gw:           "10.0.0.1"
@@ -490,13 +490,13 @@ resources:
     repository: bosh-warden-cpi-release
     access_token: ((github_public_repo_token))
 
-- name: warden-ubuntu-jammy-stemcell
+- name: warden-ubuntu-stemcell
   type: bosh-io-stemcell
-  source: { name: bosh-warden-boshlite-ubuntu-jammy-go_agent }
+  source: { name: bosh-warden-boshlite-ubuntu-noble }
 
-- name: google-ubuntu-jammy-stemcell
+- name: google-ubuntu-stemcell
   type: bosh-io-stemcell
-  source: { name: bosh-google-kvm-ubuntu-jammy-go_agent }
+  source: { name: bosh-google-kvm-ubuntu-noble }
 
 - name: bosh-release
   type: bosh-io-release
@@ -521,16 +521,16 @@ resources:
 - name: bosh-cli-image
   type: registry-image
   source:
-    repository: bosh/cli
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    repository: ghcr.io/cloudfoundry/bosh/cli
+    username: ((github_read_write_packages.username))
+    password: ((github_read_write_packages.password))
 
 - name: bosh-integration-image
   type: registry-image
   source:
-    repository: bosh/integration
-    username: ((dockerhub_username))
-    password: ((dockerhub_password))
+    repository: ghcr.io/cloudfoundry/bosh/integration
+    username: ((github_read_write_packages.username))
+    password: ((github_read_write_packages.password))
 
 - name: bosh-security-scanner-registry-image
   type: registry-image
@@ -556,15 +556,13 @@ resources:
       credentials: ((gcp_json_key))
     vars:
       google_project:           cloud-foundry-310819
-      google_region:            us-east1
-      google_zone:              us-east1-b
+      google_region:            europe-west2
+      google_zone:              europe-west2-a
       google_json_key_data:     ((gcp_json_key))
       google_subnetwork_range:  "10.0.0.0/24"
       google_firewall_internal: google-cpi-ci-firewall-internal
       google_firewall_external: google-cpi-ci-firewall-external
       prefix:                   wardencpi
-      google_auto_network:      google-cpi-ci-auto-network
-      google_network:           google-cpi-ci-network
 
 - name: bosh-deployment
   type: git
@@ -612,10 +610,10 @@ resources:
     bucket:           bosh-warden-cpi-release-pipeline
     versioned_file:   release-notes.md
 
-- name: google-ubuntu-stemcell
+- name: heavy-google-ubuntu-stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-jammy-go_agent
+    name: bosh-google-kvm-ubuntu-noble
     force_regular: true
     tarball: true
 

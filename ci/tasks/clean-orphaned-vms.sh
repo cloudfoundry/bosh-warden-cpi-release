@@ -15,12 +15,16 @@ gcloud config set project ${google_project}
 gcloud config set compute/region ${google_region}
 gcloud config set compute/zone ${google_zone}
 
-gcloud compute instances list --format json | jq -r --arg network ${google_auto_network} '.[] | select(.networkInterfaces[].network==$network) | "\(.name) --zone \(.zone)"' | while read instance; do
-  echo "Deleting orphan instance ${instance}..."
-  gcloud -q compute instances delete ${instance} --delete-disks all
-done
+echo "Looking up network self link"
+network_self_link=$(gcloud compute networks list --format json | jq -r --arg network ${google_network} '.[] | select(.name==$network) | .selfLink')
 
-gcloud compute instances list --format json | jq -r --arg network ${google_network} '.[] | select(.networkInterfaces[].network==$network) | "\(.name) --zone \(.zone)"' | while read instance; do
+if [[ -z "${network_self_link}" ]]; then
+  echo "No network ${google_network} currently set up."
+  exit
+fi
+
+echo "Looking up VMs"
+gcloud compute instances list --format json | jq -r --arg network "${network_self_link}" '.[] | select(.networkInterfaces[].network==$network) | "\(.name) --zone \(.zone)"' | while read instance; do
   echo "Deleting orphan instance ${instance}..."
   gcloud -q compute instances delete ${instance} --delete-disks all
 done

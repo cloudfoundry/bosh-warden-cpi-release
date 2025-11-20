@@ -33,11 +33,6 @@ resource "google_compute_address" "int_internal" {
   subnetwork   = google_compute_subnetwork.subnetwork.self_link
 }
 
-resource "google_compute_network" "auto" {
-  name                    = "${var.prefix}-auto"
-  auto_create_subnetworks = true
-}
-
 resource "google_compute_network" "manual" {
   name                    = "${var.prefix}-manual"
   auto_create_subnetworks = false
@@ -47,6 +42,7 @@ resource "google_compute_subnetwork" "subnetwork" {
   name          = var.prefix
   ip_cidr_range = var.google_subnetwork_range
   network       = google_compute_network.manual.self_link
+  region        = var.google_region
 }
 
 resource "google_compute_firewall" "internal" {

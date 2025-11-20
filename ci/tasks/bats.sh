@@ -45,7 +45,7 @@ run_bats_on_vm() {
 
   BOSH_LITE_CA_CERT="$(bosh int --path /default_ca/ca "${vars_store_path}")"
   bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f install_bats_prereqs); install_bats_prereqs ${BOSH_CLI_VERSION}"
-  bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}'"
+  bosh -d bosh-warden-cpi-bats-director ssh -c "set -e -x; $(declare -f run_bats); run_bats $lite_director_ip '$stemcell_url' '${BOSH_LITE_CA_CERT}' '${STEMCELL_NAME}'"
   bosh -d bosh-warden-cpi-bats-director delete-deployment -n
 }
 
@@ -56,6 +56,8 @@ deploy_director() {
   cpi_release_path=$4
   garden_linux_release_path=$5
   vars_store_path=$6
+
+  stemcell_os="$(echo "$STEMCELL_NAME" | grep -Eo "ubuntu-\w+")"
 
   # Upload specific dependencies
   bosh upload-release $bosh_release_path
@@ -80,7 +82,7 @@ name: bosh-warden-cpi-bats-director
 releases: []
 stemcells:
 - alias: default
-  os: ubuntu-jammy
+  os: $stemcell_os
   version: $iaas_stemcell_version
 update:
   canaries: 0
@@ -128,6 +130,9 @@ EOF
   - type: replace
     path: /instance_groups/name=bosh/vm_type?
     value: large
+  - path: /instance_groups/name=bosh/properties/warden_cpi/start_containers_with_systemd?
+    type: replace
+    value: true
   "
 
   bosh -d bosh-warden-cpi-bats-director -n deploy ./bosh-deployment/bosh.yml \
@@ -176,6 +181,8 @@ run_bats() {
   lite_director_ip=$1
   stemcell_url=$2
   export BOSH_CA_CERT="$3"
+  stemcell_name=$4
+
   if [ ! -f "$HOME/.ssh/id_rsa" ]; then
     # bosh_cli expects this key to exist
     ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
@@ -219,7 +226,7 @@ properties:
     public_key: "${ssh_public_key}"
     private_key: "${ssh_private_key}"
   stemcell:
-    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+    name: ${stemcell_name}
     version: latest
   persistent_disk: 1024
   networks:
@@ -239,7 +246,7 @@ EOF
 
 
 
-warden_stemcell_url=$(cat warden-ubuntu-jammy-stemcell/url)
+warden_stemcell_url=$(cat warden-ubuntu-stemcell/url)
 iaas_stemcell_url=$(cat iaas-stemcell/url)
 iaas_stemcell_version=$(cat iaas-stemcell/version)
 bosh_release_path=$(ls "${PWD}"/bosh-release/*.tgz)
