@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	code.cloudfoundry.org/garden v0.0.0-20251119022154-f0775181931d
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20251121222143-fb5c8b0ad37c
-	github.com/cloudfoundry/bosh-utils v0.0.570
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20251122100313-2fa7f6430744
+	github.com/cloudfoundry/bosh-utils v0.0.572
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
 )
