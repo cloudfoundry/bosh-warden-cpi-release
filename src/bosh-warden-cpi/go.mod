@@ -4,9 +4,9 @@ go 1.24.0
 
 require (
 	code.cloudfoundry.org/garden v0.0.0-20251119022154-f0775181931d
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20251129100329-f7d76fb6e32e
-	github.com/cloudfoundry/bosh-utils v0.0.575
-	github.com/onsi/ginkgo/v2 v2.27.2
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20251206100214-575efd567282
+	github.com/cloudfoundry/bosh-utils v0.0.576
+	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.2
 )
 
@@ -25,10 +25,10 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
-	golang.org/x/tools v0.39.0 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/tools v0.40.0 // indirect
 )
