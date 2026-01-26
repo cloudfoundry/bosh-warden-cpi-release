@@ -32,12 +32,17 @@ func NewLightStemcell(
 func (s LightStemcell) ID() apiv1.StemcellCID { return s.cid }
 
 func (s LightStemcell) DirPath() string {
-	// Garden requires docker:// scheme for OCI images from registry
-	// The image reference may already have a scheme, or be a bare image reference
-	if !strings.HasPrefix(s.imageReference, "docker://") {
-		return "docker://" + s.imageReference
+	imageRef := s.imageReference
+	
+	parts := strings.Split(imageRef, ":")
+	if len(parts) > 2 {
+		imageRef = strings.Join(parts[:len(parts)-1], ":")
 	}
-	return s.imageReference
+	
+	if !strings.HasPrefix(imageRef, "docker://") {
+		return "docker://" + imageRef
+	}
+	return imageRef
 }
 
 func (s LightStemcell) Delete() error {
