@@ -1,6 +1,8 @@
 package stemcell
 
 import (
+	"encoding/json"
+	"path/filepath"
 	"strings"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
@@ -11,6 +13,7 @@ import (
 )
 
 type LightImporter struct {
+	dirPath        string
 	fs             boshsys.FileSystem
 	uuidGen        boshuuid.Generator
 	metadataParser MetadataParser
@@ -20,11 +23,13 @@ type LightImporter struct {
 }
 
 func NewLightImporter(
+	dirPath string,
 	fs boshsys.FileSystem,
 	uuidGen boshuuid.Generator,
 	logger boshlog.Logger,
 ) LightImporter {
 	return LightImporter{
+		dirPath:        dirPath,
 		fs:             fs,
 		uuidGen:        uuidGen,
 		metadataParser: NewMetadataParser(fs),
@@ -70,7 +75,45 @@ func (i LightImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 
 	i.logger.Debug(i.logTag, "Imported light stemcell with CID: %s", digestCID)
 
+	// Persist light stemcell metadata to disk
+	err = i.persistMetadata(digestCID, imageReference)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Persisting light stemcell metadata")
+	}
+
 	return NewLightStemcell(apiv1.NewStemcellCID(digestCID), imageReference, i.logger), nil
+}
+
+type lightStemcellMetadata struct {
+	ImageReference string `json:"image_reference"`
+}
+
+func (i LightImporter) persistMetadata(cid string, imageReference string) error {
+	metadataDir := filepath.Join(i.dirPath, cid)
+	metadataFile := filepath.Join(metadataDir, "light-stemcell.json")
+
+	i.logger.Debug(i.logTag, "Creating metadata directory: %s", metadataDir)
+	err := i.fs.MkdirAll(metadataDir, 0755)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating metadata directory")
+	}
+
+	metadata := lightStemcellMetadata{
+		ImageReference: imageReference,
+	}
+
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return bosherr.WrapError(err, "Marshaling metadata")
+	}
+
+	i.logger.Debug(i.logTag, "Writing metadata file: %s", metadataFile)
+	err = i.fs.WriteFile(metadataFile, metadataBytes)
+	if err != nil {
+		return bosherr.WrapError(err, "Writing metadata file")
+	}
+
+	return nil
 }
 
 func (i LightImporter) validateImageReference(imageRef string) error {

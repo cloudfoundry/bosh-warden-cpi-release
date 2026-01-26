@@ -70,7 +70,7 @@ func NewFactory(
 	stemcellImporter := bwcstem.NewCompositeImporter(
 		opts.StemcellsDir, fs, uuidGen, decompressor, logger)
 
-	stemcellFinder := bwcstem.NewFSFinder(opts.StemcellsDir, fs, logger)
+	stemcellFinder := bwcstem.NewCompositeFinder(opts.StemcellsDir, fs, logger)
 
 	sleeper := bwcutil.RealSleeper{}
 
