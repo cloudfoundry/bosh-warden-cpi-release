@@ -26,7 +26,7 @@ func NewFSStemcell(
 
 func (s FSStemcell) ID() apiv1.StemcellCID { return s.id }
 
-func (s FSStemcell) DirPath() string { return s.dirPath }
+func (s FSStemcell) URI() string { return s.dirPath }
 
 func (s FSStemcell) Delete() error {
 	s.logger.Debug("FSStemcell", "Deleting stemcell '%s'", s.id)

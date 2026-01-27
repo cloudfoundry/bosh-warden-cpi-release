@@ -96,9 +96,9 @@ func (c WardenCreator) Create(
 	}
 
 	containerSpec := wrdn.ContainerSpec{
-		Handle:     id.AsString(),
-		RootFSPath: stemcell.DirPath(),
-		Network:    networkIPCIDR,
+		Handle:  id.AsString(),
+		Image:   wrdn.ImageRef{URI: stemcell.URI()},
+		Network: networkIPCIDR,
 		BindMounts: []wrdn.BindMount{
 			wrdn.BindMount{
 				SrcPath: hostEphemeralBindMountPath,

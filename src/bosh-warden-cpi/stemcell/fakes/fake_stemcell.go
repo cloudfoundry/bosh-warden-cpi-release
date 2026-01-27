@@ -5,8 +5,8 @@ import (
 )
 
 type FakeStemcell struct {
-	id      apiv1.StemcellCID
-	dirPath string
+	id  apiv1.StemcellCID
+	uri string
 
 	DeleteCalled bool
 	DeleteErr    error
@@ -16,13 +16,13 @@ func NewFakeStemcell(id apiv1.StemcellCID) *FakeStemcell {
 	return &FakeStemcell{id: id}
 }
 
-func NewFakeStemcellWithPath(id apiv1.StemcellCID, dirPath string) *FakeStemcell {
-	return &FakeStemcell{id: id, dirPath: dirPath}
+func NewFakeStemcellWithPath(id apiv1.StemcellCID, uri string) *FakeStemcell {
+	return &FakeStemcell{id: id, uri: uri}
 }
 
 func (s FakeStemcell) ID() apiv1.StemcellCID { return s.id }
 
-func (s FakeStemcell) DirPath() string { return s.dirPath }
+func (s FakeStemcell) URI() string { return s.uri }
 
 func (s *FakeStemcell) Delete() error {
 	s.DeleteCalled = true

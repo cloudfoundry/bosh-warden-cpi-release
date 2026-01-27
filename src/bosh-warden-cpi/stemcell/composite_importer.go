@@ -27,7 +27,7 @@ func NewCompositeImporter(
 ) CompositeImporter {
 	return CompositeImporter{
 		fsImporter:     NewFSImporter(dirPath, fs, uuidGen, decompressor, logger),
-		lightImporter:  NewLightImporter(dirPath, fs, uuidGen, logger),
+		lightImporter:  NewLightImporter(fs, logger),
 		metadataParser: NewMetadataParser(fs),
 
 		logTag: "CompositeImporter",

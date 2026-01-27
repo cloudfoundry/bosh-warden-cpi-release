@@ -1,8 +1,6 @@
 package stemcell
 
 import (
-	"strings"
-
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -31,18 +29,8 @@ func NewLightStemcell(
 
 func (s LightStemcell) ID() apiv1.StemcellCID { return s.cid }
 
-func (s LightStemcell) DirPath() string {
-	imageRef := s.imageReference
-	
-	parts := strings.Split(imageRef, ":")
-	if len(parts) > 2 {
-		imageRef = strings.Join(parts[:len(parts)-1], ":")
-	}
-	
-	if !strings.HasPrefix(imageRef, "docker://") {
-		return "docker://" + imageRef
-	}
-	return imageRef
+func (s LightStemcell) URI() string {
+	return "docker://" + s.imageReference
 }
 
 func (s LightStemcell) Delete() error {
