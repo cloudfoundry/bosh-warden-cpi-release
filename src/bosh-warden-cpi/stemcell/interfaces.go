@@ -14,7 +14,7 @@ type Finder interface {
 
 type Stemcell interface {
 	ID() apiv1.StemcellCID
-	DirPath() string
+	URI() string
 
 	Delete() error
 }

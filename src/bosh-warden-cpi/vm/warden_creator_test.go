@@ -163,7 +163,7 @@ var _ = Describe("WardenCreator", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				containerSpec := wardenConn.CreateArgsForCall(0)
-				Expect(containerSpec.RootFSPath).To(Equal("/fake-stemcell-path"))
+				Expect(containerSpec.Image.URI).To(Equal("/fake-stemcell-path"))
 			})
 
 			It("creates container with bind mounted ephemeral disk and persistent root location", func() {
