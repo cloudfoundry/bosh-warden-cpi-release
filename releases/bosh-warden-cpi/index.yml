@@ -107,6 +107,8 @@ builds:
     version: 45.0.2
   ec5517cd-61e5-483d-a078-e83ad358f847:
     version: "10"
+  f7110e3c-d5c6-49fd-609a-3f40d044db22:
+    version: 45.0.12
   f969bee5-0ec4-4bec-b38d-9f303e1ceea5:
     version: "5"
   faf0b56c-c70e-43b9-bc80-714d0a97fb53:
