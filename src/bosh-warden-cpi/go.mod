@@ -3,7 +3,7 @@ module bosh-warden-cpi
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/garden v0.0.0-20260211023825-fb202bdd1b27
+	code.cloudfoundry.org/garden v0.0.0-20260226175352-633a5049c174
 	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260221100037-8b66e1def6f1
 	github.com/cloudfoundry/bosh-utils v0.0.592
 	github.com/onsi/ginkgo/v2 v2.28.1
@@ -26,7 +26,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
