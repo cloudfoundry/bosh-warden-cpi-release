@@ -25,6 +25,8 @@ builds:
     version: "35"
   32a03735-fd9a-4209-48b2-15b7ed9cf2d9:
     version: "39"
+  41da6b7d-cdcf-4df3-4189-aa9fad57193a:
+    version: 45.0.15
   5135f401-350b-4411-4fd7-79aec76d5826:
     version: "30"
   54011c80-c1ff-4ef9-6f18-c31f6e73185e:
