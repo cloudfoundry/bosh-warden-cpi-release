@@ -55,7 +55,7 @@ var _ = Describe("WardenFileService", func() {
 			wardenConn.RunReturns(runProcess, nil)
 		})
 
-		It("places content into the container at /tmp/destination", func() {
+		It("places content into the container at /tmp/destination with a unique name", func() {
 			err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 			Expect(err).ToNot(HaveOccurred())
 
@@ -71,7 +71,7 @@ var _ = Describe("WardenFileService", func() {
 
 			header, err := tarStream.Next()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(header.Name).To(Equal("file.ext")) // todo more?
+			Expect(header.Name).To(MatchRegexp(`^file-[0-9a-f]+\.ext$`))
 
 			contentBytes := make([]byte, header.Size)
 
@@ -91,15 +91,13 @@ var _ = Describe("WardenFileService", func() {
 				count := wardenConn.RunCallCount()
 				Expect(count).To(Equal(1))
 
-				expectedProcessSpec := wrdn.ProcessSpec{
-					Path: "bash",
-					Args: []string{"-c", "mv /tmp/file.ext /var/vcap/file.ext"},
-					User: "root",
-				}
-
 				handle, processSpec, _ := wardenConn.RunArgsForCall(0)
 				Expect(handle).To(Equal("fake-vm-id"))
-				Expect(processSpec).To(Equal(expectedProcessSpec))
+				Expect(processSpec.Path).To(Equal("bash"))
+				Expect(processSpec.User).To(Equal("root"))
+				Expect(processSpec.Args).To(HaveLen(2))
+				Expect(processSpec.Args[0]).To(Equal("-c"))
+				Expect(processSpec.Args[1]).To(MatchRegexp(`^mv /tmp/file-[0-9a-f]+\.ext /var/vcap/file\.ext$`))
 			})
 
 			Context("when moving the temporary file into the final location fails because command exits with non-0 code", func() {
@@ -191,22 +189,22 @@ var _ = Describe("WardenFileService", func() {
 			wardenConn.StreamOutReturns(makeValidAgentEnvTar(), nil)
 		})
 
-		It("copies agent env into temporary location", func() {
+		It("copies agent env into temporary location with a unique name", func() {
 			_, err := wardenFileService.Download("/fake-download-path/file.ext")
 			Expect(err).ToNot(HaveOccurred())
 
 			count := wardenConn.RunCallCount()
 			Expect(count).To(Equal(1))
 
-			expectedProcessSpec := wrdn.ProcessSpec{
-				Path: "bash",
-				Args: []string{"-c", "cp /fake-download-path/file.ext /tmp/file.ext && chown vcap:vcap /tmp/file.ext"},
-				User: "root",
-			}
-
 			handle, processSpec, _ := wardenConn.RunArgsForCall(0)
 			Expect(handle).To(Equal("fake-vm-id"))
-			Expect(processSpec).To(Equal(expectedProcessSpec))
+			Expect(processSpec.Path).To(Equal("bash"))
+			Expect(processSpec.User).To(Equal("root"))
+			Expect(processSpec.Args).To(HaveLen(2))
+			Expect(processSpec.Args[0]).To(Equal("-c"))
+			Expect(processSpec.Args[1]).To(MatchRegexp(
+				`^cp /fake-download-path/file\.ext /tmp/file-[0-9a-f]+\.ext && chown vcap:vcap /tmp/file-[0-9a-f]+\.ext$`,
+			))
 		})
 
 		Context("when copying agent env into temporary location succeeds", func() {
@@ -221,7 +219,7 @@ var _ = Describe("WardenFileService", func() {
 
 					handle, spec := wardenConn.StreamOutArgsForCall(0)
 					Expect(handle).To(Equal("fake-vm-id"))
-					Expect(spec.Path).To(Equal("/tmp/file.ext"))
+					Expect(spec.Path).To(MatchRegexp(`^/tmp/file-[0-9a-f]+\.ext$`))
 					Expect(spec.User).To(Equal("root"))
 				})
 			})

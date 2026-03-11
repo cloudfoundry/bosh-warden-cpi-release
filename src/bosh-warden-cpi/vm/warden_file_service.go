@@ -3,6 +3,7 @@ package vm
 import (
 	"archive/tar"
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -30,7 +31,8 @@ func NewWardenFileService(container wrdn.Container, logger boshlog.Logger) Warde
 
 func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 	sourceFileName := filepath.Base(sourcePath)
-	tmpFilePath := filepath.Join("/tmp", sourceFileName)
+	tmpFileName := uniqueTmpFileName(sourceFileName)
+	tmpFilePath := filepath.Join("/tmp", tmpFileName)
 
 	s.logger.Debug(s.logTag, "Downloading file at %s", sourcePath)
 
@@ -72,11 +74,11 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 func (s *wardenFileService) Upload(destinationPath string, contents []byte) error {
 	s.logger.Debug(s.logTag, "Uploading file to %s", destinationPath)
 
-	destinationFileName := filepath.Base(destinationPath)
+	tmpFileName := uniqueTmpFileName(filepath.Base(destinationPath))
 
 	// Stream in settings file to a temporary directory
 	// so that tar (running as vcap) has permission to unpack into dir.
-	tarReader, err := s.tarReader(destinationFileName, contents)
+	tarReader, err := s.tarReader(tmpFileName, contents)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating tar")
 	}
@@ -92,8 +94,7 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 		return bosherr.WrapError(err, "Streaming in tar")
 	}
 
-	tmpFilePath := filepath.Join("/tmp", destinationFileName)
-	// Move settings file to its final location
+	tmpFilePath := filepath.Join("/tmp", tmpFileName)
 	script := fmt.Sprintf(
 		"mv %s %s",
 		tmpFilePath,
@@ -135,6 +136,14 @@ func (s *wardenFileService) runPrivilegedScript(script string) error {
 	}
 
 	return nil
+}
+
+func uniqueTmpFileName(baseName string) string {
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	ext := filepath.Ext(baseName)
+	name := baseName[:len(baseName)-len(ext)]
+	return fmt.Sprintf("%s-%x%s", name, b, ext)
 }
 
 func (s *wardenFileService) tarReader(fileName string, contents []byte) (io.Reader, error) {
