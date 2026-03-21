@@ -3,20 +3,19 @@ module bosh-warden-cpi
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/garden v0.0.0-20260311024225-613a89da1275
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260307100329-8dca50ad93e3
-	github.com/cloudfoundry/bosh-utils v0.0.596
+	code.cloudfoundry.org/garden v0.0.0-20260318024418-0ddea73e969e
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260314100156-6edec64d2255
+	github.com/cloudfoundry/bosh-utils v0.0.599
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
 	go.yaml.in/yaml/v3 v3.0.4
 )
 
 require (
-	code.cloudfoundry.org/lager/v3 v3.63.0 // indirect
+	code.cloudfoundry.org/lager/v3 v3.64.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f // indirect
-	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
