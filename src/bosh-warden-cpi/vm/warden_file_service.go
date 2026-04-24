@@ -79,8 +79,15 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 	destinationFileName := filepath.Base(destinationPath)
 	destinationDir := filepath.Dir(destinationPath)
 
-	// Stream directly to destination directory to avoid overlayfs issues
-	// with /tmp on Ubuntu Noble with cgroup v2.
+	// Stream directly to the destination directory rather than staging via /tmp.
+	//
+	// Root cause: Garden bind-mounts the garden-init binary into /tmp/garden-init
+	// inside every container (see guardiancmd/command_linux.go:initBindMountAndPath).
+	// On Ubuntu Noble (kernel 6.8) with cgroup v2, nstar's setns+tar writes to /tmp
+	// land on the bind-mount layer and are not visible to subsequent container.Run()
+	// processes looking at the overlayfs upper layer. /var/vcap/bosh/ has no such
+	// bind mounts and is a plain overlayfs directory, so writes there are stable.
+	// This regression did not affect Jammy (kernel 5.15).
 	tarReader, err := s.tarReader(destinationFileName, contents)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating tar")
@@ -99,9 +106,9 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 	}
 	s.logger.Debug(s.logTag, "Successfully streamed in file %s", destinationFileName)
 
-	// Verify the file exists with retries (for overlayfs sync issues on Ubuntu Noble with cgroup v2).
-	// StreamIn may report success before the file is visible due to filesystem sync issues
-	// with the overlayfs upper layer.
+	// Verify the file exists with retries as a safety net: while streaming directly
+	// to /var/vcap/bosh/ is stable on Noble, this guards against any transient
+	// overlayfs propagation delay.
 	s.logger.Debug(s.logTag, "Verifying file exists at %s with retry", destinationPath)
 
 	retryable := boshretry.NewRetryable(func() (bool, error) {
