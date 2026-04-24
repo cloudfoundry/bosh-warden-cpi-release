@@ -186,7 +186,7 @@ func (s *wardenFileService) tarReader(fileName string, contents []byte) (io.Read
 	fileHeader := &tar.Header{
 		Name: fileName,
 		Size: int64(len(contents)),
-		Mode: 0644, // readable by owner, group, and others so vcap user can read
+		Mode: 0640,
 	}
 
 	err := tarWriter.WriteHeader(fileHeader)
