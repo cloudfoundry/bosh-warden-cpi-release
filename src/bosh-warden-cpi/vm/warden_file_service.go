@@ -38,9 +38,9 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 
 	s.logger.Debug(s.logTag, "Downloading file at %s", sourcePath)
 
-	// Copy settings file to a temporary directory
-	// so that tar (running as vcap) has permission to readdir.
-	// (/var/vcap/bosh is owned by root.)
+	// Copy settings file to a temporary directory for streaming out.
+	// We use /tmp as an intermediate location because StreamOut requires
+	// the file to be readable. The process runs as root.
 	script := fmt.Sprintf(
 		"cp %s %s && chown vcap:vcap %s",
 		sourcePath,
