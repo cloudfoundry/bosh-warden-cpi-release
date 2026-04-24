@@ -108,7 +108,7 @@ var _ = Describe("WardenFileService", func() {
 				Expect(processSpec.User).To(Equal("root"))
 				Expect(processSpec.Args).To(HaveLen(2))
 				Expect(processSpec.Args[0]).To(Equal("-c"))
-				Expect(processSpec.Args[1]).To(Equal("[ -f /var/vcap/file.ext ]"))
+				Expect(processSpec.Args[1]).To(Equal("[ -f '/var/vcap/file.ext' ]"))
 			})
 
 			Context("when verifying the file fails because command exits with non-0 code", func() {
@@ -157,6 +157,90 @@ var _ = Describe("WardenFileService", func() {
 				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stream-in-err"))
+			})
+		})
+
+		Context("when file is not immediately visible (retry logic)", func() {
+			var (
+				callCount int
+			)
+
+			BeforeEach(func() {
+				callCount = 0
+				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
+					callCount++
+					process := &fakewrdn.FakeProcess{}
+
+					// sync always succeeds (odd call numbers)
+					if callCount%2 == 1 {
+						process.WaitReturns(0, nil)
+						return process, nil
+					}
+
+					// First 2 file checks fail (call 2, 4)
+					if callCount <= 4 {
+						process.WaitReturns(1, nil) // file not found
+						return process, nil
+					}
+
+					// Third file check succeeds (call 6)
+					process.WaitReturns(0, nil)
+					return process, nil
+				}
+			})
+
+			It("retries verification until file is visible", func() {
+				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
+				Expect(err).ToNot(HaveOccurred())
+
+				// Should have: sync(1) + check(2) fail, sync(3) + check(4) fail, sync(5) + check(6) success = 6 calls
+				count := wardenConn.RunCallCount()
+				Expect(count).To(Equal(6))
+
+				for i := 0; i < 6; i++ {
+					handle, processSpec, _ := wardenConn.RunArgsForCall(i)
+					Expect(handle).To(Equal("fake-vm-id"))
+					Expect(processSpec.Path).To(Equal("bash"))
+					Expect(processSpec.User).To(Equal("root"))
+
+					if i%2 == 0 {
+						// sync commands (even indices: 0, 2, 4)
+						Expect(processSpec.Args[1]).To(Equal("sync"))
+					} else {
+						// file check commands (odd indices: 1, 3, 5)
+						Expect(processSpec.Args[1]).To(Equal("[ -f '/var/vcap/file.ext' ]"))
+					}
+				}
+			})
+		})
+
+		Context("when file never becomes visible (retry exhaustion)", func() {
+			BeforeEach(func() {
+				callCount := 0
+				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
+					callCount++
+					process := &fakewrdn.FakeProcess{}
+
+					// sync always succeeds (odd call numbers)
+					if callCount%2 == 1 {
+						process.WaitReturns(0, nil)
+						return process, nil
+					}
+
+					// All file checks fail
+					process.WaitReturns(1, nil)
+					return process, nil
+				}
+			})
+
+			It("returns error after exhausting retries", func() {
+				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Script exited with non-0 exit code"))
+
+				// Should have attempted 10 times: 10 syncs + 10 checks = 20 calls
+				count := wardenConn.RunCallCount()
+				Expect(count).To(Equal(20))
 			})
 		})
 	})
@@ -300,91 +384,5 @@ var _ = Describe("WardenFileService", func() {
 				Expect(contents).To(Equal([]byte{}))
 			})
 		})
-			})
-		})
-
-		Context("when file is not immediately visible (retry logic)", func() {
-			var (
-				callCount int
-			)
-
-			BeforeEach(func() {
-				callCount = 0
-				// Mock Run to simulate file not found on first attempts, then success
-				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
-					callCount++
-					process := &fakewrdn.FakeProcess{}
-					
-					// sync always succeeds (odd call numbers)
-					if callCount%2 == 1 {
-						process.WaitReturns(0, nil)
-						return process, nil
-					}
-					
-					// First 2 file checks fail (call 2, 4)
-					if callCount <= 4 {
-						process.WaitReturns(1, nil) // file not found
-						return process, nil
-					}
-					
-					// Third file check succeeds (call 6)
-					process.WaitReturns(0, nil)
-					return process, nil
-				}
-			})
-
-			It("retries verification until file is visible", func() {
-				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
-				Expect(err).ToNot(HaveOccurred())
-
-				// Should have: sync(1) + check(2) fail, sync(3) + check(4) fail, sync(5) + check(6) success = 6 calls
-				count := wardenConn.RunCallCount()
-				Expect(count).To(Equal(6))
-
-				// Verify the file check commands
-				for i := 0; i < 6; i++ {
-					handle, processSpec, _ := wardenConn.RunArgsForCall(i)
-					Expect(handle).To(Equal("fake-vm-id"))
-					Expect(processSpec.Path).To(Equal("bash"))
-					Expect(processSpec.User).To(Equal("root"))
-					
-					if i%2 == 0 {
-						// sync commands (even indices: 0, 2, 4)
-						Expect(processSpec.Args[1]).To(Equal("sync"))
-					} else {
-						// file check commands (odd indices: 1, 3, 5)
-						Expect(processSpec.Args[1]).To(Equal("[ -f /var/vcap/file.ext ]"))
-					}
-				}
-			})
-		})
-
-		Context("when file never becomes visible (retry exhaustion)", func() {
-			BeforeEach(func() {
-				callCount := 0
-				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
-					callCount++
-					process := &fakewrdn.FakeProcess{}
-					
-					// sync always succeeds (odd call numbers)
-					if callCount%2 == 1 {
-						process.WaitReturns(0, nil)
-						return process, nil
-					}
-					
-					// All file checks fail
-					process.WaitReturns(1, nil)
-					return process, nil
-				}
-			})
-
-			It("returns error after exhausting retries", func() {
-				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Script exited with non-0 exit code"))
-
-				// Should have attempted 10 times: 10 syncs + 10 checks = 20 calls
-				count := wardenConn.RunCallCount()
-				Expect(count).To(Equal(20))
-			})
-		})
+	})
+})
