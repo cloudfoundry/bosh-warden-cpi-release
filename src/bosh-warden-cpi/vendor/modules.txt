@@ -30,6 +30,7 @@ github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
 github.com/cloudfoundry/bosh-utils/fileutil/fakes
 github.com/cloudfoundry/bosh-utils/logger
+github.com/cloudfoundry/bosh-utils/retrystrategy
 github.com/cloudfoundry/bosh-utils/system
 github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid

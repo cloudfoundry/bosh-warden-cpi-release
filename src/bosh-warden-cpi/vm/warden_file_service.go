@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"time"
 
 	wrdn "code.cloudfoundry.org/garden"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
 
 type wardenFileService struct {
@@ -74,36 +76,66 @@ func (s *wardenFileService) Download(sourcePath string) ([]byte, error) {
 func (s *wardenFileService) Upload(destinationPath string, contents []byte) error {
 	s.logger.Debug(s.logTag, "Uploading file to %s", destinationPath)
 
-	tmpFileName := uniqueTmpFileName(filepath.Base(destinationPath))
+	destinationFileName := filepath.Base(destinationPath)
+	destinationDir := filepath.Dir(destinationPath)
 
-	// Stream in settings file to a temporary directory
-	// so that tar (running as vcap) has permission to unpack into dir.
-	tarReader, err := s.tarReader(tmpFileName, contents)
+	// Stream directly to destination directory to avoid overlayfs issues
+	// with /tmp on Ubuntu Noble with cgroup v2.
+	tarReader, err := s.tarReader(destinationFileName, contents)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating tar")
 	}
 
 	spec := wrdn.StreamInSpec{
-		Path:      "/tmp/",
+		Path:      destinationDir + "/",
 		User:      "root",
 		TarStream: tarReader,
 	}
 
+	s.logger.Debug(s.logTag, "Streaming in file %s to container %s/", destinationFileName, destinationDir)
 	err = s.container.StreamIn(spec)
 	if err != nil {
 		return bosherr.WrapError(err, "Streaming in tar")
 	}
+	s.logger.Debug(s.logTag, "Successfully streamed in file %s", destinationFileName)
 
-	tmpFilePath := filepath.Join("/tmp", tmpFileName)
-	script := fmt.Sprintf(
-		"mv %s %s",
-		tmpFilePath,
-		destinationPath,
-	)
+	// Verify the file exists with retries (for overlayfs sync issues on Ubuntu Noble with cgroup v2).
+	// StreamIn may report success before the file is visible due to filesystem sync issues
+	// with the overlayfs upper layer.
+	s.logger.Debug(s.logTag, "Verifying file exists at %s with retry", destinationPath)
 
-	err = s.runPrivilegedScript(script)
+	retryable := boshretry.NewRetryable(func() (bool, error) {
+		// Sync filesystem first
+		syncScript := "sync"
+		err := s.runPrivilegedScript(syncScript)
+		if err != nil {
+			s.logger.Debug(s.logTag, "Failed to sync filesystem: %s", err.Error())
+			return true, err
+		}
+
+		// Check if file exists
+		checkScript := fmt.Sprintf("[ -f %s ]", destinationPath)
+		err = s.runPrivilegedScript(checkScript)
+		if err != nil {
+			s.logger.Debug(s.logTag, "File not yet visible at %s", destinationPath)
+			return true, err
+		}
+
+		s.logger.Debug(s.logTag, "File verified at %s", destinationPath)
+		return false, nil
+	})
+
+	// Retry for up to 2 seconds with 200ms delay between attempts (10 attempts)
+	retryStrategy := boshretry.NewAttemptRetryStrategy(10, 200*time.Millisecond, retryable, s.logger)
+	err = retryStrategy.Try()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Moving temporary file to destination '%s'", destinationPath)
+		// If all retries failed, list directory contents for debugging
+		listScript := fmt.Sprintf("ls -la %s/", destinationDir)
+		listErr := s.runPrivilegedScript(listScript)
+		if listErr == nil {
+			s.logger.Debug(s.logTag, "Directory listing after failed verification")
+		}
+		return bosherr.WrapErrorf(err, "Verifying file at destination '%s' after streaming", destinationPath)
 	}
 
 	return nil
