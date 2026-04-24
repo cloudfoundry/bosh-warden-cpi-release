@@ -120,7 +120,7 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 		}
 
 		// Check if file exists
-		checkScript := fmt.Sprintf("[ -f %s ]", destinationPath)
+		checkScript := fmt.Sprintf("[ -f '%s' ]", destinationPath)
 		err := s.runPrivilegedScript(checkScript)
 		if err != nil {
 			s.logger.Debug(s.logTag, "File not yet visible at %s", destinationPath)
@@ -135,12 +135,6 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 	retryStrategy := boshretry.NewAttemptRetryStrategy(10, 200*time.Millisecond, retryable, s.logger)
 	err = retryStrategy.Try()
 	if err != nil {
-		// If all retries failed, list directory contents for debugging
-		listScript := fmt.Sprintf("ls -la %s/", destinationDir)
-		listErr := s.runPrivilegedScript(listScript)
-		if listErr == nil {
-			s.logger.Debug(s.logTag, "Directory listing after failed verification")
-		}
 		return bosherr.WrapErrorf(err, "Verifying file at destination '%s' after streaming", destinationPath)
 	}
 
