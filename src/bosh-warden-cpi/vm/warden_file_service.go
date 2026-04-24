@@ -112,17 +112,16 @@ func (s *wardenFileService) Upload(destinationPath string, contents []byte) erro
 	s.logger.Debug(s.logTag, "Verifying file exists at %s with retry", destinationPath)
 
 	retryable := boshretry.NewRetryable(func() (bool, error) {
-		// Sync filesystem first
-		syncScript := "sync"
-		err := s.runPrivilegedScript(syncScript)
-		if err != nil {
-			s.logger.Debug(s.logTag, "Failed to sync filesystem: %s", err.Error())
-			return true, err
+		// Sync filesystem; if sync fails, log and continue to the existence
+		// check anyway — a sync failure is unlikely to self-heal across a
+		// 200ms sleep and shouldn't burn a retry attempt.
+		if syncErr := s.runPrivilegedScript("sync"); syncErr != nil {
+			s.logger.Debug(s.logTag, "Failed to sync filesystem: %s", syncErr.Error())
 		}
 
 		// Check if file exists
 		checkScript := fmt.Sprintf("[ -f %s ]", destinationPath)
-		err = s.runPrivilegedScript(checkScript)
+		err := s.runPrivilegedScript(checkScript)
 		if err != nil {
 			s.logger.Debug(s.logTag, "File not yet visible at %s", destinationPath)
 			return true, err
