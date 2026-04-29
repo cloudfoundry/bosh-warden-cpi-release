@@ -41,7 +41,8 @@ var _ = Describe("WardenFileService", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		wardenFileService = NewWardenFileService(container, logger)
+		// Use zero delay in tests to avoid long-running retry loops
+		wardenFileService = NewWardenFileServiceWithRetry(container, logger, DefaultRetryAttempts, 0)
 	})
 
 	Describe("Upload", func() {
@@ -55,7 +56,7 @@ var _ = Describe("WardenFileService", func() {
 			wardenConn.RunReturns(runProcess, nil)
 		})
 
-		It("places content into the container at /tmp/destination with a unique name", func() {
+		It("places content into the container at the destination directory", func() {
 			err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 			Expect(err).ToNot(HaveOccurred())
 
@@ -64,14 +65,14 @@ var _ = Describe("WardenFileService", func() {
 
 			handle, spec := wardenConn.StreamInArgsForCall(0)
 			Expect(handle).To(Equal("fake-vm-id"))
-			Expect(spec.Path).To(Equal("/tmp/"))
+			Expect(spec.Path).To(Equal("/var/vcap/"))
 			Expect(spec.User).To(Equal("root"))
 
 			tarStream := tar.NewReader(spec.TarStream)
 
 			header, err := tarStream.Next()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(header.Name).To(MatchRegexp(`^file-[0-9a-f]+\.ext$`))
+			Expect(header.Name).To(Equal("file.ext"))
 
 			contentBytes := make([]byte, header.Size)
 
@@ -84,23 +85,63 @@ var _ = Describe("WardenFileService", func() {
 		})
 
 		Context("when streaming into the container succeeds", func() {
-			It("moves the temporary file into the final location", func() {
+			It("verifies the file exists at the destination", func() {
 				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 				Expect(err).ToNot(HaveOccurred())
 
+				// Should make 2 Run calls: sync + file check
 				count := wardenConn.RunCallCount()
-				Expect(count).To(Equal(1))
+				Expect(count).To(Equal(2))
 
+				// First call: sync
 				handle, processSpec, _ := wardenConn.RunArgsForCall(0)
 				Expect(handle).To(Equal("fake-vm-id"))
 				Expect(processSpec.Path).To(Equal("bash"))
 				Expect(processSpec.User).To(Equal("root"))
 				Expect(processSpec.Args).To(HaveLen(2))
 				Expect(processSpec.Args[0]).To(Equal("-c"))
-				Expect(processSpec.Args[1]).To(MatchRegexp(`^mv /tmp/file-[0-9a-f]+\.ext /var/vcap/file\.ext$`))
+				Expect(processSpec.Args[1]).To(Equal("sync"))
+
+				// Second call: file existence check
+				handle, processSpec, _ = wardenConn.RunArgsForCall(1)
+				Expect(handle).To(Equal("fake-vm-id"))
+				Expect(processSpec.Path).To(Equal("bash"))
+				Expect(processSpec.User).To(Equal("root"))
+				Expect(processSpec.Args).To(HaveLen(2))
+				Expect(processSpec.Args[0]).To(Equal("-c"))
+				Expect(processSpec.Args[1]).To(Equal("[ -f '/var/vcap/file.ext' ]"))
 			})
 
-			Context("when moving the temporary file into the final location fails because command exits with non-0 code", func() {
+			Context("when sync fails but file check succeeds", func() {
+				BeforeEach(func() {
+					callCount := 0
+					wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
+						callCount++
+						process := &fakewrdn.FakeProcess{}
+
+						// First call is sync and fails
+						if callCount == 1 {
+							process.WaitReturns(1, nil)
+							return process, nil
+						}
+
+						// Second call is the file existence check and succeeds
+						process.WaitReturns(0, nil)
+						return process, nil
+					}
+				})
+
+				It("succeeds and does not treat sync failure as fatal", func() {
+					err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
+					Expect(err).ToNot(HaveOccurred())
+
+					// Should make 2 Run calls: sync + file check
+					count := wardenConn.RunCallCount()
+					Expect(count).To(Equal(2))
+				})
+			})
+
+			Context("when verifying the file fails because command exits with non-0 code", func() {
 				BeforeEach(func() {
 					runProcess.WaitReturns(1, nil)
 				})
@@ -112,7 +153,7 @@ var _ = Describe("WardenFileService", func() {
 				})
 			})
 
-			Context("when moving the temporary file into the final location fails", func() {
+			Context("when verifying the file fails", func() {
 				BeforeEach(func() {
 					runProcess.WaitReturns(0, errors.New("fake-wait-err"))
 				})
@@ -124,7 +165,7 @@ var _ = Describe("WardenFileService", func() {
 				})
 			})
 
-			Context("when moving the temporary file into the final location cannot start", func() {
+			Context("when verifying the file cannot start", func() {
 				BeforeEach(func() {
 					wardenConn.RunReturns(nil, errors.New("fake-run-err"))
 				})
@@ -146,6 +187,90 @@ var _ = Describe("WardenFileService", func() {
 				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stream-in-err"))
+			})
+		})
+
+		Context("when file is not immediately visible (retry logic)", func() {
+			var (
+				callCount int
+			)
+
+			BeforeEach(func() {
+				callCount = 0
+				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
+					callCount++
+					process := &fakewrdn.FakeProcess{}
+
+					// sync always succeeds (odd call numbers)
+					if callCount%2 == 1 {
+						process.WaitReturns(0, nil)
+						return process, nil
+					}
+
+					// First 2 file checks fail (call 2, 4)
+					if callCount <= 4 {
+						process.WaitReturns(1, nil) // file not found
+						return process, nil
+					}
+
+					// Third file check succeeds (call 6)
+					process.WaitReturns(0, nil)
+					return process, nil
+				}
+			})
+
+			It("retries verification until file is visible", func() {
+				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
+				Expect(err).ToNot(HaveOccurred())
+
+				// Should have: sync(1) + check(2) fail, sync(3) + check(4) fail, sync(5) + check(6) success = 6 calls
+				count := wardenConn.RunCallCount()
+				Expect(count).To(Equal(6))
+
+				for i := 0; i < 6; i++ {
+					handle, processSpec, _ := wardenConn.RunArgsForCall(i)
+					Expect(handle).To(Equal("fake-vm-id"))
+					Expect(processSpec.Path).To(Equal("bash"))
+					Expect(processSpec.User).To(Equal("root"))
+
+					if i%2 == 0 {
+						// sync commands (even indices: 0, 2, 4)
+						Expect(processSpec.Args[1]).To(Equal("sync"))
+					} else {
+						// file check commands (odd indices: 1, 3, 5)
+						Expect(processSpec.Args[1]).To(Equal("[ -f '/var/vcap/file.ext' ]"))
+					}
+				}
+			})
+		})
+
+		Context("when file never becomes visible (retry exhaustion)", func() {
+			BeforeEach(func() {
+				callCount := 0
+				wardenConn.RunStub = func(handle string, spec wrdn.ProcessSpec, io wrdn.ProcessIO) (wrdn.Process, error) {
+					callCount++
+					process := &fakewrdn.FakeProcess{}
+
+					// sync always succeeds (odd call numbers)
+					if callCount%2 == 1 {
+						process.WaitReturns(0, nil)
+						return process, nil
+					}
+
+					// All file checks fail
+					process.WaitReturns(1, nil)
+					return process, nil
+				}
+			})
+
+			It("returns error after exhausting retries", func() {
+				err := wardenFileService.Upload("/var/vcap/file.ext", []byte("fake-contents"))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Script exited with non-0 exit code"))
+
+				// Should have attempted 10 times: 10 syncs + 10 checks = 20 calls
+				count := wardenConn.RunCallCount()
+				Expect(count).To(Equal(20))
 			})
 		})
 	})
