@@ -117,14 +117,14 @@ func (c WardenCreator) Create(
 		Privileged: true,
 	}
 
-	if c.Config.StartContainersWithSystemD {
-		containerSpec.BindMounts = append(containerSpec.BindMounts, wrdn.BindMount{
-			SrcPath: "/sys/fs/cgroup",
-			DstPath: "/sys/fs/cgroup",
-			Mode:    wrdn.BindMountModeRW,
-			Origin:  wrdn.BindMountOriginHost,
-		})
-	}
+	//if c.Config.StartContainersWithSystemD {
+	//	containerSpec.BindMounts = append(containerSpec.BindMounts, wrdn.BindMount{
+	//		SrcPath: "/sys/fs/cgroup",
+	//		DstPath: "/sys/fs/cgroup",
+	//		Mode:    wrdn.BindMountModeRW,
+	//		Origin:  wrdn.BindMountOriginHost,
+	//	})
+	//}
 
 	c.logger.Debug("WardenCreator", "Creating container with spec %#v", containerSpec)
 
