@@ -79,6 +79,8 @@ builds:
     version: "11"
   a76ce803-d9ed-405a-7be8-df3ad3717249:
     version: 45.0.14
+  ad594ecf-ef47-4443-5b60-91304cb1ab16:
+    version: 45.1.2
   b148bbbb-1491-4ca9-8852-f31896af9491:
     version: "1"
   b1aaef00-8c93-4b81-42a2-4aeb53a0668a:
