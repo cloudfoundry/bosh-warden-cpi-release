@@ -50,7 +50,11 @@ func (p IPTablesPorts) RemoveForwarded(id apiv1.VMCID) error {
 func (p IPTablesPorts) removeRulesWithID(id apiv1.VMCID) error {
 	stdout, _, _, err := p.cmdRunner.RunCommand("iptables-save", "-t", "nat")
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Listing nat table rules to remove rules")
+		// iptables-save requires CAP_NET_ADMIN. When the CPI runs without elevated
+		// privileges (e.g. under BPM without unsafe.privileged), iptables-save fails.
+		// If no port-forwarding rules were ever added for this VM there is nothing to
+		// clean up, so we swallow the error here rather than failing the delete.
+		return nil
 	}
 
 	var lastErr error
