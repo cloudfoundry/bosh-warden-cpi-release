@@ -7,3 +7,10 @@ sed -i 's/\/var\/vcap\/data\/garden\/bin\/init/\/sbin\/init/' /var/vcap/jobs/gar
 <% else %>
 sed -i 's/\/sbin\/init/\/var\/vcap\/data\/garden\/bin\/init/' /var/vcap/jobs/garden/config/config.ini
 <% end %>
+
+# Patch the director's BPM config to grant worker processes privileged mode so
+# that the warden CPI can perform bind mounts and iptables calls from within
+# the BPM container. This is intentionally hacky - we're confining the hack to
+# warden-cpi instead of polluting the director release. Our intention is to
+# deprecate the warden-cpi in favor of the docker-cpi.
+/var/vcap/packages/warden_cpi/bin/bpm-patcher
