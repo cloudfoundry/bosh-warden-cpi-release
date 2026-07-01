@@ -20,3 +20,4 @@ mkdir -p ${BOSH_INSTALL_TARGET}/bin
 export GOARCH=amd64
 export GOOS=linux
 go build -o "${BOSH_INSTALL_TARGET}/bin/cpi" ./main
+go build -o "${BOSH_INSTALL_TARGET}/bin/bpm-patcher" ./cmd/bpm-patcher
