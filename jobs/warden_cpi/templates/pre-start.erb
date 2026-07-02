@@ -11,12 +11,16 @@ set -eu
 #
 # The wrapper script below exec's /sbin/init from *inside* the container, so each
 # stemcell uses its own systemd version and finds its own matching libraries.
+#
+# The directory may not exist yet on a fresh deployment (garden creates it at
+# runtime, not during pre-start), so we create it here before writing the wrapper.
+mkdir -p /var/vcap/data/garden/bin
 printf '%s\n' '#!/bin/sh' 'exec /sbin/init "$@"' > /var/vcap/data/garden/bin/exec-container-init
 chmod +x /var/vcap/data/garden/bin/exec-container-init
 
 sed -i 's|init-bin = /var/vcap/data/garden/bin/init|init-bin = /var/vcap/data/garden/bin/exec-container-init|' /var/vcap/jobs/garden/config/config.ini
 <% else %>
-sed -i 's|/sbin/init|/var/vcap/data/garden/bin/init|' /var/vcap/jobs/garden/config/config.ini
+sed -i 's|init-bin = /var/vcap/data/garden/bin/exec-container-init|init-bin = /var/vcap/data/garden/bin/init|' /var/vcap/jobs/garden/config/config.ini
 <% end %>
 
 # Patch the director's BPM config to grant worker processes privileged mode so
