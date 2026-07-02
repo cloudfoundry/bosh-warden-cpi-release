@@ -3,7 +3,18 @@
 set -eu
 
 <% if p("warden_cpi.start_containers_with_systemd") %>
-sed -i 's/\/var\/vcap\/data\/garden\/bin\/init/\/sbin\/init/' /var/vcap/jobs/garden/config/config.ini
+# Garden bind-mounts init-bin from the HOST into every container as /tmp/garden-init
+# and runs it as PID 1. If init-bin were the host's /sbin/init (e.g. Noble systemd),
+# its internal shared libraries (libsystemd-shared-N.so) would be resolved from
+# the CONTAINER's rootfs -- failing whenever the container's stemcell carries a
+# different systemd version (e.g. Resolute ships systemd 259, Noble ships 255).
+#
+# The wrapper script below exec's /sbin/init from *inside* the container, so each
+# stemcell uses its own systemd version and finds its own matching libraries.
+printf '%s\n' '#!/bin/sh' 'exec /sbin/init "$@"' > /var/vcap/data/garden/bin/exec-container-init
+chmod +x /var/vcap/data/garden/bin/exec-container-init
+
+sed -i 's|init-bin = /var/vcap/data/garden/bin/init|init-bin = /var/vcap/data/garden/bin/exec-container-init|' /var/vcap/jobs/garden/config/config.ini
 <% else %>
 sed -i 's/\/sbin\/init/\/var\/vcap\/data\/garden\/bin\/init/' /var/vcap/jobs/garden/config/config.ini
 <% end %>
