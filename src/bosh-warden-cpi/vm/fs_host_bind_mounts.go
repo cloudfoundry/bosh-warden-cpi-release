@@ -77,7 +77,16 @@ func (hbm FSHostBindMounts) DeleteEphemeral(id apiv1.VMCID) error {
 		return nil
 	}
 
-	_, _, _, err := hbm.cmdRunner.RunCommand("umount", path)
+	// With shared: true on the BPM unrestricted_volume for /var/vcap/store/warden_cpi,
+	// the mount --bind in MakeEphemeral propagates to the host namespace as a shared
+	// mount. Garden then binds that host-side path into the VM container as
+	// /var/vcap/data. Any mounts made inside the container (e.g. a systemd tmpfs at
+	// /run, visible as /var/vcap/data/sys/run) propagate back to the host through the
+	// shared mount, appearing as nested mounts under this path. A plain umount only
+	// removes the top-level self-bind mount and leaves nested mounts in place,
+	// causing the subsequent RemoveAll to fail with "device or resource busy".
+	// umount --recursive tears down the entire mount tree before we delete.
+	_, _, _, err := hbm.cmdRunner.RunCommand("umount", "--recursive", path)
 	if err != nil && !strings.Contains(err.Error(), "not mounted") {
 		return err
 	}

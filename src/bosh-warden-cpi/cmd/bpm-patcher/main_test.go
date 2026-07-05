@@ -10,7 +10,8 @@ import (
 )
 
 // minimalBPMYML is a representative director bpm.yml with worker and
-// non-worker processes, and an existing unsafe block on one worker.
+// non-worker processes, an existing unsafe block on one worker, and a worker
+// that already has an executable and args (to exercise replacement logic).
 const minimalBPMYML = `processes:
 - name: director
   executable: /var/vcap/packages/director/bin/bosh-director
@@ -25,6 +26,11 @@ const minimalBPMYML = `processes:
   unsafe:
     unrestricted_volumes:
     - path: /var/vcap/data
+- name: worker_with_existing_args
+  executable: /some/old/executable
+  args:
+  - --old-arg
+  - --another-old-arg
 `
 
 func writeTempBPM(dir, content string) string {
@@ -85,7 +91,7 @@ var _ = Describe("patchBPMYML", func() {
 	})
 
 	Context("with a valid bpm.yml", func() {
-		It("sets unsafe.privileged on every worker process", func() {
+		It("sets unsafe.privileged and setpriv command on every worker process", func() {
 			path := writeTempBPM(tmpDir, minimalBPMYML)
 			Expect(patchBPMYML(path)).To(Succeed())
 
@@ -104,14 +110,55 @@ var _ = Describe("patchBPMYML", func() {
 					priv := findMappingValue(unsafe, "privileged")
 					Expect(priv).NotTo(BeNil(), "expected privileged key on %s", name.Value)
 					Expect(priv.Value).To(Equal("true"))
+
+					exe := findMappingValue(proc, "executable")
+					Expect(exe).NotTo(BeNil(), "expected executable on %s", name.Value)
+					Expect(exe.Value).To(Equal("/usr/bin/bash"), "executable on %s", name.Value)
+
+					argsNode := findMappingValue(proc, "args")
+					Expect(argsNode).NotTo(BeNil(), "expected args on %s", name.Value)
+					Expect(argsNode.Kind).To(Equal(yaml.SequenceNode))
+					Expect(argsNode.Content).To(HaveLen(2))
+					Expect(argsNode.Content[0].Value).To(Equal("-c"))
+					Expect(argsNode.Content[1].Value).To(ContainSubstring("setpriv"))
 				} else {
-					// non-worker processes must not gain an unsafe block
+					// non-worker processes must not gain an unsafe block or altered executable
 					if unsafe != nil {
 						priv := findMappingValue(unsafe, "privileged")
 						Expect(priv).To(BeNil(), "director must not be privileged")
 					}
+					exe := findMappingValue(proc, "executable")
+					Expect(exe).NotTo(BeNil())
+					Expect(exe.Value).NotTo(Equal("/usr/bin/bash"), "director executable must not be rewritten")
 				}
 			}
+		})
+
+		It("preserves the original executable and args inside the setpriv command", func() {
+			path := writeTempBPM(tmpDir, minimalBPMYML)
+			Expect(patchBPMYML(path)).To(Succeed())
+
+			doc := parseBPM(path)
+			root := doc.Content[0]
+			processes := findMappingValue(root, "processes")
+
+			var target *yaml.Node
+			for _, proc := range processes.Content {
+				name := findMappingValue(proc, "name")
+				if name != nil && name.Value == "worker_with_existing_args" {
+					target = proc
+					break
+				}
+			}
+			Expect(target).NotTo(BeNil())
+
+			argsNode := findMappingValue(target, "args")
+			Expect(argsNode).NotTo(BeNil())
+			cmd := argsNode.Content[1].Value
+			Expect(cmd).To(ContainSubstring("setpriv"))
+			Expect(cmd).To(ContainSubstring("/some/old/executable"))
+			Expect(cmd).To(ContainSubstring("--old-arg"))
+			Expect(cmd).To(ContainSubstring("--another-old-arg"))
 		})
 
 		It("preserves existing unsafe keys on a worker", func() {
@@ -201,6 +248,121 @@ var _ = Describe("findMappingValue", func() {
 	It("returns nil for a non-mapping node", func() {
 		node := &yaml.Node{Kind: yaml.SequenceNode}
 		Expect(findMappingValue(node, "foo")).To(BeNil())
+	})
+})
+
+var _ = Describe("setWorkerCommand", func() {
+	buildProcess := func(extraContent ...*yaml.Node) *yaml.Node {
+		base := []*yaml.Node{
+			{Kind: yaml.ScalarNode, Value: "name"},
+			{Kind: yaml.ScalarNode, Value: "worker_0"},
+			{Kind: yaml.ScalarNode, Value: "executable"},
+			{Kind: yaml.ScalarNode, Value: "/var/vcap/packages/director/bin/bosh-director-worker"},
+		}
+		return &yaml.Node{Kind: yaml.MappingNode, Content: append(base, extraContent...)}
+	}
+
+	It("sets executable to /usr/bin/bash", func() {
+		proc := buildProcess()
+		setWorkerCommand(proc)
+		exe := findMappingValue(proc, "executable")
+		Expect(exe).NotTo(BeNil())
+		Expect(exe.Value).To(Equal("/usr/bin/bash"))
+	})
+
+	It("wraps the original executable in a setpriv command", func() {
+		proc := buildProcess()
+		setWorkerCommand(proc)
+		args := findMappingValue(proc, "args")
+		Expect(args).NotTo(BeNil())
+		Expect(args.Kind).To(Equal(yaml.SequenceNode))
+		Expect(args.Content).To(HaveLen(2))
+		Expect(args.Content[0].Value).To(Equal("-c"))
+		Expect(args.Content[1].Value).To(ContainSubstring("setpriv"))
+		Expect(args.Content[1].Value).To(ContainSubstring("/var/vcap/packages/director/bin/bosh-director-worker"))
+	})
+
+	Context("process has existing args", func() {
+		It("forwards existing args through the setpriv command", func() {
+			proc := buildProcess(
+				&yaml.Node{Kind: yaml.ScalarNode, Value: "args"},
+				&yaml.Node{
+					Kind: yaml.SequenceNode,
+					Content: []*yaml.Node{
+						{Kind: yaml.ScalarNode, Value: "worker_0"},
+						{Kind: yaml.ScalarNode, Value: "--extra-flag"},
+					},
+				},
+			)
+			setWorkerCommand(proc)
+
+			args := findMappingValue(proc, "args")
+			Expect(args.Content).To(HaveLen(2))
+			cmd := args.Content[1].Value
+			Expect(cmd).To(ContainSubstring("setpriv"))
+			Expect(cmd).To(ContainSubstring("/var/vcap/packages/director/bin/bosh-director-worker"))
+			Expect(cmd).To(ContainSubstring("worker_0"))
+			Expect(cmd).To(ContainSubstring("--extra-flag"))
+		})
+	})
+
+	Context("process has an arg that contains spaces", func() {
+		It("shell-quotes the arg so it survives bash -c as a single word", func() {
+			proc := buildProcess(
+				&yaml.Node{Kind: yaml.ScalarNode, Value: "args"},
+				&yaml.Node{
+					Kind: yaml.SequenceNode,
+					Content: []*yaml.Node{
+						{Kind: yaml.ScalarNode, Value: "hello world"},
+					},
+				},
+			)
+			setWorkerCommand(proc)
+
+			args := findMappingValue(proc, "args")
+			Expect(args.Content).To(HaveLen(2))
+			cmd := args.Content[1].Value
+			// The space-containing arg must appear quoted so bash treats it as one token.
+			Expect(cmd).To(ContainSubstring("'hello world'"))
+		})
+	})
+
+	Context("called twice on the same process", func() {
+		It("is idempotent — does not wrap setpriv inside itself", func() {
+			proc := buildProcess()
+			setWorkerCommand(proc)
+			firstCmd := findMappingValue(proc, "args").Content[1].Value
+
+			setWorkerCommand(proc)
+			args := findMappingValue(proc, "args")
+			Expect(args.Content).To(HaveLen(2), "args must not be duplicated")
+			Expect(args.Content[1].Value).To(Equal(firstCmd),
+				"second call must not re-wrap the setpriv command")
+		})
+	})
+})
+
+var _ = Describe("setMappingScalar", func() {
+	It("adds a new key when absent", func() {
+		node := &yaml.Node{Kind: yaml.MappingNode}
+		setMappingScalar(node, "foo", "bar")
+		result := findMappingValue(node, "foo")
+		Expect(result).NotTo(BeNil())
+		Expect(result.Value).To(Equal("bar"))
+	})
+
+	It("updates an existing key in place", func() {
+		node := &yaml.Node{
+			Kind: yaml.MappingNode,
+			Content: []*yaml.Node{
+				{Kind: yaml.ScalarNode, Value: "foo"},
+				{Kind: yaml.ScalarNode, Value: "old"},
+			},
+		}
+		setMappingScalar(node, "foo", "new")
+		result := findMappingValue(node, "foo")
+		Expect(result.Value).To(Equal("new"))
+		Expect(node.Content).To(HaveLen(2), "must not append a duplicate key")
 	})
 })
 
