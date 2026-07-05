@@ -70,6 +70,7 @@ func patchBPMYML(path string) error {
 		}
 		if isWorkerProcess(nameNode.Value) {
 			setPrivileged(process)
+			setWorkerCommand(process)
 			patched++
 		}
 	}
@@ -93,10 +94,95 @@ func patchBPMYML(path string) error {
 	return nil
 }
 
+// setMappingScalar sets an existing scalar key-value pair in a mapping node,
+// or appends a new key-value pair if the key is not present. It is safe to
+// call on any scalar-valued key regardless of the node's original tag or style.
+func setMappingScalar(node *yaml.Node, key, value string) {
+	for i := 0; i+1 < len(node.Content); i += 2 {
+		if node.Content[i].Value == key {
+			v := node.Content[i+1]
+			v.Kind = yaml.ScalarNode
+			v.Tag = "!!str"
+			v.Value = value
+			v.Content = nil
+			return
+		}
+	}
+	node.Content = append(node.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: key},
+		&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: value},
+	)
+}
+
+// setWorkerCommand rewrites the executable and args of a worker process node so
+// that the BPM container runs privileged (giving the CPI root for iptables/mount)
+// while the worker process itself drops back to the vcap user via setpriv,
+// preventing root-owned files from being written into /var/vcap/data/director.
+// The original executable and any existing args are forwarded unchanged through
+// the setpriv invocation. The transformation is idempotent — if the process
+// already has /usr/bin/bash as its executable it has already been patched and
+// is left as-is.
+func setWorkerCommand(process *yaml.Node) {
+	exeNode := findMappingValue(process, "executable")
+
+	// Already patched — the executable has already been replaced with bash.
+	if exeNode != nil && exeNode.Value == "/usr/bin/bash" {
+		return
+	}
+
+	// Capture the original executable and any existing args so they can be
+	// forwarded through the setpriv invocation unchanged.  Each token is
+	// single-quote escaped so that values containing spaces or shell
+	// metacharacters survive the bash -c evaluation intact.
+	var parts []string
+	parts = append(parts, "exec setpriv --reuid=vcap --regid=vcap --clear-groups --")
+	if exeNode != nil && exeNode.Value != "" {
+		parts = append(parts, shellQuote(exeNode.Value))
+	}
+	argsNode := findMappingValue(process, "args")
+	if argsNode != nil && argsNode.Kind == yaml.SequenceNode {
+		for _, arg := range argsNode.Content {
+			if arg.Kind == yaml.ScalarNode {
+				parts = append(parts, shellQuote(arg.Value))
+			}
+		}
+	}
+
+	execCmd := strings.Join(parts, " ")
+	setMappingScalar(process, "executable", "/usr/bin/bash")
+
+	newArgs := &yaml.Node{
+		Kind: yaml.SequenceNode,
+		Tag:  "!!seq",
+		Content: []*yaml.Node{
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: "-c"},
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: execCmd},
+		},
+	}
+
+	for i := 0; i+1 < len(process.Content); i += 2 {
+		if process.Content[i].Value == "args" {
+			process.Content[i+1] = newArgs
+			return
+		}
+	}
+	process.Content = append(process.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "args"},
+		newArgs,
+	)
+}
+
 // isWorkerProcess returns true for any director worker process that runs CPI
 // calls: normal workers (worker_N) and dynamic disk workers (dynamic_disks_worker_N).
 func isWorkerProcess(name string) bool {
 	return strings.HasPrefix(name, "worker_") || strings.HasPrefix(name, "dynamic_disks_worker_")
+}
+
+// shellQuote wraps s in single quotes and escapes any embedded single quotes
+// so the value survives evaluation by bash -c as a single word, regardless of
+// spaces or shell metacharacters it may contain.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 func findMappingValue(node *yaml.Node, key string) *yaml.Node {

@@ -137,7 +137,7 @@ var _ = Describe("FSHostBindMounts", func() {
 			Context("when unmounting fails because it is not mounted", func() {
 				BeforeEach(func() {
 					cmdRunner.AddCmdResult(
-						"umount /fake-ephemeral-dir/fake-id",
+						"umount --recursive /fake-ephemeral-dir/fake-id",
 						fakesys.FakeCmdResult{Error: errors.New("not mounted")},
 					)
 				})
@@ -153,7 +153,7 @@ var _ = Describe("FSHostBindMounts", func() {
 			Context("when unmounting directory fails", func() {
 				BeforeEach(func() {
 					cmdRunner.AddCmdResult(
-						"umount /fake-ephemeral-dir/fake-id",
+						"umount --recursive /fake-ephemeral-dir/fake-id",
 						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
 					)
 				})
