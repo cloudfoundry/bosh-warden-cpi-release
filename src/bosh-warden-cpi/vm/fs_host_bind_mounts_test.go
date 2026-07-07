@@ -59,7 +59,7 @@ var _ = Describe("FSHostBindMounts", func() {
 		})
 
 		Context("when creating directory succeeds", func() {
-			It("makes the bind mount point private", func() {
+			It("makes the bind mount point shared", func() {
 				_, err := hostBindMounts.MakeEphemeral(apiv1.NewVMCID("fake-id"))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -70,13 +70,13 @@ var _ = Describe("FSHostBindMounts", func() {
 						"/fake-ephemeral-dir/fake-id",
 					},
 					[]string{
-						"mount", "--make-private",
+						"mount", "--make-shared",
 						"/fake-ephemeral-dir/fake-id",
 					},
 				}))
 			})
 
-			Context("when making bind point private fails", func() {
+			Context("when making bind point shared fails", func() {
 				It("returns error if --bind fails", func() {
 					cmdRunner.AddCmdResult(
 						"mount --bind /fake-ephemeral-dir/fake-id /fake-ephemeral-dir/fake-id",
@@ -88,9 +88,9 @@ var _ = Describe("FSHostBindMounts", func() {
 					Expect(err.Error()).To(ContainSubstring("fake-run-err"))
 				})
 
-				It("returns error if --make-private fails", func() {
+				It("returns error if --make-shared fails", func() {
 					cmdRunner.AddCmdResult(
-						"mount --make-private /fake-ephemeral-dir/fake-id",
+						"mount --make-shared /fake-ephemeral-dir/fake-id",
 						fakesys.FakeCmdResult{Error: errors.New("fake-run-err")},
 					)
 

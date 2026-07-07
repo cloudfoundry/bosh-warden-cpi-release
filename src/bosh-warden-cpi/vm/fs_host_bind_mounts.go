@@ -55,9 +55,13 @@ func (hbm FSHostBindMounts) MakeEphemeral(id apiv1.VMCID) (string, error) {
 		return "", bosherr.WrapError(err, "Making ephemeral bind mount")
 	}
 
+	// --make-shared keeps this mount in the same peer group as the host-side
+	// copy so that container-internal mounts (e.g. systemd's /run tmpfs) that
+	// propagate to the host also propagate back into BPM's namespace, making
+	// them visible to umount --recursive in DeleteEphemeral.
 	mountArgss := [][]string{
 		[]string{"--bind", path, path},
-		[]string{"--make-private", path},
+		[]string{"--make-shared", path},
 	}
 
 	for _, mountArgs := range mountArgss {
