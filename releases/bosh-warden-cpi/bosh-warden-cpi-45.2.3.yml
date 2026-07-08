@@ -1,0 +1,27 @@
+name: bosh-warden-cpi
+version: 45.2.3
+commit_hash: 27d8dd7
+uncommitted_changes: false
+jobs:
+- name: warden_cpi
+  version: ae09f988ff7ca14fa0e09b860b19877fcf389911d2d22c7b0e7f292cefbf6740
+  fingerprint: ae09f988ff7ca14fa0e09b860b19877fcf389911d2d22c7b0e7f292cefbf6740
+  sha1: sha256:7e17bb9b92f28cd3ffa3fa07da994e59cf2f5a244b1e3140f64309b366b87edf
+  packages:
+  - warden_cpi
+packages:
+- name: golang-1-linux
+  version: e4d69f7af0c1db2e350de220a8bf0e11302baec340212be6c34156ee39be4aca
+  fingerprint: e4d69f7af0c1db2e350de220a8bf0e11302baec340212be6c34156ee39be4aca
+  sha1: sha256:eb76347bc724150c7958b5297e4206ec201a6fb6e4390c13e7ac4bdba664f427
+  dependencies: []
+- name: warden_cpi
+  version: 5e2e0d8310495a5e39d8b109d6b80d00b0fac201f823141f9da4e8b5cc6f620e
+  fingerprint: 5e2e0d8310495a5e39d8b109d6b80d00b0fac201f823141f9da4e8b5cc6f620e
+  sha1: sha256:cb5e72628dc969104a814bf7ac390fa618cbb03e29c13d7e6023447ab0359ee0
+  dependencies:
+  - golang-1-linux
+license:
+  version: 37effef1784204ec513f330c9c45ca0ac83096f39c65876806a9010e15bbaf4f
+  fingerprint: 37effef1784204ec513f330c9c45ca0ac83096f39c65876806a9010e15bbaf4f
+  sha1: sha256:12bf4789ca2d9d23f160d0c8647393b78c6df2d64265365cea5c306580a6932d
