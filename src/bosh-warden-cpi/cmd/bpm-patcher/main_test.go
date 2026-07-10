@@ -47,6 +47,16 @@ func parseBPM(path string) *yaml.Node {
 	return &doc
 }
 
+func buildProcess(extraContent ...*yaml.Node) *yaml.Node {
+	base := []*yaml.Node{
+		{Kind: yaml.ScalarNode, Value: "name"},
+		{Kind: yaml.ScalarNode, Value: "worker_0"},
+		{Kind: yaml.ScalarNode, Value: "executable"},
+		{Kind: yaml.ScalarNode, Value: "/path/to/binary"},
+	}
+	return &yaml.Node{Kind: yaml.MappingNode, Content: append(base, extraContent...)}
+}
+
 var _ = Describe("patchBPMYML", func() {
 	var tmpDir string
 
@@ -91,7 +101,7 @@ var _ = Describe("patchBPMYML", func() {
 	})
 
 	Context("with a valid bpm.yml", func() {
-		It("sets unsafe.privileged and setpriv command on every worker process", func() {
+		It("sets unsafe.privileged, setpriv command, and /dev volume on every worker process", func() {
 			path := writeTempBPM(tmpDir, minimalBPMYML)
 			Expect(patchBPMYML(path)).To(Succeed())
 
@@ -121,6 +131,14 @@ var _ = Describe("patchBPMYML", func() {
 					Expect(argsNode.Content).To(HaveLen(2))
 					Expect(argsNode.Content[0].Value).To(Equal("-c"))
 					Expect(argsNode.Content[1].Value).To(ContainSubstring("setpriv"))
+
+					vols := findMappingValue(unsafe, "unrestricted_volumes")
+					Expect(vols).NotTo(BeNil(), "expected unrestricted_volumes on %s", name.Value)
+					lastVol := vols.Content[len(vols.Content)-1]
+					Expect(findMappingValue(lastVol, "path").Value).To(Equal("/dev"),
+						"/dev volume missing on %s", name.Value)
+					Expect(findMappingValue(lastVol, "writable").Value).To(Equal("true"),
+						"writable missing on %s", name.Value)
 				} else {
 					// non-worker processes must not gain an unsafe block or altered executable
 					if unsafe != nil {
@@ -161,7 +179,7 @@ var _ = Describe("patchBPMYML", func() {
 			Expect(cmd).To(ContainSubstring("--another-old-arg"))
 		})
 
-		It("preserves existing unsafe keys on a worker", func() {
+		It("preserves existing unsafe keys on a worker and adds /dev volume alongside them", func() {
 			path := writeTempBPM(tmpDir, minimalBPMYML)
 			Expect(patchBPMYML(path)).To(Succeed())
 
@@ -182,8 +200,18 @@ var _ = Describe("patchBPMYML", func() {
 			unsafe := findMappingValue(workerWithExisting, "unsafe")
 			Expect(unsafe).NotTo(BeNil())
 			Expect(findMappingValue(unsafe, "privileged").Value).To(Equal("true"))
-			Expect(findMappingValue(unsafe, "unrestricted_volumes")).NotTo(BeNil(),
-				"pre-existing unsafe keys must be preserved")
+
+			volsNode := findMappingValue(unsafe, "unrestricted_volumes")
+			Expect(volsNode).NotTo(BeNil(), "pre-existing unrestricted_volumes must be preserved")
+			Expect(volsNode.Kind).To(Equal(yaml.SequenceNode))
+			Expect(volsNode.Content).To(HaveLen(2))
+
+			firstPath := findMappingValue(volsNode.Content[0], "path")
+			Expect(firstPath.Value).To(Equal("/var/vcap/data"))
+			secondPath := findMappingValue(volsNode.Content[1], "path")
+			Expect(secondPath.Value).To(Equal("/dev"))
+			secondWritable := findMappingValue(volsNode.Content[1], "writable")
+			Expect(secondWritable.Value).To(Equal("true"))
 		})
 
 		It("adds the header comment", func() {
@@ -454,6 +482,90 @@ var _ = Describe("setPrivileged", func() {
 			Expect(unsafe).NotTo(BeNil())
 			Expect(unsafe.Kind).To(Equal(yaml.MappingNode))
 			Expect(findMappingValue(unsafe, "privileged").Value).To(Equal("true"))
+		})
+	})
+})
+
+var _ = Describe("addDevVolume", func() {
+	buildSafeProcess := func(extraPairs ...*yaml.Node) *yaml.Node {
+		// Build a process node that already has a valid unsafe block (with
+		// privileged: true) so addDevVolume has a node to attach volumes to.
+		unsafeContent := []*yaml.Node{
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: "privileged"},
+			{Kind: yaml.ScalarNode, Tag: "!!bool", Value: "true"},
+		}
+		unsafeContent = append(unsafeContent, extraPairs...)
+		unsafe := &yaml.Node{Kind: yaml.MappingNode, Content: unsafeContent}
+		return buildProcess(
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "unsafe"},
+			unsafe,
+		)
+	}
+
+	Context("process has an unsafe block without unrestricted_volumes", func() {
+		It("adds a /dev unrestricted_volume with writable: true", func() {
+			proc := buildSafeProcess()
+			unsafe := findMappingValue(proc, "unsafe")
+			Expect(unsafe).NotTo(BeNil())
+
+			addDevVolume(proc)
+
+			vols := findMappingValue(unsafe, "unrestricted_volumes")
+			Expect(vols).NotTo(BeNil())
+			Expect(vols.Content).To(HaveLen(1))
+			Expect(findMappingValue(vols.Content[0], "path").Value).To(Equal("/dev"))
+			Expect(findMappingValue(vols.Content[0], "writable").Value).To(Equal("true"))
+		})
+	})
+
+	Context("process has an unsafe block with existing unrestricted_volumes", func() {
+		It("appends /dev without removing existing volumes", func() {
+			proc := buildSafeProcess(
+				&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "unrestricted_volumes"},
+				&yaml.Node{
+					Kind: yaml.SequenceNode,
+					Content: []*yaml.Node{
+						{
+							Kind: yaml.MappingNode,
+							Content: []*yaml.Node{
+								{Kind: yaml.ScalarNode, Value: "path"},
+								{Kind: yaml.ScalarNode, Value: "/var/vcap/data"},
+							},
+						},
+					},
+				},
+			)
+			unsafe := findMappingValue(proc, "unsafe")
+			addDevVolume(proc)
+
+			vols := findMappingValue(unsafe, "unrestricted_volumes")
+			Expect(vols).NotTo(BeNil())
+			Expect(vols.Content).To(HaveLen(2))
+			Expect(findMappingValue(vols.Content[0], "path").Value).To(Equal("/var/vcap/data"))
+			Expect(findMappingValue(vols.Content[1], "path").Value).To(Equal("/dev"))
+			Expect(findMappingValue(vols.Content[1], "writable").Value).To(Equal("true"))
+		})
+	})
+
+	Context("called twice on the same process", func() {
+		It("is idempotent — does not add /dev twice", func() {
+			proc := buildSafeProcess()
+			unsafe := findMappingValue(proc, "unsafe")
+
+			addDevVolume(proc)
+			addDevVolume(proc)
+
+			vols := findMappingValue(unsafe, "unrestricted_volumes")
+			Expect(vols).NotTo(BeNil())
+			Expect(vols.Content).To(HaveLen(1), "should only have one /dev entry")
+		})
+	})
+
+	Context("process has no unsafe block", func() {
+		It("does nothing gracefully", func() {
+			proc := &yaml.Node{Kind: yaml.MappingNode}
+			Expect(func() { addDevVolume(proc) }).NotTo(Panic())
+			Expect(findMappingValue(proc, "unsafe")).To(BeNil())
 		})
 	})
 })
