@@ -83,7 +83,7 @@ releases: []
 stemcells:
 - alias: default
   os: $stemcell_os
-  version: $iaas_stemcell_version
+  version: "$iaas_stemcell_version"
 update:
   canaries: 0
   canary_watch_time: 60000
@@ -123,7 +123,7 @@ EOF
     path: /instance_groups/name=bosh/networks/0/static_ips
   - type: replace
     path: /stemcells/0/version
-    value: $iaas_stemcell_version
+    value: \"$iaas_stemcell_version\"
   - type: replace
     path: /name
     value: bosh-warden-cpi-bats-director
