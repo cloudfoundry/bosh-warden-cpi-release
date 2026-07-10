@@ -71,6 +71,7 @@ func patchBPMYML(path string) error {
 		if isWorkerProcess(nameNode.Value) {
 			setPrivileged(process)
 			setWorkerCommand(process)
+			addDevVolume(process)
 			patched++
 		}
 	}
@@ -92,6 +93,64 @@ func patchBPMYML(path string) error {
 	}
 
 	return nil
+}
+
+// addDevVolume bind-mounts the director VM's /dev into each worker BPM
+// container, replacing BPM's synthetic tmpfs /dev. Workers need
+// /dev/loop-control and /dev/loopN to run "mount -o loop" during disk
+// attachment.
+//
+// A plain mknod inside the container is not sufficient on Concourse workers:
+// the host exposes ~257 pre-allocated loop devices (loop0–loop256) in the task
+// container's /dev, so ioctl(LOOP_CTL_GET_FREE) returns a number >= 257.
+// The corresponding node doesn't exist in BPM's synthetic /dev and mknod for
+// it fails because the kernel's loop table is exhausted at the outer level.
+// Bind-mounting /dev gives the worker the full set of pre-existing nodes so
+// LOOP_CTL_GET_FREE always finds a matching device file.
+//
+// The function is idempotent: a second call on a process that already has /dev
+// in its unrestricted_volumes is a no-op.
+func addDevVolume(process *yaml.Node) {
+	unsafeNode := findMappingValue(process, "unsafe")
+	if unsafeNode == nil || unsafeNode.Kind != yaml.MappingNode {
+		return
+	}
+
+	volsNode := findMappingValue(unsafeNode, "unrestricted_volumes")
+	if volsNode != nil && volsNode.Kind == yaml.SequenceNode {
+		for _, vol := range volsNode.Content {
+			if vol.Kind == yaml.MappingNode {
+				pathNode := findMappingValue(vol, "path")
+				if pathNode != nil && pathNode.Value == "/dev" {
+					return
+				}
+			}
+		}
+	}
+
+	devEntry := &yaml.Node{
+		Kind: yaml.MappingNode,
+		Content: []*yaml.Node{
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: "path"},
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: "/dev"},
+			{Kind: yaml.ScalarNode, Tag: "!!str", Value: "writable"},
+			{Kind: yaml.ScalarNode, Tag: "!!bool", Value: "true"},
+		},
+	}
+
+	if volsNode == nil {
+		unsafeNode.Content = append(unsafeNode.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "unrestricted_volumes"},
+			&yaml.Node{
+				Kind:    yaml.SequenceNode,
+				Tag:     "!!seq",
+				Content: []*yaml.Node{devEntry},
+			},
+		)
+		return
+	}
+
+	volsNode.Content = append(volsNode.Content, devEntry)
 }
 
 // setMappingScalar sets an existing scalar key-value pair in a mapping node,
