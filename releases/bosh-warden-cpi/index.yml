@@ -95,6 +95,8 @@ builds:
     version: 45.1.2
   b148bbbb-1491-4ca9-8852-f31896af9491:
     version: "1"
+  b189c60c-41dc-4b38-5760-168839825b49:
+    version: 45.2.4
   b1aaef00-8c93-4b81-42a2-4aeb53a0668a:
     version: 45.1.0
   b8fd5323-50f7-4ce4-8282-c45ce743788f:
