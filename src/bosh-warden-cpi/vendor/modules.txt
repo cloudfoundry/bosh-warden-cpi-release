@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/garden v0.0.0-20260729020900-a0441c36f7b5
+# code.cloudfoundry.org/garden v0.0.0-20260805020914-eb681524f408
 ## explicit; go 1.25.0
 code.cloudfoundry.org/garden
 code.cloudfoundry.org/garden/client
@@ -24,7 +24,7 @@ github.com/bmizerany/pat
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.630
+# github.com/cloudfoundry/bosh-utils v0.0.631
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
