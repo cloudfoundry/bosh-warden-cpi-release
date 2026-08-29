@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/garden v0.0.0-20260814181737-66902029982f
+# code.cloudfoundry.org/garden v0.0.0-20260826021137-674e52f7c65b
 ## explicit; go 1.25.0
 code.cloudfoundry.org/garden
 code.cloudfoundry.org/garden/client
@@ -7,7 +7,7 @@ code.cloudfoundry.org/garden/client/connection/connectionfakes
 code.cloudfoundry.org/garden/gardenfakes
 code.cloudfoundry.org/garden/routes
 code.cloudfoundry.org/garden/transport
-# code.cloudfoundry.org/lager/v3 v3.82.0
+# code.cloudfoundry.org/lager/v3 v3.84.0
 ## explicit; go 1.25.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -20,11 +20,11 @@ github.com/bmatcuk/doublestar
 # github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f
 ## explicit
 github.com/bmizerany/pat
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260815100222-36f74bc3d3c0
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260822100132-980e5b7f78d1
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.642
+# github.com/cloudfoundry/bosh-utils v0.0.645
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
@@ -49,7 +49,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3
+# github.com/google/pprof v0.0.0-20260825171938-4d453200e7d9
 ## explicit; go 1.25.0
 github.com/google/pprof/profile
 # github.com/jpillora/backoff v1.0.0

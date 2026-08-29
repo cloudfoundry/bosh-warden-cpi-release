@@ -3,23 +3,23 @@ module bosh-warden-cpi
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/garden v0.0.0-20260814181737-66902029982f
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260815100222-36f74bc3d3c0
-	github.com/cloudfoundry/bosh-utils v0.0.642
+	code.cloudfoundry.org/garden v0.0.0-20260826021137-674e52f7c65b
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20260822100132-980e5b7f78d1
+	github.com/cloudfoundry/bosh-utils v0.0.645
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	go.yaml.in/yaml/v3 v3.0.5
 )
 
 require (
-	code.cloudfoundry.org/lager/v3 v3.82.0 // indirect
+	code.cloudfoundry.org/lager/v3 v3.84.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
+	github.com/google/pprof v0.0.0-20260825171938-4d453200e7d9 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
