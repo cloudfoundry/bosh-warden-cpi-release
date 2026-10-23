@@ -1,8 +1,6 @@
 package stemcell
 
 import (
-	"strings"
-
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -47,9 +45,9 @@ func (i LightImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 		return nil, bosherr.Error("Light stemcell metadata missing image_reference")
 	}
 
-	err = i.validateImageReference(imageReference)
+	imageReference, err = pinnedLightImageReference(imageReference, metadata.GetDigest())
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Validating image reference")
+		return nil, bosherr.WrapError(err, "Validating image reference and digest")
 	}
 
 	i.logger.Debug(i.logTag, "Light stemcell references image: %s", imageReference)
@@ -59,21 +57,4 @@ func (i LightImporter) ImportFromPath(imagePath string) (Stemcell, error) {
 	i.logger.Debug(i.logTag, "Imported light stemcell with CID: %s", cid)
 
 	return NewLightStemcell(apiv1.NewStemcellCID(cid), imageReference, i.logger), nil
-}
-
-func (i LightImporter) validateImageReference(imageRef string) error {
-	if imageRef == "" {
-		return bosherr.Error("Image reference cannot be empty")
-	}
-
-	if strings.Contains(imageRef, "..") {
-		return bosherr.Error("Image reference contains invalid path traversal pattern")
-	}
-
-	if strings.HasPrefix(imageRef, "/") || strings.HasPrefix(imageRef, ":") || strings.HasPrefix(imageRef, "@") {
-		return bosherr.Errorf("Image reference has invalid format: %s", imageRef)
-	}
-
-	i.logger.Debug(i.logTag, "Image reference validated: %s", imageRef)
-	return nil
 }

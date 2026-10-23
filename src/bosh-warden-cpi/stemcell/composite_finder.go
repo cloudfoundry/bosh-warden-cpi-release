@@ -28,7 +28,10 @@ func (f CompositeFinder) Find(id apiv1.StemcellCID) (Stemcell, bool, error) {
 	cidString := id.AsString()
 
 	if strings.HasPrefix(cidString, "light://") {
-		imageReference := strings.TrimPrefix(cidString, "light://")
+		imageReference, err := pinnedLightImageReference(strings.TrimPrefix(cidString, "light://"), "")
+		if err != nil {
+			return nil, false, err
+		}
 		return NewLightStemcell(id, imageReference, f.logger), true, nil
 	}
 
