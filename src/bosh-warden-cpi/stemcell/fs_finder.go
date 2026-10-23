@@ -1,6 +1,7 @@
 package stemcell
 
 import (
+	bwcutil "bosh-warden-cpi/util"
 	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
@@ -20,6 +21,9 @@ func NewFSFinder(dirPath string, fs boshsys.FileSystem, logger boshlog.Logger) F
 }
 
 func (f FSFinder) Find(id apiv1.StemcellCID) (Stemcell, bool, error) {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return nil, false, err
+	}
 	dirPath := filepath.Join(f.dirPath, id.AsString())
 
 	if f.fs.FileExists(dirPath) {

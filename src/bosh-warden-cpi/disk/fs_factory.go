@@ -1,6 +1,7 @@
 package disk
 
 import (
+	bwcutil "bosh-warden-cpi/util"
 	"path/filepath"
 	"strconv"
 
@@ -74,6 +75,9 @@ func (f FSFactory) Create(size int) (Disk, error) {
 }
 
 func (f FSFactory) Find(id apiv1.DiskCID) (Disk, error) {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return nil, err
+	}
 	return NewFSDisk(id, filepath.Join(f.dirPath, id.AsString()), f.fs, f.logger), nil
 }
 

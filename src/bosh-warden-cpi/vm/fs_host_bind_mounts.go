@@ -48,6 +48,9 @@ func NewFSHostBindMounts(
 }
 
 func (hbm FSHostBindMounts) MakeEphemeral(id apiv1.VMCID) (string, error) {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return "", err
+	}
 	path := filepath.Join(hbm.ephemeralBindMountsDir, id.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
@@ -75,6 +78,9 @@ func (hbm FSHostBindMounts) MakeEphemeral(id apiv1.VMCID) (string, error) {
 }
 
 func (hbm FSHostBindMounts) DeleteEphemeral(id apiv1.VMCID) error {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return err
+	}
 	path := filepath.Join(hbm.ephemeralBindMountsDir, id.AsString())
 
 	if !hbm.fs.FileExists(path) {
@@ -104,6 +110,9 @@ func (hbm FSHostBindMounts) DeleteEphemeral(id apiv1.VMCID) error {
 }
 
 func (hbm FSHostBindMounts) MakePersistent(id apiv1.VMCID) (string, error) {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return "", err
+	}
 	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
@@ -133,6 +142,9 @@ func (hbm FSHostBindMounts) MakePersistent(id apiv1.VMCID) (string, error) {
 }
 
 func (hbm FSHostBindMounts) DeletePersistent(id apiv1.VMCID) error {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return err
+	}
 	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString())
 
 	if hbm.fs.FileExists(path) {
@@ -163,6 +175,12 @@ func (hbm FSHostBindMounts) DeletePersistent(id apiv1.VMCID) error {
 }
 
 func (hbm FSHostBindMounts) MountPersistent(id apiv1.VMCID, diskID apiv1.DiskCID, diskPath string) error {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return err
+	}
+	if err := bwcutil.ValidateCIDPathComponent(diskID.AsString()); err != nil {
+		return err
+	}
 	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString(), diskID.AsString())
 
 	err := hbm.fs.MkdirAll(path, os.FileMode(0755))
@@ -179,6 +197,12 @@ func (hbm FSHostBindMounts) MountPersistent(id apiv1.VMCID, diskID apiv1.DiskCID
 }
 
 func (hbm FSHostBindMounts) UnmountPersistent(id apiv1.VMCID, diskID apiv1.DiskCID) error {
+	if err := bwcutil.ValidateCIDPathComponent(id.AsString()); err != nil {
+		return err
+	}
+	if err := bwcutil.ValidateCIDPathComponent(diskID.AsString()); err != nil {
+		return err
+	}
 	path := filepath.Join(hbm.persistentBindMountsDir, id.AsString(), diskID.AsString())
 	return hbm.unmountPath(path)
 }
@@ -195,7 +219,7 @@ func (hbm FSHostBindMounts) unmountPath(path string) error {
 
 		// If output does not contain path it means that either
 		// it was never mounted or it was successfully unmounted
-		if !strings.Contains(stdout, path) {
+		if !hasExactMountpoint(stdout, path) {
 			return nil
 		}
 
@@ -225,4 +249,15 @@ func (hbm FSHostBindMounts) deletePath(path string) error {
 	}
 
 	return lastErr
+}
+
+func hasExactMountpoint(output, path string) bool {
+	unescape := strings.NewReplacer(`\040`, " ", `\011`, "\t", `\012`, "\n", `\134`, `\`)
+	for _, line := range strings.Split(output, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) >= 5 && fields[1] == "on" && fields[3] == "type" && unescape.Replace(fields[2]) == path {
+			return true
+		}
+	}
+	return false
 }

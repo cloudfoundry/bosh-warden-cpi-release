@@ -1,6 +1,7 @@
 package stemcell
 
 import (
+	bwcutil "bosh-warden-cpi/util"
 	"path/filepath"
 	"strings"
 
@@ -31,6 +32,9 @@ func (f CompositeFinder) Find(id apiv1.StemcellCID) (Stemcell, bool, error) {
 		return NewLightStemcell(id, imageReference, f.logger), true, nil
 	}
 
+	if err := bwcutil.ValidateCIDPathComponent(cidString); err != nil {
+		return nil, false, err
+	}
 	stemcellDir := filepath.Join(f.dirPath, cidString)
 	if f.fs.FileExists(stemcellDir) {
 		return NewFSStemcell(id, stemcellDir, f.fs, f.logger), true, nil

@@ -296,11 +296,11 @@ var _ = Describe("FSHostBindMounts", func() {
 
 				cmdRunner.AddCmdResult(
 					"mount",
-					fakesys.FakeCmdResult{Stdout: "/fake-persistent-dir/fake-id/fake-disk-id-1\n/fake-persistent-dir/fake-id/fake-disk-id-2"},
+					fakesys.FakeCmdResult{Stdout: "/dev/loop0 on /fake-persistent-dir/fake-id/fake-disk-id-1 type ext4 (rw)\n/dev/loop1 on /fake-persistent-dir/fake-id/fake-disk-id-2 type ext4 (rw)"},
 				)
 				cmdRunner.AddCmdResult(
 					"mount",
-					fakesys.FakeCmdResult{Stdout: "/fake-persistent-dir/fake-id/fake-disk-id-2"},
+					fakesys.FakeCmdResult{Stdout: "/dev/loop1 on /fake-persistent-dir/fake-id/fake-disk-id-2 type ext4 (rw)"},
 				)
 
 				cmdRunner.RunCommands = [][]string{} // Reset cmd runner comamnds
@@ -462,7 +462,7 @@ var _ = Describe("FSHostBindMounts", func() {
 		It("unmounts disk path if disk path is mounted", func() {
 			cmdRunner.AddCmdResult("mount", fakesys.FakeCmdResult{
 				Stdout: `/dev/sda1 on / type ext4 (rw)
-/fake-persistent-dir/fake-id/fake-disk-id on /fake-disk-path type none (rw,bind)`,
+/fake-disk-path on /fake-persistent-dir/fake-id/fake-disk-id type none (rw,bind)`,
 			})
 
 			err := hostBindMounts.UnmountPersistent(apiv1.NewVMCID("fake-id"), apiv1.NewDiskCID("fake-disk-id"))
@@ -504,7 +504,7 @@ var _ = Describe("FSHostBindMounts", func() {
 		It("tries to unmount disk path up to 60 times", func() {
 			for i := 0; i < 60; i++ {
 				cmdRunner.AddCmdResult("mount", fakesys.FakeCmdResult{
-					Stdout: "/fake-persistent-dir/fake-id/fake-disk-id",
+					Stdout: "/dev/loop0 on /fake-persistent-dir/fake-id/fake-disk-id type ext4 (rw)",
 				})
 			}
 
@@ -545,7 +545,7 @@ var _ = Describe("FSHostBindMounts", func() {
 		It("returns error if unmounting disk path fails at 60th time", func() {
 			for i := 0; i < 60; i++ {
 				cmdRunner.AddCmdResult("mount", fakesys.FakeCmdResult{
-					Stdout: "/fake-persistent-dir/fake-id/fake-disk-id",
+					Stdout: "/dev/loop0 on /fake-persistent-dir/fake-id/fake-disk-id type ext4 (rw)",
 				})
 
 				cmdRunner.AddCmdResult(
