@@ -474,7 +474,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-acceptance-tests
-    branch: master
 
 - name: bosh-warden-cpi-release
   type: git
