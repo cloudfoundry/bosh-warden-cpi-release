@@ -479,7 +479,7 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/bosh-warden-cpi-release.git
-    branch: master
+    branch: main
     private_key: ((github_deploy_key_bosh-warden-cpi-release.private_key))
 
 - name: bosh-warden-cpi-release-github-release
