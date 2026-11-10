@@ -119,6 +119,8 @@ builds:
     version: "28"
   c03b9373-8748-4ddb-58c4-4cc8ea6afaef:
     version: "40"
+  c103185f-641e-4f1b-476d-6d33c8a74925:
+    version: 45.2.12
   c547eecf-fb5d-424b-5080-2243660f731d:
     version: "45"
   c8c8c57a-6c53-413c-551c-aa1e28a35c9a:
