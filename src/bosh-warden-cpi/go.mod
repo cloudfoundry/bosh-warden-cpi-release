@@ -3,16 +3,15 @@ module bosh-warden-cpi
 go 1.26.11
 
 require (
-	code.cloudfoundry.org/garden v0.11.0
+	code.cloudfoundry.org/garden v0.12.0
 	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20261107100149-ac6688e69f60
-	github.com/cloudfoundry/bosh-utils v0.0.671
+	github.com/cloudfoundry/bosh-utils v0.0.675
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	go.yaml.in/yaml/v3 v3.0.6
 )
 
 require (
-	code.cloudfoundry.org/clock v1.96.0 // indirect
 	code.cloudfoundry.org/lager/v3 v3.95.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
@@ -21,13 +20,13 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261110164715-8bb1ee682bd8 // indirect
+	github.com/google/pprof v0.0.0-20261111200114-fac431ef4d26 // indirect
 	github.com/jpillora/backoff v1.1.0 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/tedsuo/rata v1.0.0 // indirect
-	github.com/tidwall/gjson v1.20.2 // indirect
+	github.com/tidwall/gjson v1.20.3 // indirect
 	github.com/tidwall/pretty v1.3.0 // indirect
 	github.com/tidwall/sjson v1.2.9 // indirect
 	golang.org/x/mod v0.43.0 // indirect
