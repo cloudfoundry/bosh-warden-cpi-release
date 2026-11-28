@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/clock v1.97.0
+# code.cloudfoundry.org/clock v1.98.0
 ## explicit; go 1.26.0
 # code.cloudfoundry.org/garden v0.13.0
 ## explicit; go 1.26.0
@@ -9,7 +9,7 @@ code.cloudfoundry.org/garden/client/connection/connectionfakes
 code.cloudfoundry.org/garden/gardenfakes
 code.cloudfoundry.org/garden/routes
 code.cloudfoundry.org/garden/transport
-# code.cloudfoundry.org/lager/v3 v3.96.0
+# code.cloudfoundry.org/lager/v3 v3.97.0
 ## explicit; go 1.26.0
 code.cloudfoundry.org/lager/v3
 code.cloudfoundry.org/lager/v3/internal/truncate
@@ -22,11 +22,11 @@ github.com/bmatcuk/doublestar
 # github.com/bmizerany/pat v0.0.0-20210406213842-e4b6760bdd6f
 ## explicit
 github.com/bmizerany/pat
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20261114100113-be5660683e5d
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20261121100112-4f3eae96e8d2
 ## explicit; go 1.26.11
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
-# github.com/cloudfoundry/bosh-utils v0.0.676
+# github.com/cloudfoundry/bosh-utils v0.0.678
 ## explicit; go 1.26.11
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
@@ -39,8 +39,8 @@ github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 # github.com/fsnotify/fsnotify v1.10.1
 ## explicit; go 1.23
-# github.com/gkampitakis/ciinfo v0.3.5
-## explicit; go 1.20
+# github.com/gkampitakis/go-snaps v0.5.26
+## explicit; go 1.23
 # github.com/go-logr/logr v1.4.4
 ## explicit; go 1.18
 github.com/go-logr/logr
@@ -61,6 +61,8 @@ github.com/google/pprof/profile
 # github.com/jpillora/backoff v1.1.0
 ## explicit; go 1.19
 github.com/jpillora/backoff
+# github.com/mfridman/tparse v0.20.0
+## explicit; go 1.26.7
 # github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 ## explicit
 github.com/nu7hatch/gouuid
@@ -107,15 +109,13 @@ github.com/onsi/gomega/types
 ## explicit; go 1.20
 github.com/openzipkin/zipkin-go/idgenerator
 github.com/openzipkin/zipkin-go/model
-# github.com/sergi/go-diff v1.4.5
-## explicit; go 1.13
 # github.com/tedsuo/rata v1.0.0
 ## explicit
 github.com/tedsuo/rata
-# github.com/tidwall/gjson v1.20.5
+# github.com/tidwall/gjson v1.20.7
 ## explicit; go 1.23
-# github.com/tidwall/sjson v1.2.11
-## explicit; go 1.23
+# github.com/tidwall/pretty v1.3.1
+## explicit; go 1.16
 # go.yaml.in/yaml/v3 v3.0.6
 ## explicit; go 1.16
 go.yaml.in/yaml/v3
